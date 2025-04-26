@@ -1,0 +1,24 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
+const mainController_1 = require("../controller/mainController");
+const RequestValidator_1 = require("../validator/RequestValidator");
+const orgController_1 = require("../controller/orgController");
+const upload_1 = require("../middleware/upload");
+//user crud
+router.get("/users/", mainController_1.MainController.getFunction);
+router.get("/users/:userId/", mainController_1.MainController.getUserFunction);
+// router.post("/users/", RequestValidator.postUser, MainController.postFunction);
+router.post("/signup/", mainController_1.MainController.signUp);
+router.post("/login/", mainController_1.MainController.logIn);
+router.delete("/users/:userId", mainController_1.MainController.deleteFunction);
+router.patch("/users/:userId", RequestValidator_1.RequestValidator.patchUser, mainController_1.MainController.patchFunction);
+router.post("/users/bulk", upload_1.upload.single("file"), mainController_1.MainController.postBulk);
+//organisation crud
+router.post("/organisations/", RequestValidator_1.RequestValidator.postOrganisation, orgController_1.orgController.postOrg);
+router.get("/organisations/", orgController_1.orgController.getOrg);
+exports.default = router;
