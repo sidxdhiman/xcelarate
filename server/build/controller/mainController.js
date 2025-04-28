@@ -18,6 +18,7 @@ const xlsx_1 = __importDefault(require("xlsx"));
 const fs_1 = __importDefault(require("fs"));
 const signUpService_1 = require("../service/signUpService");
 const logInService_1 = require("../service/logInService");
+const postService_1 = require("../service/postService");
 var logger = require("../util/logger");
 const { encrypt, decrypt } = require('../security/encrypt&decrypt');
 const { GetService } = require("../service/getService");
@@ -26,6 +27,8 @@ const { DeleteService } = require("../service/deleteService");
 const { PatchService } = require("../service/patchService");
 const { GetByIdService } = require("../service/getService");
 const { PostBulk } = require("../service/postBulkService");
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 class MainController {
     static getFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -93,20 +96,43 @@ class MainController {
             }
         });
     }
+    static postFunction(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userData = req.body;
+                const user = yield new postService_1.PostUser().postUser(userData);
+                if (user) {
+                    res.json(user);
+                }
+                else {
+                    res.status(404).json({ message: "User not posted" });
+                }
+            }
+            catch (error) {
+                res.status(500).json({ message: "Internal server error" });
+            }
+        });
+    }
     static postBulk(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
+                // Ensure the field name matches 'file' used in the frontend request (Postman or React)
                 const filePath = (_a = req.file) === null || _a === void 0 ? void 0 : _a.path;
-                if (!filePath)
-                    return res.status(400).json({ error: "No file uploaded" });
+                if (!filePath) {
+                    return res.status(400).json({ error: "No file uploaded or incorrect field name" });
+                }
+                // Parse the uploaded Excel file
                 const workbook = xlsx_1.default.readFile(filePath);
                 const sheetName = workbook.SheetNames[0];
                 const data = xlsx_1.default.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                // Use your service to insert the users
                 const postBulkInstance = new PostBulk();
                 const result = yield postBulkInstance.postBulkUsers(data);
+                // Delete the file after processing to prevent storage accumulation
                 fs_1.default.unlinkSync(filePath);
-                return res.status(200).json({ message: "Bulk Users uploaded successfully", result });
+                // Return success response
+                return res.status(200).json({ message: "Bulk users uploaded successfully", result });
             }
             catch (error) {
                 console.error("Upload error:", error);
@@ -143,23 +169,23 @@ class MainController {
     static deleteFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = parseInt(req.params.userId);
-                if (!mongoose_1.default.Types.ObjectId.isValid(userId)) {
-                    return res.status(400).json({ message: "Invalid user ID format" }),
-                        logger.errorLog.info("FAILED!-INVALID-USER-ID");
+                const _id = req.params._id;
+                if (!mongoose_1.default.Types.ObjectId.isValid(_id)) {
+                    return res.status(400).json({ message: "Invalid user ID format" });
+                    // logger.errorLog.info("FAILED!-INVALID-USER-ID");
                 }
-                const result = yield new DeleteService().deleteUserbyId(userId);
+                const result = yield new DeleteService().deleteUserbyId(_id);
                 if (result.matchedCount === 0) {
-                    return res.status(404).json({ message: "User not found" }),
-                        logger.errorLog.info("FAILED!-USER-NOT-FOUND");
+                    return res.status(404).json({ message: "User not found" });
+                    logger.errorLog.info("FAILED!-USER-NOT-FOUND");
                 }
                 res.status(200).json({ message: "User deleted successfully!" });
                 logger.accessLog.info("SUCCESS!-USER-DELETED");
             }
             catch (error) {
-                console.error("Error updating user:", error);
-                res.status(500).json({ message: "Internal Server Error - DELETE" }),
-                    logger.errorLog.info("FAILED!-INTERNAL-SERVER-ERROR");
+                console.error("Error deleting user:", error);
+                res.status(500).json({ message: "Internal Server Error - DELETE" });
+                logger.errorLog.info("FAILED!-INTERNAL-SERVER-ERROR");
             }
         });
     }

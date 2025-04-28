@@ -142,7 +142,7 @@ const SignUpScreen = () => {
             >
               <Picker.Item label="Select a location" value="" />
               {locations.map((loc) => (
-                <Picker.Item key={loc} label={loc} value={loc} />
+                <Picker.Item label={loc} value={loc} />
               ))}
             </Picker>
           </View>

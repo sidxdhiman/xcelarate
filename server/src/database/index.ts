@@ -12,7 +12,7 @@ export const connection = mongoose.connect(mongoDB, {
     name:String,
     email:String,
     password:String,
-    iv: { type: String, required: true },
+    iv: { type: String, required: false }, //TODO: has to be set true but for the time being is set to false
     contact:Number,
     organisation: String,
     designation:String,

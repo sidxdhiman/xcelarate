@@ -9,10 +9,10 @@ import {upload} from "../middleware/upload";
 //user crud
 router.get("/users/", MainController.getFunction);
 router.get("/users/:userId/", MainController.getUserFunction);
-// router.post("/users/", RequestValidator.postUser, MainController.postFunction);
+router.post("/users/", RequestValidator.postUser, MainController.postFunction);
 router.post("/signup/", MainController.signUp);
 router.post("/login/", MainController.logIn);
-router.delete("/users/:userId", MainController.deleteFunction);
+router.delete("/users/:_id", MainController.deleteFunction);
 router.patch("/users/:userId", RequestValidator.patchUser, MainController.patchFunction);
 router.post("/users/bulk", upload.single("file"), MainController.postBulk);
 

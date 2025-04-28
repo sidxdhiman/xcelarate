@@ -21,14 +21,15 @@ export class RequestValidator {
   public static async postUser(req: Request, res: Response, next: NextFunction) {
     const schema = Joi.object({
       name: Joi.string().required(),
-      password: Joi.string().required(),
+      password: Joi.string(), 
+      //TODO: put required in password, or make another public static for posting user differently (both signup and post user is using this)
       email: Joi.string().lowercase().pattern(/@xebia\.com$/).required(),
       contact: Joi.number().required(),
       organisation: Joi.string().required(),
       designation: Joi.string().required(),
       location: Joi.string().required(),
       currentProject: Joi.string().required(),    
-      accessLevel: Joi.number().required(),
+      accessLevel: Joi.number(), //TODO: required for final app, commented out for time being
     });
 
     const { error } = schema.validate(req.body);

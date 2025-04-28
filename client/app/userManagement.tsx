@@ -7,53 +7,50 @@ import {
   ImageBackground,
   SafeAreaView,
 } from 'react-native';
-import { Ionicons, FontAwesome5, MaterialIcons, Feather } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { push } from 'expo-router/build/global-state/routing';
 
-const AdminPanel = ()=> {
+export default function UserPanel() {
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
-        source={require("../assets/images/0001.jpg")}
+        source={require('../assets/images/0002.png')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
         {/* Header Section */}
         <View style={styles.headerContainer}>
           <View style={styles.topCurve}>
-            <Text style={styles.headerText}>ADMIN PANEL</Text>
-            <Ionicons
-              name="person-circle"
-              size={28}
-              color="#fff"
-              style={styles.profileIcon}
-            />
+            {/* Home Icon */}
+            <TouchableOpacity style={styles.homeIcon}>
+              <Ionicons name="home" size={24} color="#000" />
+            </TouchableOpacity>
+
+            <Text style={styles.headerText}>USER MANAGEMENT</Text>
           </View>
         </View>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => router.push("/userManagement")}
-          >
-            <FontAwesome5 name="users" size={18} color="#000" />
-            <Text style={styles.buttonText}>USER MANAGEMENT</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/addUser')}>
+            <FontAwesome5 name="user-plus" size={16} color="#000" />
+            <Text style={styles.buttonText}>Add User</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <MaterialIcons name="question-answer" size={20} color="#000" />
-            <Text style={styles.buttonText}>QUESTION MANAGEMENT</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/addBulk')}>
+            <FontAwesome5 name="users" size={16} color="#000" />
+            <Text style={styles.buttonText}>Add Bulk Users</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <Feather name="file-text" size={20} color="#000" />
-            <Text style={styles.buttonText}>FETCH ALL REPORTS</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/modifyUser')}>
+            <MaterialIcons name="edit" size={18} color="#000" />
+            <Text style={styles.buttonText}>Modify User</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="log-out-outline" size={20} color="#000" />
-            <Text style={styles.buttonText}>LOG OUT</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/deleteUser')}>
+            <Ionicons name="trash-bin-outline" size={18} color="#000" />
+            <Text style={styles.buttonText}>Delete User</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
@@ -72,7 +69,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',
     position: 'relative',
-    marginBottom: 150,
+    marginBottom: 120,
   },
   topCurve: {
     backgroundColor: '#800080',
@@ -83,16 +80,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    paddingTop: 30,
   },
   headerText: {
     color: '#fff',
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
   },
-  profileIcon: {
+  homeIcon: {
     position: 'absolute',
     top: 20,
-    right: 20,
+    left: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 6,
+    elevation: 5,
   },
   buttonContainer: {
     paddingHorizontal: 25,
@@ -115,7 +119,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#000',
+    textTransform: 'capitalize',
   },
 });
-
-export default AdminPanel;

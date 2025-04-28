@@ -18,8 +18,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
-  const { login, isLoggingIn } = useAuthStore();  // Use the login action and loading state from your store
-
+  const { login, isLoggingIn } = useAuthStore(); 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password.');
@@ -35,8 +34,7 @@ const LoginScreen = () => {
     try {
       await login({ email, password });
 
-      // Use router.push instead of navigation
-      router.push('/landing');  // Adjust the route accordingly
+      router.push('/landing');  
     } catch (error) {
       console.log('Login error:', error);
       Alert.alert('Login Failed', 'Please check your credentials and try again.');

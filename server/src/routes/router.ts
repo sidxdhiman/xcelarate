@@ -18,7 +18,7 @@ routers.post("/login/", router);
 routers.patch("/users/:userId", router);
 
 //delete
-routers.delete("/users/:userId", router);
+routers.delete("/users/:_id", router);
 
 
 //organisation routes

@@ -18,7 +18,7 @@ routers.post("/login/", apiRoutes_1.default);
 //patch
 routers.patch("/users/:userId", apiRoutes_1.default);
 //delete
-routers.delete("/users/:userId", apiRoutes_1.default);
+routers.delete("/users/:_id", apiRoutes_1.default);
 //organisation routes
 routers.post("/organisations/", apiRoutes_1.default);
 routers.get("/organisations/", apiRoutes_1.default);

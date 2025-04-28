@@ -4,6 +4,7 @@ import xlsx from "xlsx";
 import fs from "fs";
 import { AuthService } from "../service/signUpService";
 import { AuthLoginService } from "../service/logInService";
+import { PostUser } from "../service/postService";
 var logger = require("../util/logger");
 const {encrypt, decrypt} = require('../security/encrypt&decrypt');
 const { GetService } = require("../service/getService");
@@ -12,6 +13,8 @@ const { DeleteService } = require("../service/deleteService");
 const { PatchService } = require("../service/patchService");
 const { GetByIdService } = require("../service/getService");
 const {PostBulk} = require("../service/postBulkService");
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 export class MainController {
   public static async getFunction(req: Request, res: Response) {
@@ -69,27 +72,48 @@ export class MainController {
       res.status(statusCode).json({error: message})
     }
   }
-  
-public static async postBulk(req: Request, res: Response) {
-  try {
-    const filePath = req.file?.path;
-    if (!filePath) return res.status(400).json({ error: "No file uploaded" });
-
-    const workbook = xlsx.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    const postBulkInstance = new PostBulk();
-    const result = await postBulkInstance.postBulkUsers(data);
-
-    fs.unlinkSync(filePath);
-
-    return res.status(200).json({ message: "Bulk Users uploaded successfully", result });
-  } catch (error) {
-    console.error("Upload error:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
+  public static async postFunction(req: Request, res: Response) {
+    try {
+        const userData = req.body
+        const user = await new PostUser().postUser(userData);
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).json({message: "User not posted"});
+        }
+    } catch (error) {
+        res.status(500).json({message: "Internal server error"});
+    }
 }
+  
+  public static async postBulk(req: Request, res: Response) {
+    try {
+      // Ensure the field name matches 'file' used in the frontend request (Postman or React)
+      const filePath = req.file?.path;
+      if (!filePath) {
+        return res.status(400).json({ error: "No file uploaded or incorrect field name" });
+      }
+  
+      // Parse the uploaded Excel file
+      const workbook = xlsx.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  
+      // Use your service to insert the users
+      const postBulkInstance = new PostBulk();
+      const result = await postBulkInstance.postBulkUsers(data);
+  
+      // Delete the file after processing to prevent storage accumulation
+      fs.unlinkSync(filePath);
+  
+      // Return success response
+      return res.status(200).json({ message: "Bulk users uploaded successfully", result });
+    } catch (error) {
+      console.error("Upload error:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+  
   public static async patchFunction(req: Request, res: Response) {
     try {
       const userId = parseInt(req.params.userId);
@@ -124,25 +148,25 @@ public static async postBulk(req: Request, res: Response) {
 
   public static async deleteFunction(req: Request, res: Response) {
     try {
-      const userId = parseInt(req.params.userId);
-
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: "Invalid user ID format" }),
-        logger.errorLog.info("FAILED!-INVALID-USER-ID");
+      const _id = req.params._id;
+  
+      if (!mongoose.Types.ObjectId.isValid(_id)) {
+        return res.status(400).json({ message: "Invalid user ID format" });
+        // logger.errorLog.info("FAILED!-INVALID-USER-ID");
       }
-
-      const result = await new DeleteService().deleteUserbyId(userId);
-
+  
+      const result = await new DeleteService().deleteUserbyId(_id);
+  
       if (result.matchedCount === 0) {
-        return res.status(404).json({ message: "User not found" }),
+        return res.status(404).json({ message: "User not found" });
         logger.errorLog.info("FAILED!-USER-NOT-FOUND");
       }
-
-      res.status(200).json({ message: "User deleted successfully!" })
+  
+      res.status(200).json({ message: "User deleted successfully!" });
       logger.accessLog.info("SUCCESS!-USER-DELETED");
     } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Internal Server Error - DELETE" }),
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Internal Server Error - DELETE" });
       logger.errorLog.info("FAILED!-INTERNAL-SERVER-ERROR");
     }
   }
