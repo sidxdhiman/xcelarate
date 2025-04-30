@@ -11,8 +11,8 @@ routers.get('/users/:userId', router);
 //post
 routers.post("/users/bulk", router);
 routers.post("/users/", router);
-routers.post("/signup/", router);
-routers.post("/login/", router);
+routers.post("/signupUser/", router);
+routers.post("/loginUser/", router);
 
 //patch
 routers.patch("/users/:userId", router);

@@ -13,8 +13,8 @@ routers.get('/users/:userId', apiRoutes_1.default);
 //post
 routers.post("/users/bulk", apiRoutes_1.default);
 routers.post("/users/", apiRoutes_1.default);
-routers.post("/signup/", apiRoutes_1.default);
-routers.post("/login/", apiRoutes_1.default);
+routers.post("/signupUser/", apiRoutes_1.default);
+routers.post("/loginUser/", apiRoutes_1.default);
 //patch
 routers.patch("/users/:userId", apiRoutes_1.default);
 //delete

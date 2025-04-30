@@ -22,12 +22,12 @@ const AdminPanel = ()=> {
         <View style={styles.headerContainer}>
           <View style={styles.topCurve}>
             <Text style={styles.headerText}>ADMIN PANEL</Text>
-            <Ionicons
+            {/* <Ionicons
               name="person-circle"
               size={28}
               color="#fff"
               style={styles.profileIcon}
-            />
+            /> */}
           </View>
         </View>
 
@@ -38,22 +38,24 @@ const AdminPanel = ()=> {
             onPress={() => router.push("/userManagement")}
           >
             <FontAwesome5 name="users" size={18} color="#000" />
-            <Text style={styles.buttonText}>USER MANAGEMENT</Text>
+            <Text style={styles.buttonText}>User Management</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button}>
             <MaterialIcons name="question-answer" size={20} color="#000" />
-            <Text style={styles.buttonText}>QUESTION MANAGEMENT</Text>
+            <Text style={styles.buttonText}>Question Management</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button}>
             <Feather name="file-text" size={20} color="#000" />
-            <Text style={styles.buttonText}>FETCH ALL REPORTS</Text>
+            <Text style={styles.buttonText}>Fetch all reports</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button}
+          onPress={()=> router.push('/login')}
+          >
             <Ionicons name="log-out-outline" size={20} color="#000" />
-            <Text style={styles.buttonText}>LOG OUT</Text>
+            <Text style={styles.buttonText}>Log out</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>

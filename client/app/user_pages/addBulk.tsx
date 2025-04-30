@@ -55,11 +55,11 @@ const AddBulkUsers = () => {
       resizeMode="cover"
     >
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
-        <Text style={tw`text-2xl font-bold text-white mb-5`}>UPLOAD BULK USERS</Text>
+        <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Upload bulk users</Text>
 
         {/* Upload Button */}
         <TouchableOpacity
-          style={tw`bg-[#800080] rounded-full py-3 px-10 mt-5 w-full items-center`}
+          style={tw`bg-[#800080] flex items-center rounded-full py-3 px-10 mt-5 w-full`}
           onPress={handleFilePick}
           disabled={loading} // Disable the button while loading
         >

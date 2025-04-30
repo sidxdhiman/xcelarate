@@ -77,15 +77,17 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
       resizeMode="cover"
     >
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
-        <Text style={tw`text-2xl font-bold text-white mb-5`}>MODIFY USER</Text>
+        <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Modify User</Text>
 
         {/* Input Fields */}
         {[
-          { icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
+          { icon: 'gear', placeholder: 'Enter the email id to modify', value: email, setter: setEmail },
           { icon: 'envelope', placeholder: 'Email', value: email, setter: setEmail },
+          { icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
           { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact },
           { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
           { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
+          { icon: 'lock', placeholder: 'Access Level'},
         ].map((field, idx) => (
           <View key={idx} style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
             <Icon name={field.icon} size={18} color="#999" style={tw`mr-2`} />

@@ -81,7 +81,7 @@ const AddUser = () => {
       resizeMode="cover"
     >
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
-        <Text style={tw`text-2xl font-bold text-white mb-5`}>ADD USER</Text>
+        <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Add User</Text>
 
         {/* Display error message */}
         {error ? <Text style={tw`text-red-500 mb-3`}>{error}</Text> : null}
@@ -93,6 +93,7 @@ const AddUser = () => {
           { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact, keyboardType: 'phone-pad' },
           { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
           { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
+          {icon: 'lock', placeholder: 'Access Level'},
         ].map((field, idx) => (
             <View key={idx} style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
             <Icon name={field.icon} size={18} color="#999" style={tw`mr-2`} />

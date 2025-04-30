@@ -13,7 +13,7 @@ const DeleteUser = () => {
 
   const handleDeleteUser = async () => {
     if (!userId) {
-      alert("Please enter the user ID.");
+      alert("Please enter the user email.");
       return;
     }
 
@@ -40,12 +40,12 @@ const DeleteUser = () => {
       resizeMode="cover"
     >
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
-        <Text style={tw`text-2xl font-bold text-white mb-5`}>DELETE USER</Text>
+        <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Delete User</Text>
 
         {/* User ID Input */}
         <View style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
           <TextInput
-            placeholder="Enter User ID"
+            placeholder="Enter User Email"
             placeholderTextColor="#999"
             value={userId}
             onChangeText={setUserId}

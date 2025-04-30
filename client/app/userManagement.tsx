@@ -23,9 +23,9 @@ export default function UserPanel() {
         <View style={styles.headerContainer}>
           <View style={styles.topCurve}>
             {/* Home Icon */}
-            <TouchableOpacity style={styles.homeIcon}>
+            {/* <TouchableOpacity style={styles.homeIcon}>
               <Ionicons name="home" size={24} color="#000" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <Text style={styles.headerText}>USER MANAGEMENT</Text>
           </View>

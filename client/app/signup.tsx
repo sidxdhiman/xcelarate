@@ -12,7 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { useAuthStore } from '../store/useAuthStore'; 
-import { useRouter } from 'expo-router';  // Import router from expo-router
+import { useRouter } from 'expo-router'; 
 
 const SignUpScreen = () => {
   const signup = useAuthStore((state: { signup: any; }) => state.signup);
@@ -26,7 +26,7 @@ const SignUpScreen = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const router = useRouter();  // Use router from expo-router
+  const router = useRouter();  
 
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
@@ -48,10 +48,9 @@ const SignUpScreen = () => {
   
     try {
       await signup(signupData);
-      router.push('/landing');  // Use router.push to navigate to landing
+      router.push('/landing');
     } catch (error) {
       console.log('Signup error:', error);
-      // If your auth store already shows toast, no need for extra alert here
     }
   };
 
@@ -142,7 +141,7 @@ const SignUpScreen = () => {
             >
               <Picker.Item label="Select a location" value="" />
               {locations.map((loc) => (
-                <Picker.Item label={loc} value={loc} />
+                <Picker.Item key={loc} label={loc} value={loc} />
               ))}
             </Picker>
           </View>
@@ -185,10 +184,8 @@ const SignUpScreen = () => {
         </TouchableOpacity>
 
         {/* Login Button */}
-        <TouchableOpacity
-          style={tw`bg-[#800080] rounded-full py-3 px-10 mt-4 w-full items-center`}
-        >
-          <Text style={tw`text-white font-semibold text-base`}>Login</Text>
+        <TouchableOpacity>
+          <Text style={tw`text-white font-semibold text-base underline`} onPress={()=> router.push('/login')}>Login</Text>
         </TouchableOpacity>
       </ScrollView>
     </ImageBackground>
