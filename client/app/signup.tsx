@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { useAuthStore } from '../store/useAuthStore'; 
 import { useRouter } from 'expo-router'; 
+import Toast from 'react-native-toast-message';
 
 const SignUpScreen = () => {
   const signup = useAuthStore((state: { signup: any; }) => state.signup);
@@ -30,29 +31,55 @@ const SignUpScreen = () => {
 
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
-  const handleSignup = async () => {
-    if (password !== confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
-  
-    const signupData = {
-      username,
-      email,
-      contact,
-      organisation,
-      designation,
-      location: selectedLocation,
-      password,
-    };
-  
-    try {
-      await signup(signupData);
-      router.push('/landing');
-    } catch (error) {
-      console.log('Signup error:', error);
-    }
+const handleSignup = async () => {
+  // Check if passwords match
+  if (password !== confirmPassword) {
+    Toast.show({
+      type: 'error',
+      text1: 'Signup Error',
+      text2: 'Passwords do not match!',
+    });
+    return;
+  }
+
+  // Optional: validate required fields
+  if (!username || !email || !contact || !organisation || !designation || !selectedLocation || !password) {
+    Toast.show({
+      type: 'error',
+      text1: 'Missing Information',
+      text2: 'Please fill in all required fields.',
+    });
+    return;
+  }
+
+  const signupData = {
+    username,
+    email,
+    contact,
+    organisation,
+    designation,
+    location: selectedLocation,
+    password,
   };
+
+  try {
+    await signup(signupData);
+    Toast.show({
+      type: 'success',
+      text1: 'Signup Successful',
+      text2: 'Welcome aboard!',
+    });
+    router.push('/landing');
+  } catch (error) {
+    console.log('Signup error:', error);
+    Toast.show({
+      type: 'error',
+      text1: 'Signup Failed',
+      text2: 'Something went wrong. Try again.',
+    });
+  }
+};
+
 
   return (
     <ImageBackground

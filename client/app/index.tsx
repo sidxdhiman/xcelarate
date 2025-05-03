@@ -53,10 +53,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 50,
+    fontSize: 60,
     fontWeight: 'bold',
     color: 'blacka',
-    marginTop: 96,
+    marginTop: 200,
   },
   poweredBy: {
     flexDirection: 'row',

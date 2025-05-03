@@ -10,8 +10,9 @@ import {
   ImageBackground,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';  // Use router from expo-router
-import { useAuthStore } from '@/store/useAuthStore';  // Import your store
+import { router } from 'expo-router';
+import { useAuthStore } from '@/store/useAuthStore';
+import Toast from "react-native-toast-message";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -20,26 +21,54 @@ const LoginScreen = () => {
 
   const { login, isLoggingIn } = useAuthStore(); 
   const handleLogin = async () => {
+    // Step 1: Validate the inputs (email and password)
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
+      Toast.show({
+        type: 'error',
+        text1: 'Login Error',
+        text2: 'Please enter valid credentials',
+      });
+      Alert.alert('Invalid Credentials', 'Please enter both email and password.');
       return;
     }
-
+  
+    // Step 2: Validate email format
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Email',
+        text2: 'Please enter a valid email address',
+      });
       return;
     }
-
+  
     try {
-      await login({ email, password });
-
-      router.push('/landing');  
+      // Step 3: Call the login function with email and password
+      const response = await login({ email, password });
+  
+      // Step 4: Check if the login was successful and navigate accordingly
+      if (response?.success) {  // Assuming your login function returns a response with success flag
+        router.push('/landing');
+      } else {
+        // If login failed (user doesn't exist or incorrect credentials)
+        Toast.show({
+          type: 'error',
+          text1: 'Login Failed',
+          text2: 'Invalid email or password. Please try again.',
+        });
+        Alert.alert('Login Failed', 'Please check your credentials and try again.');
+      }
     } catch (error) {
       console.log('Login error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Login Failed',
+        text2: 'We cannot find you. SignUp or Contact Admin',
+      });
       Alert.alert('Login Failed', 'Please check your credentials and try again.');
     }
-  };
+  };  
 
   return (
     <ImageBackground source={require('../assets/images/0001.jpg')} style={styles.backgroundImage}>

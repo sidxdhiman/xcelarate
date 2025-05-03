@@ -1,5 +1,5 @@
 import axiosInstance from "../lib/axios";
-import toast from "react-hot-toast";
+import Toast from "react-native-toast-message";
 import { create } from 'zustand';
 
 const baseURL = "http://localhost:9000/";
@@ -28,15 +28,23 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  signup: async (data) => {
+  signup: async (signupData) => {
     set({ isSigningUp: true });
     try {
-      const res = await axiosInstance.post(`/signup`, data);
+      const res = await axiosInstance.post(`${baseURL}signupUser`, signupData);
       set({ authUser: res.data });
-      toast.success("Account created successfully");
+      Toast.show({
+        type:'success',
+        text1:'Yay!',
+        text2:'You are Signed in'
+      });
     } catch (error) {
       console.error("Signup error:", error);
-      toast.error(error?.response?.data?.message || "Signup failed");
+      Toast.show({
+        type:'success',
+        text1:'Yay!',
+        text2:'You are Signed in'
+      });
     } finally {
       set({ isSigningUp: false });
     }
