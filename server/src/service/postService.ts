@@ -7,12 +7,12 @@ export class PostUser {
   public async postUser(userData: any): Promise<any> {
     try {
       // Validate userData before creating
-      if (!userData.email || !userData.password || !userData.name) {
+      if (!userData.email || !userData.username) {
         throw new Error("Required fields are missing");
       }
-      const encrypted = encrypt(userData.password);
-      userData.password = encrypted.content;
-      userData.iv = encrypted.iv;
+      // const encrypted = encrypt(userData.password);
+      // userData.password = encrypted.content;
+      // userData.iv = encrypted.iv;
 
       const user = await User.create(userData);
       console.log("User posted successfully!");
@@ -30,7 +30,7 @@ export class PostUser {
       throw new Error(`Error in creating user`);
     }
   }
-}
+};
 
 export class PostOrganisation {
   public async postOrganisation(orgData: any): Promise<any> {

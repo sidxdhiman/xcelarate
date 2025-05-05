@@ -12,19 +12,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostOrganisation = exports.PostUser = void 0;
 const index_1 = require("../database/index");
 const index_2 = require("../database/index");
-const encrypt_decrypt_1 = require("../security/encrypt&decrypt");
 // import jwt from 'jsonwebtoken';
 class PostUser {
     postUser(userData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // Validate userData before creating
-                if (!userData.email || !userData.password || !userData.name) {
+                if (!userData.email || !userData.username) {
                     throw new Error("Required fields are missing");
                 }
-                const encrypted = (0, encrypt_decrypt_1.encrypt)(userData.password);
-                userData.password = encrypted.content;
-                userData.iv = encrypted.iv;
+                // const encrypted = encrypt(userData.password);
+                // userData.password = encrypted.content;
+                // userData.iv = encrypted.iv;
                 const user = yield index_1.User.create(userData);
                 console.log("User posted successfully!");
                 // Optionally, generate JWT Token after user creation
@@ -43,6 +42,7 @@ class PostUser {
     }
 }
 exports.PostUser = PostUser;
+;
 class PostOrganisation {
     postOrganisation(orgData) {
         return __awaiter(this, void 0, void 0, function* () {

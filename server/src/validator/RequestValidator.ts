@@ -24,12 +24,12 @@ export class RequestValidator {
       password: Joi.string(), 
       //TODO: put required in password, or make another public static for posting user differently (both signup and post user is using this)
       email: Joi.string().lowercase().pattern(/@xebia\.com$/).required(),
-      contact: Joi.number().required(),
+      contact: Joi.required(),
       organisation: Joi.string().required(),
       designation: Joi.string().required(),
       location: Joi.string().required(),
       currentProject: Joi.string().required(),    
-      accessLevel: Joi.number(), //TODO: required for final app, commented out for time being
+      accessLevel: Joi.required(),
     });
 
     const { error } = schema.validate(req.body);

@@ -33,7 +33,6 @@ const AddUser = () => {
     console.log('addUser function:', addUser);
 
     if (!username || !email || !contact || !organisation || !designation || !location) {
-      // setError('All fields are required!');
       Toast.show({
         type: 'error',
         text1: 'Login Error',
@@ -71,11 +70,10 @@ const AddUser = () => {
           text1: 'User added successfully!',
           text2: 'User has been added to the database'
         });
-        // router.push('/UsersList'); // Navigate to another screen (example) //TODO
+        // router.push('/UsersList'); // Navigate to another screen//TODO
       } else {
         console.log('Failed to add user');
         setLoading(false);
-        // setError('Failed to add user. Please try again.');
         Toast.show({
           type: 'error',
           text1: 'Failed!',
@@ -85,7 +83,6 @@ const AddUser = () => {
     } catch (err) {
       console.error('Error adding user:', err);
       setLoading(false);
-      // setError('An error occurred. Please try again.');
       Toast.show({
         type: 'error',
         text1: 'Error!',

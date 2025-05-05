@@ -12,7 +12,7 @@ exports.connection = mongoose_1.default.connect(mongoDB, {
 });
 const userSchema = new mongoose_1.default.Schema({
     userId: Number,
-    name: String,
+    username: String,
     email: String,
     password: String,
     iv: { type: String, required: false }, //TODO: has to be set true but for the time being is set to false

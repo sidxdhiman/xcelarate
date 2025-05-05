@@ -95,12 +95,10 @@ export const useAuthStore = create((set, get) => ({
   addUser: async (userData) => {
     try {
       const response = await axiosInstance.post(`${baseURL}users`, userData);
-      toast.success("User added successfully");
       console.log(response.data);
       return { success: true };
     } catch (error) {
       console.error("AddUser error:", error);
-      toast.error(error?.response?.data?.message || "Failed to add user");
       return { success: false };
     }
   },
