@@ -7,7 +7,11 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { useRouter } from 'expo-router';
 import { KeyboardTypeOptions } from 'react-native';
-import { useAuthStore } from '../../store/useAuthStore'; // Ensure this path is correct
+import { useAuthStore } from '../../store/useAuthStore'; 
+import { Dimensions } from 'react-native';
+import Toast from 'react-native-toast-message';
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 const AddUser = () => {
   const router = useRouter();
@@ -23,21 +27,23 @@ const AddUser = () => {
 
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
-  // Get the addUser function from your auth store
   const { addUser } = useAuthStore();
 
   const handleAddUser = async () => {
-    // Log to check if addUser is defined
     console.log('addUser function:', addUser);
 
-    // Validate the fields
     if (!username || !email || !contact || !organisation || !designation || !location) {
-      setError('All fields are required!');
+      // setError('All fields are required!');
+      Toast.show({
+        type: 'error',
+        text1: 'Login Error',
+        text2: 'All fields are required!',
+      });
       return;
     }
 
-    setError(''); // Clear any previous error
-    setLoading(true); // Set loading to true to show spinner
+    setError('');
+    setLoading(true); 
 
     const userData = {
       username,
@@ -51,7 +57,6 @@ const AddUser = () => {
     console.log('User to add:', userData);
 
     try {
-      // Check if addUser is a function
       if (typeof addUser !== 'function') {
         throw new Error('addUser function is not available or not a function');
       }
@@ -61,23 +66,38 @@ const AddUser = () => {
       if (success) {
         console.log('User added successfully');
         setLoading(false);
+        Toast.show({
+          type: 'success',
+          text1: 'User added successfully!',
+          text2: 'User has been added to the database'
+        });
         // router.push('/UsersList'); // Navigate to another screen (example) //TODO
       } else {
         console.log('Failed to add user');
         setLoading(false);
-        setError('Failed to add user. Please try again.');
+        // setError('Failed to add user. Please try again.');
+        Toast.show({
+          type: 'error',
+          text1: 'Failed!',
+          text2: 'Failed to add user. Please try again'
+        });
       }
     } catch (err) {
       console.error('Error adding user:', err);
       setLoading(false);
-      setError('An error occurred. Please try again.');
+      // setError('An error occurred. Please try again.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error!',
+        text2: 'An error occured. Please try again'
+      });
     }
   };
 
   return (
     <ImageBackground
       source={require('../../assets/images/0001.jpg')}
-      style={tw`flex-1`}
+      style={[tw`flex-1`, {width: screenWidth, height: screenHeight}]}
       resizeMode="cover"
     >
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">

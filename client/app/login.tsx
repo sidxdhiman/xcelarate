@@ -21,18 +21,16 @@ const LoginScreen = () => {
 
   const { login, isLoggingIn } = useAuthStore(); 
   const handleLogin = async () => {
-    // Step 1: Validate the inputs (email and password)
     if (!email || !password) {
       Toast.show({
         type: 'error',
         text1: 'Login Error',
-        text2: 'Please enter valid credentials',
+        text2: 'Please fill all the Fields',
       });
       Alert.alert('Invalid Credentials', 'Please enter both email and password.');
       return;
     }
   
-    // Step 2: Validate email format
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       Toast.show({
@@ -47,11 +45,9 @@ const LoginScreen = () => {
       // Step 3: Call the login function with email and password
       const response = await login({ email, password });
   
-      // Step 4: Check if the login was successful and navigate accordingly
-      if (response?.success) {  // Assuming your login function returns a response with success flag
+      if (response?.success) {
         router.push('/landing');
       } else {
-        // If login failed (user doesn't exist or incorrect credentials)
         Toast.show({
           type: 'error',
           text1: 'Login Failed',
@@ -64,7 +60,7 @@ const LoginScreen = () => {
       Toast.show({
         type: 'error',
         text1: 'Login Failed',
-        text2: 'We cannot find you. SignUp or Contact Admin',
+        text2: 'There was an issue logging you in. Please try again later.',
       });
       Alert.alert('Login Failed', 'Please check your credentials and try again.');
     }

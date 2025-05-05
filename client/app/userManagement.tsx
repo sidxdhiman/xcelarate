@@ -10,6 +10,9 @@ import {
 import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { push } from 'expo-router/build/global-state/routing';
+import { Dimensions } from 'react-native';
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 export default function UserPanel() {
   return (
@@ -65,6 +68,8 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     justifyContent: 'flex-start',
+    width: screenWidth,
+    height: screenHeight
   },
   headerContainer: {
     alignItems: 'center',
