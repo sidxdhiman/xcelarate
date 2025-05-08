@@ -1,28 +1,14 @@
 import { User } from "../database/index";
 import { Organisation } from "../database/index";
-import { encrypt } from "../security/encrypt&decrypt";
-// import jwt from 'jsonwebtoken';
 
 export class PostUser {
   public async postUser(userData: any): Promise<any> {
     try {
-      // Validate userData before creating
       if (!userData.email || !userData.username) {
         throw new Error("Required fields are missing");
       }
-      // const encrypted = encrypt(userData.password);
-      // userData.password = encrypted.content;
-      // userData.iv = encrypted.iv;
-
       const user = await User.create(userData);
       console.log("User posted successfully!");
-
-      // Optionally, generate JWT Token after user creation
-      // const token = jwt.sign(
-      //   { email: user.email, id: user._id },
-      //   process.env.JWT_SECRET as string,
-      //   { expiresIn: "1h" }
-      // );
 
       return { user };
     } catch (error) {

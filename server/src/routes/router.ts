@@ -9,16 +9,16 @@ routers.get("/users/", router);
 routers.get('/users/:userId', router);
 
 //post
-routers.post("/users/bulk", router);
-routers.post("/users/", router);
+routers.post("/bulkUserUpload", router);
+routers.post("/postUser/", router);
 routers.post("/signupUser/", router);
 routers.post("/loginUser/", router);
 
 //patch
-routers.patch("/users/:userId", router);
+routers.patch("/users/:email", router);
 
 //delete
-routers.delete("/users/:_id", router);
+routers.delete("/users/:email", router);
 
 
 //organisation routes

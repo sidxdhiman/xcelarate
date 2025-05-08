@@ -1,10 +1,12 @@
 import {axiosInstance} from "../lib/axios";
 // import Toast from "react-native-toast-message";
 import { create } from 'zustand';
+import Toast from "react-native-toast-message";
 
 const baseURL = "http://localhost:9000/";
 
 export const useAuthStore = create((set, get) => ({
+  axiosInstance,
   authUser: null,
   isAddingUser: false,
   isSigningUp: false,
@@ -66,7 +68,7 @@ export const useAuthStore = create((set, get) => ({
 
   uploadBulkUsers: async (formData) => {
     try {
-      const response = await axios.post(`${baseURL}users/bulk`, formData, {
+      const response = await axiosInstance.post(`${baseURL}bulkUserUpload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -92,9 +94,9 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  addUser: async (userData) => {
+  addUser: async (data) => {
     try {
-      const response = await axiosInstance.post(`${baseURL}users`, userData);
+      const response = await axiosInstance.post(`${baseURL}postUser`, data);
       console.log(response.data);
       return { success: true };
     } catch (error) {
@@ -116,36 +118,43 @@ export const useAuthStore = create((set, get) => ({
       set({ isUpdatingProfile: false });
     }
   },
-
-  modifyUser: async (userId, updatedUserData) => {
-    set({ isModifyingUser: true }); // Start modifying user
+  fetchUserByEmail: async (email) => {
     try {
-      const res = await axiosInstance.put(`${baseURL}users/${userId}`, updatedUserData);
-      set({ authUser: res.data }); // Update the authUser with modified data
-      toast.success("User updated successfully");
+      const res = await axiosInstance.get(`${baseURL}users/${email}`);
+      return res.data;
+    } catch (error) {
+      console.error("FetchUserByEmail error:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error fetching user',
+        text2: error?.response?.data?.message || "Something went wrong",
+      });
+      return null;
+    }
+  },
+
+  modifyUser: async (email, updatedUserData) => {
+    set({ isModifyingUser: true });
+    try {
+      const res = await axiosInstance.get(`/users/email/${encodeURIComponent(email)}`);
+      set({ authUser: res.data });
       return { success: true };
     } catch (error) {
       console.error("ModifyUser error:", error);
-      toast.error(error?.response?.data?.message || "Failed to modify user");
       return { success: false };
     } finally {
-      set({ isModifyingUser: false }); // End modifying user
+      set({ isModifyingUser: false });
     }
-  },
+  },  
 
-  deleteUser: async (_id) => {
-    set({ isDeletingUser: true });
+  deleteUser: async (email) => {
     try {
-      const res = await axiosInstance.delete(`${baseURL}users/${_id}`);
-      set({ authUser: null });
-      toast.success('User deleted successfully');
-      return { success: true };
+      // Assuming your delete API endpoint expects the email in the URL
+      const res = await axiosInstance.delete(`/users/${encodeURIComponent(email)}`);
+      return { success: true, message: res.data.message }; // Assuming your response includes a message
     } catch (error) {
-      console.error('Error in deleteUser:', error);
-      toast.error(error?.response?.data?.message || 'User deletion failed');
-      return { success: false };
-    } finally {
-      set({ isDeletingUser: false });
+      console.error("Error deleting user:", error);
+      throw error; // This can be caught in the component
     }
-  },
+  },  
 }));

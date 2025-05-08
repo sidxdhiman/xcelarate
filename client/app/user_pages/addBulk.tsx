@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx'; // Import xlsx to parse Excel files
 import tw from 'twrnc';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/useAuthStore';
+import Toast from 'react-native-toast-message';
 
 const AddBulkUsers = () => {
   const { uploadBulkUsers } = useAuthStore();
@@ -23,21 +24,41 @@ const AddBulkUsers = () => {
         const file = result.assets[0];
         console.log('Selected file:', file);
   
+        // Convert the base64 URI into a Blob
+        const base64String = file.uri.split(',')[1]; // Remove the "data:" prefix
+        const byteCharacters = atob(base64String); // Decode base64 to byte string
+        const byteArrays = [];
+        for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
+          const slice = byteCharacters.slice(offset, offset + 1024);
+          const byteNumbers = new Array(slice.length);
+          for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+          }
+          byteArrays.push(new Uint8Array(byteNumbers));
+        }
+  
+        const blob = new Blob(byteArrays, { type: file.mimeType });
+  
+        // Create FormData and append the file
         const formData = new FormData();
-        formData.append('file', {
-          uri: file.uri,
-          name: file.name,
-          type: file.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        }as any);
+        formData.append('file', blob, file.name); // Append Blob and file name
   
         setLoading(true);
-        const response = await uploadBulkUsers(formData); // send file as FormData
+  
+        // Call the store's uploadBulkUsers method
+        const uploadResponse = await uploadBulkUsers(formData); // send file as FormData
         setLoading(false);
   
-        if (response.success) {
-          toast.success('Users added successfully!');
+        if (uploadResponse.success) {
+          Toast.show({
+            type: 'success',
+            text1: 'Users Added Successfully!'
+          })
         } else {
-          toast.error('Failed to add users!');
+          Toast.show({
+            type: 'error',
+            text1: 'Error in adding users'
+          })
         }
       }
     } catch (error) {
@@ -45,9 +66,8 @@ const AddBulkUsers = () => {
       setLoading(false);
       toast.error('Failed to upload file!');
     }
-  };
-  
-
+  };  
+    
   return (
     <ImageBackground
       source={require('../../assets/images/0001.jpg')}

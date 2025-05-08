@@ -29,6 +29,12 @@ export default function WelcomeScreen() {
           >
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button2}
+            onPress={() => router.push('/signup')}
+          >
+            <Text style={styles.buttonText}>SignUp</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
   );
@@ -80,6 +86,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 96,
     borderRadius: 9999,
     marginTop: 256,
+    elevation: 5,
+  },
+  button2: {
+    backgroundColor: '#740968',
+    paddingVertical: 16,
+    paddingHorizontal: 96,
+    borderRadius: 999,
+    marginTop: 25,
     elevation: 5,
   },
   buttonText: {

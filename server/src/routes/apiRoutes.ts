@@ -9,12 +9,12 @@ import {upload} from "../middleware/upload";
 //user crud
 router.get("/users/", MainController.getFunction);
 router.get("/users/:userId/", MainController.getUserFunction);
-router.post("/users/", RequestValidator.postUser, MainController.postFunction);
+router.post("/postUser/", MainController.postFunction); //TODO add request validator
 router.post("/signupUser/", MainController.signUp);
-router.post("/loginUser/", MainController.logIn);
-router.delete("/users/:_id", MainController.deleteFunction);
-router.patch("/users/:userId", RequestValidator.patchUser, MainController.patchFunction);
-router.post("/users/bulk", upload.single("file"), MainController.postBulk);
+router.post("/loginUser/", MainController.logIn); //TODO add request validator
+router.delete("/users/:email", MainController.deleteFunction);
+router.patch("/users/:email", RequestValidator.patchUser, MainController.patchFunction);
+router.post("/bulkUserUpload",upload.single('file'), MainController.postBulk);
 
 //organisation crud
 router.post("/organisations/", RequestValidator.postOrganisation, orgController.postOrg);

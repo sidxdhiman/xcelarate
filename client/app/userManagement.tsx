@@ -36,6 +36,11 @@ export default function UserPanel() {
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/userList')}>
+            <FontAwesome5 name="user-plus" size={16} color="#000" />
+            <Text style={styles.buttonText}>User List</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/addUser')}>
             <FontAwesome5 name="user-plus" size={16} color="#000" />
             <Text style={styles.buttonText}>Add User</Text>

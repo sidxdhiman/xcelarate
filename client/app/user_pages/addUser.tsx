@@ -70,7 +70,7 @@ const AddUser = () => {
           text1: 'User added successfully!',
           text2: 'User has been added to the database'
         });
-        // router.push('/UsersList'); // Navigate to another screen//TODO
+        router.push('/user_pages/userList');
       } else {
         console.log('Failed to add user');
         setLoading(false);

@@ -11,12 +11,12 @@ const routers = express_1.default.Router();
 routers.get("/users/", apiRoutes_1.default);
 routers.get('/users/:userId', apiRoutes_1.default);
 //post
-routers.post("/users/bulk", apiRoutes_1.default);
-routers.post("/users/", apiRoutes_1.default);
+routers.post("/bulkUserUpload", apiRoutes_1.default);
+routers.post("/postUser/", apiRoutes_1.default);
 routers.post("/signupUser/", apiRoutes_1.default);
 routers.post("/loginUser/", apiRoutes_1.default);
 //patch
-routers.patch("/users/:userId", apiRoutes_1.default);
+routers.patch("/users/:email", apiRoutes_1.default);
 //delete
 routers.delete("/users/:_id", apiRoutes_1.default);
 //organisation routes

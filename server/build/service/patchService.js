@@ -12,14 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PatchService = void 0;
 const database_1 = require("../database");
 class PatchService {
-    patchUserbyId(userId, updateData) {
+    patchUserByEmail(email, updateData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const result = yield database_1.User.updateOne({ userId: userId }, { $set: updateData }, { new: true });
+                const result = yield database_1.User.updateOne({ email: email }, { $set: updateData }, { new: true });
                 return result;
             }
             catch (error) {
-                console.error("Error updating user:", error);
+                console.error("Error updating user by email:", error);
                 throw error;
             }
         });

@@ -115,18 +115,32 @@ class MainController {
     }
     static postBulk(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
             try {
-                // Ensure the field name matches 'file' used in the frontend request (Postman or React)
-                const filePath = (_a = req.file) === null || _a === void 0 ? void 0 : _a.path;
-                if (!filePath) {
+                // Check if a file is included in the request
+                const file = req.file;
+                console.log('Incoming File:', file);
+                // Check for missing file
+                if (!file) {
                     return res.status(400).json({ error: "No file uploaded or incorrect field name" });
                 }
+                // Ensure the file type is Excel
+                const allowedMimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                if (file.mimetype !== allowedMimeType) {
+                    return res.status(400).json({ error: `Invalid file type. Only Excel files (.xlsx) are allowed. Got ${file.mimetype}` });
+                }
+                // Path to the uploaded file
+                const filePath = file.path;
                 // Parse the uploaded Excel file
                 const workbook = xlsx_1.default.readFile(filePath);
-                const sheetName = workbook.SheetNames[0];
+                const sheetName = workbook.SheetNames[0]; // Get the first sheet
                 const data = xlsx_1.default.utils.sheet_to_json(workbook.Sheets[sheetName]);
-                // Use your service to insert the users
+                // Log the parsed data for debugging
+                console.log('Parsed Data:', data);
+                // Check if the data is empty or improperly formatted
+                if (!data || data.length === 0) {
+                    return res.status(400).json({ error: "The Excel file is empty or improperly formatted." });
+                }
+                // Create an instance of the PostBulk service and insert the users
                 const postBulkInstance = new PostBulk();
                 const result = yield postBulkInstance.postBulkUsers(data);
                 // Delete the file after processing to prevent storage accumulation
@@ -136,6 +150,10 @@ class MainController {
             }
             catch (error) {
                 console.error("Upload error:", error);
+                // Handle specific errors (e.g., file reading issues, JSON parsing errors)
+                if (error instanceof Error) {
+                    return res.status(500).json({ error: `Internal server error: ${error.message}` });
+                }
                 return res.status(500).json({ error: "Internal server error" });
             }
         });

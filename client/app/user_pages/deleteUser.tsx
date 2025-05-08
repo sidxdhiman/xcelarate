@@ -6,24 +6,24 @@ import tw from 'twrnc';
 import { useAuthStore } from '../../store/useAuthStore'; // Assuming your auth store is in this path
 
 const DeleteUser = () => {
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState(''); // Store email here
   const [loading, setLoading] = useState(false);
 
   const { deleteUser } = useAuthStore(); // Using deleteUser from your store
 
   const handleDeleteUser = async () => {
-    if (!userId) {
+    if (!email) {
       alert("Please enter the user email.");
       return;
     }
 
     setLoading(true);
     try {
-      const response = await deleteUser(userId);
+      const response = await deleteUser(email); // Pass email to deleteUser
       if (response.success) {
         console.log('User deleted successfully');
         alert("User deleted successfully.");
-        setUserId(''); // Clear input field after successful deletion
+        setEmail(''); // Clear input field after successful deletion
       }
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -42,13 +42,13 @@ const DeleteUser = () => {
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
         <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Delete User</Text>
 
-        {/* User ID Input */}
+        {/* Email Input */}
         <View style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
           <TextInput
             placeholder="Enter User Email"
             placeholderTextColor="#999"
-            value={userId}
-            onChangeText={setUserId}
+            value={email} // Using email instead of userId
+            onChangeText={setEmail} // Update email state
             style={tw`flex-1 text-black text-base`}
           />
         </View>

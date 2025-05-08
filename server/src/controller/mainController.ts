@@ -86,33 +86,59 @@ export class MainController {
     }
 }
   
-  public static async postBulk(req: Request, res: Response) {
-    try {
-      // Ensure the field name matches 'file' used in the frontend request (Postman or React)
-      const filePath = req.file?.path;
-      if (!filePath) {
-        return res.status(400).json({ error: "No file uploaded or incorrect field name" });
-      }
-  
-      // Parse the uploaded Excel file
-      const workbook = xlsx.readFile(filePath);
-      const sheetName = workbook.SheetNames[0];
-      const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-  
-      // Use your service to insert the users
-      const postBulkInstance = new PostBulk();
-      const result = await postBulkInstance.postBulkUsers(data);
-  
-      // Delete the file after processing to prevent storage accumulation
-      fs.unlinkSync(filePath);
-  
-      // Return success response
-      return res.status(200).json({ message: "Bulk users uploaded successfully", result });
-    } catch (error) {
-      console.error("Upload error:", error);
-      return res.status(500).json({ error: "Internal server error" });
+public static async postBulk(req: Request, res: Response) {
+  try {
+    // Check if a file is included in the request
+    const file = req.file;
+    console.log('Incoming File:', file);
+
+    // Check for missing file
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded or incorrect field name" });
     }
+
+    // Ensure the file type is Excel
+    const allowedMimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if (file.mimetype !== allowedMimeType) {
+      return res.status(400).json({ error: `Invalid file type. Only Excel files (.xlsx) are allowed. Got ${file.mimetype}` });
+    }
+
+    // Path to the uploaded file
+    const filePath = file.path;
+
+    // Parse the uploaded Excel file
+    const workbook = xlsx.readFile(filePath);
+    const sheetName = workbook.SheetNames[0]; // Get the first sheet
+    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    // Log the parsed data for debugging
+    console.log('Parsed Data:', data);
+
+    // Check if the data is empty or improperly formatted
+    if (!data || data.length === 0) {
+      return res.status(400).json({ error: "The Excel file is empty or improperly formatted." });
+    }
+
+    // Create an instance of the PostBulk service and insert the users
+    const postBulkInstance = new PostBulk();
+    const result = await postBulkInstance.postBulkUsers(data);
+
+    // Delete the file after processing to prevent storage accumulation
+    fs.unlinkSync(filePath);
+
+    // Return success response
+    return res.status(200).json({ message: "Bulk users uploaded successfully", result });
+  } catch (error) {
+    console.error("Upload error:", error);
+
+    // Handle specific errors (e.g., file reading issues, JSON parsing errors)
+    if (error instanceof Error) {
+      return res.status(500).json({ error: `Internal server error: ${error.message}` });
+    }
+
+    return res.status(500).json({ error: "Internal server error" });
   }
+}
   
   public static async patchFunction(req: Request, res: Response) {
     try {
@@ -148,26 +174,31 @@ export class MainController {
 
   public static async deleteFunction(req: Request, res: Response) {
     try {
-      const _id = req.params._id;
-  
-      if (!mongoose.Types.ObjectId.isValid(_id)) {
-        return res.status(400).json({ message: "Invalid user ID format" });
-        // logger.errorLog.info("FAILED!-INVALID-USER-ID");
+      const email = req.params.email;
+
+      // Validate email format (you can use a more sophisticated email validator if needed)
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+        // logger.errorLog.info("FAILED!-INVALID-EMAIL");
       }
-  
-      const result = await new DeleteService().deleteUserbyId(_id);
-  
-      if (result.matchedCount === 0) {
+
+      // Call delete service to delete the user by email
+      const result = await new DeleteService().deleteUserByEmail(email);
+
+      // Check if a user was deleted
+      if (!result) {
         return res.status(404).json({ message: "User not found" });
-        logger.errorLog.info("FAILED!-USER-NOT-FOUND");
+        // logger.errorLog.info("FAILED!-USER-NOT-FOUND");
       }
-  
+
+      // Successfully deleted the user
       res.status(200).json({ message: "User deleted successfully!" });
-      logger.accessLog.info("SUCCESS!-USER-DELETED");
+      // logger.accessLog.info("SUCCESS!-USER-DELETED");
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Internal Server Error - DELETE" });
-      logger.errorLog.info("FAILED!-INTERNAL-SERVER-ERROR");
+      // logger.errorLog.info("FAILED!-INTERNAL-SERVER-ERROR");
     }
   }
 }

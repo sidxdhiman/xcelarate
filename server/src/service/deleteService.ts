@@ -1,31 +1,27 @@
 import { User } from "../database/index";
-import { ObjectId } from "mongodb";
 
 export class DeleteService {
-  public async deleteUserbyId(userId: string) {
+  public async deleteUserByEmail(email: string) {
     try {
-      // Check if the userId is a valid ObjectId
-      if (!ObjectId.isValid(userId)) {
-        throw new Error("Invalid User ID format");
+      // Check if email is valid
+      if (!email || typeof email !== 'string') {
+        throw new Error("Invalid email format");
       }
 
-      // Convert userId to ObjectId before querying MongoDB
-      const objectId = new ObjectId(userId);
-
       // Check if the user exists
-      const userExists = await User.findById(objectId);
+      const userExists = await User.findOne({ email });
       if (!userExists) {
         throw new Error("User not found");
       }
 
       // Delete the user
-      const result = await User.findOneAndDelete({ _id: objectId });
+      const result = await User.findOneAndDelete({ email });
 
       // Return the result of the delete operation
       return result;
     } catch (error) {
       console.error("Error deleting user:", error);
-      throw new Error(`Failed to delete user`);
+      throw new Error("Failed to delete user");
     }
   }
 }

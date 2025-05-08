@@ -10,15 +10,16 @@ import { useAuthStore } from '../../store/useAuthStore'; // Assuming your auth s
 
 // Define your navigation stack param list type
 type RootStackParamList = {
-  ModifyUser: { userId: string };
+  ModifyUser: { email: string };  // Change userId to email
 };
 
 type ModifyUserRouteProp = RouteProp<RootStackParamList, 'ModifyUser'>;
 
 const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
-  const userId = route?.params?.userId ?? '';
+  const initialEmail = route?.params?.email ?? '';  // Use email from params
+
+  const [email, setEmail] = useState(initialEmail);  // Define setEmail for email state
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
   const [organisation, setOrganisation] = useState('');
   const [designation, setDesignation] = useState('');
@@ -27,17 +28,16 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
   // Use your auth store to handle backend call
-  const { fetchUserById, modifyUser } = useAuthStore();
+  const { fetchUserByEmail, modifyUser } = useAuthStore();
 
   useEffect(() => {
-    if (!userId) return;
+    if (!email) return;
   
     const fetchUser = async () => {
       try {
-        const user = await fetchUserById(userId);
+        const user = await fetchUserByEmail(email);  // Fetch by email
         if (user) {
           setUsername(user.username);
-          setEmail(user.email);
           setContact(user.contact);
           setOrganisation(user.organisation);
           setDesignation(user.designation);
@@ -48,12 +48,12 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
       }
     };
     fetchUser();
-  }, [userId]);  
+  }, [email]);  // Fetch user on email change
 
   const handleModifyUser = async () => {
     const updatedUser = {
       username,
-      email,
+      email,  // Include email here if you want to keep it updated
       contact,
       organisation,
       designation,
@@ -61,7 +61,7 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
     };
 
     try {
-      const response = await modifyUser(userId, updatedUser);
+      const response = await modifyUser(email, updatedUser);  // Pass email to modify
       console.log('Updated user:', response);
       // Handle success or show success message
     } catch (error) {
@@ -81,13 +81,11 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
 
         {/* Input Fields */}
         {[
-          { icon: 'gear', placeholder: 'Enter the email id to modify', value: email, setter: setEmail },
-          { icon: 'envelope', placeholder: 'Email', value: email, setter: setEmail },
+          { icon: 'gear', placeholder: 'Enter the email id to modify', value: email, setter: setEmail }, // Allow email input
           { icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
           { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact },
           { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
           { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
-          { icon: 'lock', placeholder: 'Access Level'},
         ].map((field, idx) => (
           <View key={idx} style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
             <Icon name={field.icon} size={18} color="#999" style={tw`mr-2`} />
@@ -114,7 +112,7 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
             >
               <Picker.Item label="Select a location" value="" />
               {locations.map((loc, index) => (
-                <Picker.Item key={index} label={loc} value={loc} /> 
+                <Picker.Item key={index} label={loc} value={loc} />
               ))}
             </Picker>
           </View>
