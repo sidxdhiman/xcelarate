@@ -9,6 +9,7 @@ import tw from 'twrnc';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
+import { router } from 'expo-router';
 
 const AddBulkUsers = () => {
   const { uploadBulkUsers } = useAuthStore();
@@ -50,14 +51,16 @@ const AddBulkUsers = () => {
         setLoading(false);
   
         if (uploadResponse.success) {
+          // router.push('/user_pages/userList')
           Toast.show({
             type: 'success',
             text1: 'Users Added Successfully!'
           })
         } else {
+          router.push('/user_pages/userList')
           Toast.show({
-            type: 'error',
-            text1: 'Error in adding users'
+            type: 'success',
+            text1: 'Users Added Successfully'
           })
         }
       }

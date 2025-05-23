@@ -11,30 +11,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeleteService = void 0;
 const index_1 = require("../database/index");
-const mongodb_1 = require("mongodb");
 class DeleteService {
-    deleteUserbyId(userId) {
+    deleteUserByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // Check if the userId is a valid ObjectId
-                if (!mongodb_1.ObjectId.isValid(userId)) {
-                    throw new Error("Invalid User ID format");
+                // Check if email is valid
+                if (!email || typeof email !== 'string') {
+                    throw new Error("Invalid email format");
                 }
-                // Convert userId to ObjectId before querying MongoDB
-                const objectId = new mongodb_1.ObjectId(userId);
                 // Check if the user exists
-                const userExists = yield index_1.User.findById(objectId);
+                const userExists = yield index_1.User.findOne({ email });
                 if (!userExists) {
                     throw new Error("User not found");
                 }
                 // Delete the user
-                const result = yield index_1.User.findOneAndDelete({ _id: objectId });
+                const result = yield index_1.User.findOneAndDelete({ email });
                 // Return the result of the delete operation
                 return result;
             }
             catch (error) {
                 console.error("Error deleting user:", error);
-                throw new Error(`Failed to delete user`);
+                throw new Error("Failed to delete user");
             }
         });
     }

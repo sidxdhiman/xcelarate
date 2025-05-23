@@ -30,7 +30,7 @@ const userList = () => {
     const fetchUsers = async () => {
       try {
         const res = await axiosInstance.get('/users');
-        setUsers(res.data);
+        setUsers(res.data.reverse());
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to load users');

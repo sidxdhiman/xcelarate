@@ -46,6 +46,11 @@ const LoginScreen = () => {
       const response = await login({ email, password });
   
       if (response?.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'Login Successful!',
+          text2: 'You have been logged in'
+        })
         router.push('/landing');
       } else {
         Toast.show({

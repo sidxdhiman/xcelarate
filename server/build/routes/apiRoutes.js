@@ -15,7 +15,7 @@ router.get("/users/:userId/", mainController_1.MainController.getUserFunction);
 router.post("/postUser/", mainController_1.MainController.postFunction); //TODO add request validator
 router.post("/signupUser/", mainController_1.MainController.signUp);
 router.post("/loginUser/", mainController_1.MainController.logIn); //TODO add request validator
-router.delete("/users/:_id", mainController_1.MainController.deleteFunction);
+router.delete("/users/:email", mainController_1.MainController.deleteFunction);
 router.patch("/users/:email", RequestValidator_1.RequestValidator.patchUser, mainController_1.MainController.patchFunction);
 router.post("/bulkUserUpload", upload_1.upload.single('file'), mainController_1.MainController.postBulk);
 //organisation crud

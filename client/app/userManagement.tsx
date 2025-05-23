@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     width: screenWidth,
-    height: screenHeight
+    height: screenHeight,
   },
   headerContainer: {
     alignItems: 'center',
