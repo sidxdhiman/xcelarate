@@ -34,7 +34,7 @@ const AddUser = () => {
 
     if (!username || !email || !contact || !organisation || !designation || !location) {
       Toast.show({
-        type: 'error',
+        type: 'error',  
         text1: 'Error',
         text2: 'All fields are required!',
       });

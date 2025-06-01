@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { KeyboardAvoidingView} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { useAuthStore } from '../store/useAuthStore'; 
@@ -156,7 +157,7 @@ const handleSignup = async () => {
         </View>
 
         {/* Location Dropdown */}
-        <View style={tw`w-full mt-2 mb-2`}>
+        <KeyboardAvoidingView style={tw`w-full mt-2 mb-2`}>
           <Text style={tw`text-white mb-1 ml-1 font-semibold`}>Location</Text>
           <View style={tw`bg-white rounded-full h-11 justify-center px-3`}>
             <Picker
@@ -172,7 +173,7 @@ const handleSignup = async () => {
               ))}
             </Picker>
           </View>
-        </View>
+        </KeyboardAvoidingView>
 
         {/* Create Password Field */}
         <View style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>

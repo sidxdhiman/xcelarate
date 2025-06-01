@@ -6,7 +6,7 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx'; // Import xlsx to parse Excel files
 import tw from 'twrnc';
-import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
@@ -70,7 +70,6 @@ const AddBulkUsers = () => {
       toast.error('Failed to upload file!');
     }
   };  
-    
   return (
     <ImageBackground
       source={require('../../assets/images/0001.jpg')}
