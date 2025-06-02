@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, ActivityIndicator, ImageBackground, Dimensions
+  View, Text, ScrollView, StyleSheet, ActivityIndicator, ImageBackground, Dimensions
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAuthStore } from '../../store/useAuthStore'; 
 import tw from 'twrnc';
+import iconSet from '@expo/vector-icons/build/Fontisto';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -57,11 +58,11 @@ const userList = () => {
           <Text style={tw`text-red-500 text-center`}>{error}</Text>
         ) : (
           users.map((user) => (
-            <View key={user.id} style={tw`bg-white rounded-xl p-4 mb-4 shadow-md`}>
-              {/* <View style={tw`flex-row items-center mb-1`}>
+            <View key={user.id} style={styles.icons}>
+              <View style={tw`flex-row items-center mb-1`}>
                 <Icon name="user" size={18} color="#800080" style={tw`mr-2`} />
                 <Text style={tw`text-black text-base font-semibold`}>{user.username}</Text>
-              </View> */}
+              </View>
               <View style={tw`flex-row items-center mb-1`}>
                 <Icon name="envelope" size={16} color="#800080" style={tw`mr-2`} />
                 <Text style={tw`text-black`}>{user.email}</Text>
@@ -89,5 +90,16 @@ const userList = () => {
     </ImageBackground>
   );
 };
+// tw`bg-white rounded-xl p-4 mb-4 shadow-md`
+const styles = StyleSheet.create({
+  icons: {
+    alignItems: 'flex-start',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    margin: 10
+  },
+});
+
 
 export default userList;

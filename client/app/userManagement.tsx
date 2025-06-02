@@ -58,7 +58,7 @@ export default function UserPanel() {
 
           <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/deleteUser')}>
             <Ionicons name="trash-bin-outline" size={18} color="#000" />
-            <Text style={styles.buttonText}>Delete User</Text>
+            <Text style={styles.buttonText}>Flag/Archive User</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
