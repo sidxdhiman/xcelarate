@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAuthStore } from '../../store/useAuthStore'; 
 import tw from 'twrnc';
 import iconSet from '@expo/vector-icons/build/Fontisto';
+import { SearchBar } from 'react-native-screens';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -24,6 +25,8 @@ const userList = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [userSeach, setUserSearch] = useState<User[]>([]);
 
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
 
@@ -43,15 +46,42 @@ const userList = () => {
     fetchUsers();
   }, []);
 
+  const fetchUserSearch = async (query: string) => {
+    try {
+      const res = await axiosInstance.get('/users', {
+        params: {q: query}
+      });
+      setUserSearch(res.data)
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (search.length > 1) {
+      fetchUserSearch(search);
+    } else {
+      setUserSearch([]);
+    }
+  }, [search]);
+
   return (
     <ImageBackground
       source={require('../../assets/images/0001.jpg')}
       style={{ width: screenWidth, height: screenHeight }}
       resizeMode="cover"
-    >
+    > 
       <ScrollView contentContainerStyle={tw`p-6`}>
+        
         <Text style={tw`text-white text-4xl font-bold text-center mb-6 pt-10`}>Users</Text>
-
+        <View style={styles.search}>
+        <SearchBar 
+        placeholder="Search users here..."
+        onChangeText={(text) => setSearch(text)}
+        value={search}
+        round
+        />
+      </View>
         {loading ? (
           <ActivityIndicator size="large" color="#fff" style={tw`mt-10`} />
         ) : error ? (
@@ -99,6 +129,10 @@ const styles = StyleSheet.create({
     padding: 20,
     margin: 10
   },
+  search: {
+    flex: 1,
+    backgroundColor: 'white'
+  }
 });
 
 
