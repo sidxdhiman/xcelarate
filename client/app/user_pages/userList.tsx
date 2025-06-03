@@ -136,7 +136,10 @@ const styles = StyleSheet.create({
   search: {
     flex: 1,
     backgroundColor: 'white',
-    borderRadius: 20,
+    borderRadius: 30,
+    marginLeft: 11,
+    marginRight: 11,
+    marginBottom: 10,
   }
 });
 
