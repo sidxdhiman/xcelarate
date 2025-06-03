@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ImageBackground, ScrollView, Platform,
+  View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground, ScrollView, Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { RouteProp } from '@react-navigation/native';
 import { useAuthStore } from '../../store/useAuthStore'; // Assuming your auth store is in this path
+import { SearchBar } from 'react-native-elements';
+import { axiosInstance } from '@/lib/axios';
 
 // Define your navigation stack param list type
 type RootStackParamList = {
@@ -24,6 +26,8 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
   const [organisation, setOrganisation] = useState('');
   const [designation, setDesignation] = useState('');
   const [location, setLocation] = useState('');
+  const [search, setSearch] = useState('');
+  const [userSearch, setUserSearch] = useState<User[]>([]);
 
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
@@ -48,7 +52,26 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
       }
     };
     fetchUser();
-  }, [email]);  // Fetch user on email change
+  }, [email]); // Fetch user on email change
+
+  const fetchUserSearch = async (query: string) => {
+    try{
+      const res = await axiosInstance.get('/users', {
+        params: {q: query}
+      });
+      setUserSearch(res.data)
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(()=> {
+    if (search.length > 1) {
+      fetchUserSearch(search)
+    } else {
+      setUserSearch([]);
+    }
+  }, [search]);
 
   const handleModifyUser = async () => {
     const updatedUser = {
@@ -59,7 +82,6 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
       designation,
       location,
     };
-
     try {
       const response = await modifyUser(email, updatedUser);  // Pass email to modify
       console.log('Updated user:', response);
@@ -78,7 +100,18 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
     >
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
         <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Modify User</Text>
-
+        <View style={styles.search}>
+                <SearchBar
+                  placeholder="Search users here..."
+                  onChangeText={(text: string) => setSearch(text)}
+                  value={search}
+                  platform="default"
+                  containerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0, borderBottomWidth: 0 }}
+                  inputContainerStyle={{ backgroundColor: '#fff' }}
+                  inputStyle={{ color: '#000' }}
+                  round
+                />
+                </View>
         {/* Input Fields */}
         {[
           { icon: 'gear', placeholder: 'Enter the email id to modify', value: email, setter: setEmail }, // Allow email input
@@ -132,5 +165,13 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
     </ImageBackground>
   );
 };
+
+const styles = StyleSheet.create({
+  search: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 20
+  }
+})
 
 export default ModifyUser;

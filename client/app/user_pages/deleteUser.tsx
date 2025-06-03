@@ -5,6 +5,8 @@ import {
 import tw from 'twrnc';
 import { useAuthStore } from '../../store/useAuthStore'; // Assuming your auth store is in this path
 import { Dimensions } from 'react-native';
+import { SearchBar } from 'react-native-elements';
+import { axiosInstance } from '@/lib/axios';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width
@@ -12,6 +14,8 @@ const screenWidth = Dimensions.get('window').width
 const DeleteUser = () => {
   const [email, setEmail] = useState(''); // Store email here
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [userSearch, setUserSearch] = useState<User[]>([]);
 
   const { deleteUser } = useAuthStore(); // Using deleteUser from your store
 
@@ -35,6 +39,27 @@ const DeleteUser = () => {
     } finally {
       setLoading(false);
     }
+
+    const fetchUserSearch = async (query: string) => {
+      try{
+        const res = await axiosInstance.get('/users', {
+          params: {q: query}
+        });
+        setUserSearch(res.data)
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    useEffect(()=>{
+      if(SearchBar.length > 1) {
+        fetchUserSearch(search);
+      } else {
+        setUserSearch([])
+      }
+    }, [search])
+
+
   };
 
   return (
@@ -45,7 +70,18 @@ const DeleteUser = () => {
     >
       <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
         <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Flag/Archive User</Text>
-
+        <View style={styles.search}>
+                <SearchBar
+                  placeholder="Search users here..."
+                  onChangeText={(text: string) => setSearch(text)}
+                  value={search}
+                  platform="default"
+                  containerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0, borderBottomWidth: 0 }}
+                  inputContainerStyle={{ backgroundColor: '#fff' }}
+                  inputStyle={{ color: '#000' }}
+                  round
+                />
+                </View>
         {/* Email Input */}
         <View style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
           <TextInput

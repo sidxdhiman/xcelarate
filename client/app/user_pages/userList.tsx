@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAuthStore } from '../../store/useAuthStore'; 
 import tw from 'twrnc';
 import iconSet from '@expo/vector-icons/build/Fontisto';
-import { SearchBar } from 'react-native-screens';
+import { SearchBar } from 'react-native-elements';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -75,13 +75,17 @@ const userList = () => {
         
         <Text style={tw`text-white text-4xl font-bold text-center mb-6 pt-10`}>Users</Text>
         <View style={styles.search}>
-        <SearchBar 
-        placeholder="Search users here..."
-        onChangeText={(text) => setSearch(text)}
-        value={search}
-        round
+        <SearchBar
+          placeholder="Search users here..."
+          onChangeText={(text: string) => setSearch(text)}
+          value={search}
+          platform="default"
+          containerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0, borderBottomWidth: 0 }}
+          inputContainerStyle={{ backgroundColor: '#fff' }}
+          inputStyle={{ color: '#000' }}
+          round
         />
-      </View>
+        </View>
         {loading ? (
           <ActivityIndicator size="large" color="#fff" style={tw`mt-10`} />
         ) : error ? (
@@ -131,7 +135,8 @@ const styles = StyleSheet.create({
   },
   search: {
     flex: 1,
-    backgroundColor: 'white'
+    backgroundColor: 'white',
+    borderRadius: 20,
   }
 });
 
