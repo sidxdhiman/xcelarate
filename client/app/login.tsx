@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 50,
     textAlign: 'center',
+    marginTop: 50
   },
   bottomRight: {  // Add the 'bottomRight' style here
     position: 'absolute',
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     alignSelf: 'flex-start',
     marginBottom: 10,
-    marginTop: 40,
+    marginTop: 100,
   },
   input: {
     width: '100%',

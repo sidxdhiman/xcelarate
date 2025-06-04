@@ -92,7 +92,7 @@ const handleSignup = async () => {
         contentContainerStyle={tw`p-8 items-center justify-center`}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={tw`text-2xl font-bold text-white mb-5`}>SIGN UP</Text>
+        <Text style={tw`text-2xl font-bold text-white mb-5 mt-20`}>SIGN UP</Text>
 
         {/* Username Field */}
         <View style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
@@ -156,7 +156,7 @@ const handleSignup = async () => {
           />
         </View>
 
-        {/* Location Dropdown */}
+        {/* Location Dropdown
         <KeyboardAvoidingView style={tw`w-full mt-2 mb-2`}>
           <Text style={tw`text-white mb-1 ml-1 font-semibold`}>Location</Text>
           <View style={tw`bg-white rounded-full h-11 justify-center px-3`}>
@@ -173,7 +173,7 @@ const handleSignup = async () => {
               ))}
             </Picker>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoidingView> */}
 
         {/* Create Password Field */}
         <View style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
