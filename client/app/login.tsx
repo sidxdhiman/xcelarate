@@ -30,7 +30,6 @@ const LoginScreen = () => {
       Alert.alert('Invalid Credentials', 'Please enter both email and password.');
       return;
     }
-  
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       Toast.show({
@@ -40,7 +39,7 @@ const LoginScreen = () => {
       });
       return;
     }
-  
+
     try {
       // Step 3: Call the login function with email and password
       const response = await login({ email, password });
