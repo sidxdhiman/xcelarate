@@ -44,8 +44,8 @@ const LoginScreen = () => {
     try {
       const response = await login({ email, password });
 
-      if (response?.success) {
-        const accessLevel = response.data.accessLevel;
+      if (response?.success && response?.accessLevel !== undefined) {
+        const accessLevel = response.accessLevel;
 
         Toast.show({
           type: 'success',
@@ -53,12 +53,14 @@ const LoginScreen = () => {
           text2: 'You have been logged in',
         });
 
-        if (accessLevel === '1') {
-          router.push('/landing');
+        if (accessLevel === '1' || accessLevel === 1) {
+          router.push('/landingUser');
         } else {
-          router.push('/user_pages/addBulk');
+          router.push('/landing');
         }
+
       } else {
+        console.log('Login failed response:', response);
         Toast.show({
           type: 'error',
           text1: 'Login Failed',
@@ -66,15 +68,20 @@ const LoginScreen = () => {
         });
         Alert.alert('Login Failed', 'Please check your credentials and try again.');
       }
-    } catch (error) {
-      console.log('Login error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Login Failed',
-        text2: 'There was an issue logging you in. Please try again later.',
-      });
-      Alert.alert('Login Failed', 'Please check your credentials and try again.');
-    }
+      } catch (err) {
+        const error = err as AxiosError;
+
+        console.log('Login error:', error);
+        console.log('Login error response:', error.response); // now allowed
+
+        Toast.show({
+          type: 'error',
+          text1: 'Login Failed',
+          text2: 'There was an issue logging you in. Please try again later.',
+        });
+
+        Alert.alert('Login Failed', 'Please check your credentials and try again.');
+      }
   };
 
   return (

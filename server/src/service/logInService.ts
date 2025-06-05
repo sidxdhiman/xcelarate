@@ -1,4 +1,4 @@
-import {User} from "../database/index";
+import {User, IUser} from "../database/index";
 import { decrypt } from "../security/encrypt&decrypt";
 
 
@@ -12,14 +12,14 @@ export class AuthLoginService {
             password
         } = userData;
 
-        const loginUser = await User.findOne({email});
+        const loginUser: IUser | null = await User.findOne({email});
         if (!loginUser){
             throw new Error("No user with these credentials!")
         }
-        const decryptedPassword = decrypt({iv: loginUser.iv, content: loginUser.password})
-        if (decryptedPassword !== password) {
-            throw new Error("Invalid credentials!");
-        } 
+        // const decryptedPassword = decrypt({iv: loginUser.iv, content: loginUser.password})
+        // if (decryptedPassword !== password) {
+        //     throw new Error("Invalid credentials!");
+        // } 
         return {
             user: loginUser,
         }

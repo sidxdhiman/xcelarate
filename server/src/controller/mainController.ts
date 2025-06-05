@@ -5,6 +5,7 @@ import fs from "fs";
 import { AuthService } from "../service/signUpService";
 import { AuthLoginService } from "../service/logInService";
 import { PostUser } from "../service/postService";
+import { User } from "../database";
 var logger = require("../util/logger");
 const {encrypt, decrypt} = require('../security/encrypt&decrypt');
 const { GetService } = require("../service/getService");
@@ -65,7 +66,12 @@ export class MainController {
   public static async logIn(req: Request, res:Response) {
     try {
       const result = await AuthLoginService.login(req.body);
-      res.status(200).json(result);
+      res.json({
+        success: true,
+        data: {
+          accessLevel: User.accessLevel
+        }
+      });
     } catch (error: any) {
       const message = error.message || "Something went wrong";
       const statusCode = message === "Invalid Credentials" ? 401 : 500;

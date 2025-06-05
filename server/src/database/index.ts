@@ -1,4 +1,5 @@
-import mongoose from "mongoose"
+import mongoose, { Schema, Document } from 'mongoose';
+
 
 const mongoDB = "mongodb://localhost:27017/xcelarate-backend";
 
@@ -6,6 +7,13 @@ export const connection = mongoose.connect(mongoDB, {
       // useNewUrlParser: true,
       // useUnifiedTopology: true,
   });
+    export interface IUser extends Document {
+    email: string;
+    password: string;
+    accessLevel: number;
+    // add any other fields
+  }
+
   
   const userSchema = new mongoose.Schema({
     userId:Number,
@@ -18,7 +26,7 @@ export const connection = mongoose.connect(mongoDB, {
     designation:String,
     location:String,
     currentProject: String,
-    accessLevel: Number,
+    accessLevel: {type: Number, required: true},
   });
 
   const organisationSchema = new mongoose.Schema({
@@ -30,7 +38,8 @@ export const connection = mongoose.connect(mongoDB, {
   });
   
   const Organisation = mongoose.model("Organisations", organisationSchema);
-  const User = mongoose.model("Users", userSchema);
+  // const User = mongoose.model("Users", userSchema);
 
-export {User, Organisation};
+export const User = mongoose.model<IUser>('User', userSchema);
+export {Organisation};
 
