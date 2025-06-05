@@ -20,7 +20,7 @@ const LoginScreen = () => {
   const [rememberMe, setRememberMe] = useState(false);
 
   const { login, isLoggingIn } = useAuthStore(); 
-  const handleLogin = async () => {
+    const handleLogin = async () => {
     if (!email || !password) {
       Toast.show({
         type: 'error',
@@ -30,6 +30,7 @@ const LoginScreen = () => {
       Alert.alert('Invalid Credentials', 'Please enter both email and password.');
       return;
     }
+
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       Toast.show({
@@ -41,16 +42,22 @@ const LoginScreen = () => {
     }
 
     try {
-      // Step 3: Call the login function with email and password
       const response = await login({ email, password });
-  
+
       if (response?.success) {
+        const accessLevel = response.data.accessLevel;
+
         Toast.show({
           type: 'success',
           text1: 'Login Successful!',
-          text2: 'You have been logged in'
-        })
-        router.push('/landing');
+          text2: 'You have been logged in',
+        });
+
+        if (accessLevel === '1') {
+          router.push('/landing');
+        } else {
+          router.push('/user_pages/addBulk');
+        }
       } else {
         Toast.show({
           type: 'error',
@@ -68,7 +75,7 @@ const LoginScreen = () => {
       });
       Alert.alert('Login Failed', 'Please check your credentials and try again.');
     }
-  };  
+  };
 
   return (
     <ImageBackground source={require('../assets/images/0001.jpg')} style={styles.backgroundImage}>

@@ -28,7 +28,7 @@ export class RequestValidator {
       organisation: Joi.string().required(),
       designation: Joi.string().required(),
       location: Joi.string(), //TODO make the location required
-      currentProject: Joi.string().required(),    
+      currentProject: Joi.string(), //TODO maybe add required maybe not - have to confirm    
       accessLevel: Joi.required(),
     });
 
