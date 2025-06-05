@@ -11,6 +11,7 @@ export const connection = mongoose.connect(mongoDB, {
     email: string;
     password: string;
     accessLevel: number;
+    iv: string;
     // add any other fields
   }
 

@@ -13,6 +13,7 @@ import {
 import { router } from 'expo-router';
 import { useAuthStore } from '@/store/useAuthStore';
 import Toast from "react-native-toast-message";
+import { AxiosError } from 'axios';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -30,7 +31,6 @@ const LoginScreen = () => {
       Alert.alert('Invalid Credentials', 'Please enter both email and password.');
       return;
     }
-
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       Toast.show({
@@ -52,13 +52,13 @@ const LoginScreen = () => {
           text1: 'Login Successful!',
           text2: 'You have been logged in',
         });
+        router.push('/userLanding')
 
         if (accessLevel === '1' || accessLevel === 1) {
-          router.push('/landingUser');
+          router.push('/userLanding');
         } else {
           router.push('/landing');
         }
-
       } else {
         console.log('Login failed response:', response);
         Toast.show({

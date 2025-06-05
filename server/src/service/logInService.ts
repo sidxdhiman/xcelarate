@@ -1,5 +1,7 @@
+import { resolve } from "path";
 import {User, IUser} from "../database/index";
 import { decrypt } from "../security/encrypt&decrypt";
+import { log } from "console";
 
 
 export class AuthLoginService {
@@ -11,8 +13,9 @@ export class AuthLoginService {
             email,
             password
         } = userData;
-
+        
         const loginUser: IUser | null = await User.findOne({email});
+        console.log('loginUser:', loginUser);
         if (!loginUser){
             throw new Error("No user with these credentials!")
         }
@@ -21,7 +24,8 @@ export class AuthLoginService {
         //     throw new Error("Invalid credentials!");
         // } 
         return {
-            user: loginUser,
+            accessLevel : loginUser.accessLevel,
+            email: loginUser.email
         }
     }
 }

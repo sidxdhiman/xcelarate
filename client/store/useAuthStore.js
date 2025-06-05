@@ -43,11 +43,15 @@ export const useAuthStore = create((set, get) => ({
   },
 
   login: async (data) => {
-    set({ isLoggingIn: true });
-    try {
-      const res = await axiosInstance.post(`${baseURL}loginUser`, data);
-      set({ authUser: res.data });
-      return { success: true };
+  set({ isLoggingIn: true });
+  try {
+    const res = await axiosInstance.post(`${baseURL}loginUser`, data);
+    if (res.data.success) {
+      set({ authUser: res.data.data });  // <-- only the nested `data` object
+      return { success: true, ...res.data.data };
+    } else {
+      return { success: false };
+    }
     } catch (error) {
       console.log("Login error:", error);
       return { success: false };
@@ -55,7 +59,7 @@ export const useAuthStore = create((set, get) => ({
       set({ isLoggingIn: false });
     }
   },
-
+  
   uploadBulkUsers: async (formData) => {
     try {
       const response = await axiosInstance.post(`${baseURL}bulkUserUpload`, formData, {
