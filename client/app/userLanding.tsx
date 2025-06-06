@@ -8,79 +8,56 @@ import {
   SafeAreaView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
-// 1. Define the stack params
-type RootStackParamList = {
-  AssessmentPortal: undefined;
-  Welcome: undefined;
-};
+const AssessmentPortal: React.FC = () => {
+  const router = useRouter();
 
-// 2. Define the props type
-type AssessmentPortalProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'AssessmentPortal'>;
-  route: RouteProp<RootStackParamList, 'AssessmentPortal'>;
-};
-
-const AssessmentPortal: React.FC<AssessmentPortalProps> = ({ navigation }) => {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <ImageBackground
-          source={require('../assets/images/0001.jpg')}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        >
-          <View style={styles.flexContainer}>
-            {/* Header */}
-            <View style={styles.headerWrapper}>
-              <Icon name="user-circle" size={28} color="#fff" style={styles.icon} />
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>
-                  ASSESSMENT{'\n'}PORTAL
-                </Text>
-              </View>
-            </View>
-
-            {/* Spacer */}
-            <View style={styles.flex1} />
-
-            {/* Buttons */}
-            <View style={styles.buttonWrapper}>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>START NEW ASSESSMENT</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => navigation.navigate('Welcome')}
-              >
-                <Text style={styles.buttonText}>LOG OUT</Text>
-              </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <ImageBackground
+        source={require('../assets/images/0001.jpg')} // Adjust path based on your structure
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.flexContainer}>
+          {/* Header */}
+          <View style={styles.headerWrapper}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>
+                ASSESSMENT{'\n'}PORTAL
+              </Text>
             </View>
           </View>
-        </ImageBackground>
-      </View>
+
+          {/* Spacer */}
+          <View style={styles.flex1} />
+
+          {/* Buttons */}
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => router.push('/user_pages/disclaimer')}
+            >
+              <Text style={styles.buttonText}>Start New Assessment</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => router.push('/login')}
+            >
+              <Text style={styles.buttonText}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ImageBackground>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   container: {
-    aspectRatio: 9 / 16,
-    height: '100%',
-    width: '86%',
-    maxWidth: 360,
-    alignSelf: 'center',
-    borderRadius: 20,
-    overflow: 'hidden',
+    flex: 1,
   },
   backgroundImage: {
     flex: 1,
@@ -91,23 +68,17 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     backgroundColor: '#800080',
-    borderBottomLeftRadius: 400,
-    borderBottomRightRadius: 400,
-    height: 250,
-    marginTop: -60,
+    borderBottomLeftRadius: 150,
+    borderBottomRightRadius: 150,
+    height: 180,
     paddingHorizontal: 20,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     overflow: 'hidden',
   },
-  icon: {
-    position: 'absolute',
-    top: 16,
-    right: 20,
-  },
   titleContainer: {
-    marginTop: 70,
+    marginTop: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -122,6 +93,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonWrapper: {
+    marginTop: 400,
     paddingHorizontal: 20,
     paddingBottom: 32,
     gap: 12,
