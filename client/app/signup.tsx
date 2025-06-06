@@ -44,7 +44,7 @@ const handleSignup = async () => {
   }
 
   // Optional: validate required fields
-  if (!username || !email || !contact || !organisation || !designation || !selectedLocation || !password) {
+  if (!username || !email || !contact || !organisation || !designation || !password) {
     Toast.show({
       type: 'error',
       text1: 'Missing Information',
@@ -157,7 +157,7 @@ const handleSignup = async () => {
         </View>
 
         {/* Location Dropdown */}
-        <KeyboardAvoidingView style={tw`w-full mt-2 mb-2`}>
+        {/* <KeyboardAvoidingView style={tw`w-full mt-2 mb-2`}>
           <Text style={tw`text-white mb-1 ml-1 font-semibold`}>Location</Text>
           <View style={tw`bg-white rounded-full h-11 justify-center px-3`}>
             <Picker
@@ -173,7 +173,7 @@ const handleSignup = async () => {
               ))}
             </Picker>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoidingView> */}
 
         {/* Create Password Field */}
         <View style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>

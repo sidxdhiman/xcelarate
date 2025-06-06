@@ -25,7 +25,7 @@ export const connection = mongoose.connect(mongoDB, {
     contact:Number,
     organisation: String,
     designation:String,
-    location:String,
+    // location:String,
     currentProject: String,
     accessLevel: {type: Number, required: true},
   });

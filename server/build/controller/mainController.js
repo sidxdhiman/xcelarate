@@ -87,12 +87,23 @@ class MainController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const result = yield logInService_1.AuthLoginService.login(req.body);
-                res.status(200).json(result);
+                console.log('result:', result);
+                if (!result || result.accessLevel === undefined) {
+                    // Defensive fallback: return error response
+                    return res.status(500).json({ error: "Login service returned invalid result" });
+                }
+                return res.json({
+                    success: true,
+                    data: {
+                        accessLevel: result.accessLevel,
+                        email: result.email,
+                    }
+                });
             }
             catch (error) {
                 const message = error.message || "Something went wrong";
                 const statusCode = message === "Invalid Credentials" ? 401 : 500;
-                res.status(statusCode).json({ error: message });
+                return res.status(statusCode).json({ error: message });
             }
         });
     }

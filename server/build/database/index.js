@@ -19,9 +19,9 @@ const userSchema = new mongoose_1.default.Schema({
     contact: Number,
     organisation: String,
     designation: String,
-    location: String,
+    // location:String,
     currentProject: String,
-    accessLevel: Number,
+    accessLevel: { type: Number, required: true },
 });
 const organisationSchema = new mongoose_1.default.Schema({
     organisation: String,
@@ -32,5 +32,5 @@ const organisationSchema = new mongoose_1.default.Schema({
 });
 const Organisation = mongoose_1.default.model("Organisations", organisationSchema);
 exports.Organisation = Organisation;
-const User = mongoose_1.default.model("Users", userSchema);
-exports.User = User;
+// const User = mongoose.model("Users", userSchema);
+exports.User = mongoose_1.default.model('User', userSchema);

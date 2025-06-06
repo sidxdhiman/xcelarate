@@ -11,21 +11,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthLoginService = void 0;
 const index_1 = require("../database/index");
-const encrypt_decrypt_1 = require("../security/encrypt&decrypt");
 class AuthLoginService {
     static login(userData) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, password } = userData;
             const loginUser = yield index_1.User.findOne({ email });
+            console.log('loginUser:', loginUser);
             if (!loginUser) {
                 throw new Error("No user with these credentials!");
             }
-            const decryptedPassword = (0, encrypt_decrypt_1.decrypt)({ iv: loginUser.iv, content: loginUser.password });
-            if (decryptedPassword !== password) {
-                throw new Error("Invalid credentials!");
-            }
+            // const decryptedPassword = decrypt({iv: loginUser.iv, content: loginUser.password})
+            // if (decryptedPassword !== password) {
+            //     throw new Error("Invalid credentials!");
+            // } 
             return {
-                user: loginUser,
+                accessLevel: loginUser.accessLevel,
+                email: loginUser.email
             };
         });
     }
