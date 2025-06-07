@@ -4,6 +4,7 @@ const router = express.Router();
 import { MainController } from "../controller/mainController";
 import { RequestValidator } from "../validator/RequestValidator";
 import { orgController } from "../controller/orgController";
+import { questionController } from "../controller/questionController";
 import {upload} from "../middleware/upload";
 
 //user crud
@@ -19,5 +20,8 @@ router.post("/bulkUserUpload",upload.single('file'), MainController.postBulk);
 //organisation crud
 router.post("/organisations/", RequestValidator.postOrganisation, orgController.postOrg);
 router.get("/organisations/", orgController.getOrg);
+
+//question crud
+router.post("/question", questionController.postQuestion);
 
 export default router;

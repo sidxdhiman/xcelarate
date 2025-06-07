@@ -25,4 +25,7 @@ routers.delete("/users/:email", router);
 routers.post("/organisations/", router);
 routers.get("/organisations/", router);
 
+//question routes
+routers.post("/question", router);
+
 export default routers;

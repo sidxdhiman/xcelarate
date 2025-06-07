@@ -9,6 +9,10 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
+import { Dimensions } from 'react-native';
+
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
 
 const AssessmentPortal: React.FC = () => {
   const router = useRouter();
@@ -62,6 +66,8 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     justifyContent: 'flex-start',
+    width: screenWidth,
+    height: screenHeight
   },
   flexContainer: {
     flex: 1,

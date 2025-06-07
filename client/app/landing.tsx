@@ -11,8 +11,8 @@ import { Ionicons, FontAwesome5, MaterialIcons, Feather } from '@expo/vector-ico
 import { router } from 'expo-router';
 import { Dimensions } from 'react-native';
 
+const screenHeight = Dimensions.get('window').width;
 const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
 const AdminPanel = ()=> {
   return (
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     width: screenWidth,
-    height: screenHeight
+    // height: screenHeight,
   },
   headerContainer: {
     alignItems: 'center',

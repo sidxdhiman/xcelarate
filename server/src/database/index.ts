@@ -37,10 +37,22 @@ export const connection = mongoose.connect(mongoDB, {
     email:String,
     contact:Number
   });
+
+  const questionSchema = new mongoose.Schema({
+    question: String,
+    optOne: String,
+    optTwo: String,
+    optThree: String,
+    optFour: String,
+    optFive: String,
+    role: String
+  });
+
+  const Question = mongoose.model("Questions", questionSchema);
   
   const Organisation = mongoose.model("Organisations", organisationSchema);
   // const User = mongoose.model("Users", userSchema);
 
 export const User = mongoose.model<IUser>('User', userSchema);
-export {Organisation};
+export {Organisation, Question};
 
