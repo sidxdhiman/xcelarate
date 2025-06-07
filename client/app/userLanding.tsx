@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     backgroundColor: '#800080',
-    borderBottomLeftRadius: 150,
-    borderBottomRightRadius: 150,
+    borderBottomLeftRadius: 300,
+    borderBottomRightRadius: 300,
     height: 180,
     paddingHorizontal: 20,
     justifyContent: 'center',

@@ -45,7 +45,8 @@ export const connection = mongoose.connect(mongoDB, {
     optThree: String,
     optFour: String,
     optFive: String,
-    role: String
+    role: String,
+    assessmentName: String
   });
 
   const Question = mongoose.model("Questions", questionSchema);

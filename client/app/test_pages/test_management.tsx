@@ -7,62 +7,53 @@ import {
   ImageBackground,
   SafeAreaView,
 } from 'react-native';
-import { Ionicons, FontAwesome5, MaterialIcons, Feather } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { push } from 'expo-router/build/global-state/routing';
 import { Dimensions } from 'react-native';
-
-const screenHeight = Dimensions.get('window').width;
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
-const AdminPanel = ()=> {
+export default function UserPanel() {
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
-        source={require("../assets/images/0001.jpg")}
+        source={require('../../assets/images/0001.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
         {/* Header Section */}
         <View style={styles.headerContainer}>
           <View style={styles.topCurve}>
-            <Text style={styles.headerText}>ADMIN PANEL</Text>
-            {/* <Ionicons
-              name="person-circle"
-              size={28}
-              color="#fff"
-              style={styles.profileIcon}
-            /> */}
+            {/* Home Icon */}
+            {/* <TouchableOpacity style={styles.homeIcon}>
+              <Ionicons name="home" size={24} color="#000" />
+            </TouchableOpacity> */}
+
+            <Text style={styles.headerText}>TEST MANAGEMENT</Text>
           </View>
         </View>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => router.push("/userManagement")}
-          >
-            <FontAwesome5 name="users" size={18} color="#000" />
-            <Text style={styles.buttonText}>User Management</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/userList')}>
+            <FontAwesome5 name="list" size={16} color="#000" />
+            <Text style={styles.buttonText}>Test List</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}
-            // style={styles.button}
-            onPress={() => router.push('/test_pages/test_management')}
-          >
-            <MaterialIcons name="question-answer" size={20} color="#000" />
-            <Text style={styles.buttonText}>Question Management</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/addUser')}>
+            <FontAwesome5 name="paperclip" size={16} color="#000" />
+            <Text style={styles.buttonText}>Add Test</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <Feather name="file-text" size={20} color="#000" />
-            <Text style={styles.buttonText}>Fetch all reports</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/modifyUser')}>
+            <MaterialIcons name="edit" size={18} color="#000" />
+            <Text style={styles.buttonText}>Modify Test</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}
-          onPress={()=> router.push('/login')}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#000" />
-            <Text style={styles.buttonText}>Log out</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/deleteUser')}>
+            <Ionicons name="trash-bin-outline" size={18} color="#000" />
+            <Text style={styles.buttonText}>Flag/Archive Test</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
@@ -78,12 +69,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     width: screenWidth,
-    // height: screenHeight,
+    height: screenHeight,
   },
   headerContainer: {
     alignItems: 'center',
     position: 'relative',
-    marginBottom: 150,
+    marginBottom: 120,
   },
   topCurve: {
     backgroundColor: '#800080',
@@ -94,16 +85,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    paddingTop: 30,
   },
   headerText: {
     color: '#fff',
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
   },
-  profileIcon: {
+  homeIcon: {
     position: 'absolute',
     top: 20,
-    right: 20,
+    left: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 6,
+    elevation: 5,
   },
   buttonContainer: {
     paddingHorizontal: 25,
@@ -126,7 +124,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#000',
+    textTransform: 'capitalize',
   },
 });
-
-export default AdminPanel;
