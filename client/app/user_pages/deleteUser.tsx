@@ -40,24 +40,24 @@ const DeleteUser = () => {
       setLoading(false);
     }
 
-    const fetchUserSearch = async (query: string) => {
-      try{
-        const res = await axiosInstance.get('/users', {
-          params: {q: query}
-        });
-        setUserSearch(res.data)
-      } catch (err) {
-        console.error(err);
-      }
-    };
+    // const fetchUserSearch = async (query: string) => {
+    //   try{
+    //     const res = await axiosInstance.get('/users', {
+    //       params: {q: query}
+    //     });
+    //     setUserSearch(res.data)
+    //   } catch (err) {
+    //     console.error(err);
+    //   }
+    // };
 
-    useEffect(()=>{
-      if(SearchBar.length > 1) {
-        fetchUserSearch(search);
-      } else {
-        setUserSearch([])
-      }
-    }, [search])
+    // useEffect(()=>{
+    //   if(SearchBar.length > 1) {
+    //     fetchUserSearch(search);
+    //   } else {
+    //     setUserSearch([])
+    //   }
+    // }, [search])
 
 
   };
@@ -114,6 +114,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     width: screenWidth,
     height: screenHeight
+  },
+  search: {
+    flex: 1,
+    justifyContent: 'flex-start'
   },
 });
 
