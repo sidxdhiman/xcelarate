@@ -100,7 +100,7 @@ const DeleteUser = () => {
           disabled={loading}
         >
           <Text style={tw`text-white font-semibold text-base`}>
-            {loading ? 'Deleting...' : 'Done'}
+            {loading ? 'Flagging User...' : 'Done'}
           </Text>
         </TouchableOpacity>
 

@@ -36,22 +36,22 @@ export default function UserPanel() {
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/userList')}>
+        <TouchableOpacity style={styles.button} /*onPress={() => router.push('/user_pages/userList')}*/>
             <FontAwesome5 name="list" size={16} color="#000" />
             <Text style={styles.buttonText}>Test List</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/addUser')}>
+          <TouchableOpacity style={styles.button} /*onPress={() => router.push('/user_pages/addUser')}*/>
             <FontAwesome5 name="paperclip" size={16} color="#000" />
             <Text style={styles.buttonText}>Add Test</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/modifyUser')}>
+          <TouchableOpacity style={styles.button} /*onPress={() => router.push('/user_pages/modifyUser')}*/>
             <MaterialIcons name="edit" size={18} color="#000" />
             <Text style={styles.buttonText}>Modify Test</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={() => router.push('/user_pages/deleteUser')}>
+          <TouchableOpacity style={styles.button} /*onPress={() => router.push('/user_pages/deleteUser')}*/>
             <Ionicons name="trash-bin-outline" size={18} color="#000" />
             <Text style={styles.buttonText}>Flag/Archive Test</Text>
           </TouchableOpacity>

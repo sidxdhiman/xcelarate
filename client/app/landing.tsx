@@ -50,7 +50,7 @@ const AdminPanel = ()=> {
             onPress={() => router.push('/test_pages/test_management')}
           >
             <MaterialIcons name="question-answer" size={20} color="#000" />
-            <Text style={styles.buttonText}>Question Management</Text>
+            <Text style={styles.buttonText}>Test Management</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.button}>

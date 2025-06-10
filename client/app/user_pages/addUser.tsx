@@ -21,6 +21,7 @@ const AddUser = () => {
   const [contact, setContact] = useState('');
   const [organisation, setOrganisation] = useState('');
   const [designation, setDesignation] = useState('');
+  const [accessLevel, setAccessLevel] = useState('');
   const [location, setLocation] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ const AddUser = () => {
   const handleAddUser = async () => {
     console.log('addUser function:', addUser);
 
-    if (!username || !email || !contact || !organisation || !designation || !location) {
+    if (!username || !email || !contact || !organisation || !designation || !accessLevel || !location) {
       Toast.show({
         type: 'error',  
         text1: 'Error',
@@ -50,6 +51,7 @@ const AddUser = () => {
       contact,
       organisation,
       designation,
+      accessLevel,
       location,
     };
 
@@ -110,7 +112,7 @@ const AddUser = () => {
           { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact, keyboardType: 'phone-pad' },
           { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
           { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
-          {icon: 'lock', placeholder: 'Access Level'},
+          {icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel},
         ].map((field, idx) => (
             <View key={idx} style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
             <Icon name={field.icon} size={18} color="#999" style={tw`mr-2`} />

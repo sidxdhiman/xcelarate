@@ -67,7 +67,11 @@ const AddBulkUsers = () => {
     } catch (error) {
       console.error('File picking/upload error:', error);
       setLoading(false);
-      toast.error('Failed to upload file!');
+      Toast.show({
+        type: 'error',
+        text1: 'Failed',
+        text2: 'Failed to upload file!'
+      })
     }
   };  
   return (
