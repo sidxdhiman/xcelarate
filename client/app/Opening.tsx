@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    fontSize: RFValue(70),
+    fontSize: RFValue(50),
     fontWeight: 'bold',
     color: 'white',
     marginTop: 200,

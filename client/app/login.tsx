@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   title: {
-    fontSize: RFValue(60),
+    fontSize: RFValue(30),
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 50,

@@ -10,6 +10,7 @@ import {
 import { Ionicons, FontAwesome5, MaterialIcons, Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Dimensions } from 'react-native';
+import { RFValue } from 'react-native-responsive-fontsize';
 
 const screenHeight = Dimensions.get('window').width;
 const screenWidth = Dimensions.get('window').width;
@@ -74,7 +75,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: screenWidth,
-    height: screenHeight
+    height: screenHeight,
+    alignItems: 'center',
   },
   backgroundImage: {
     flex: 1,
@@ -83,16 +85,17 @@ const styles = StyleSheet.create({
     height: screenHeight,
   },
   headerContainer: {
+    width: '100%',
     alignItems: 'center',
     position: 'relative',
-    marginBottom: 150,
+    marginBottom: 50,
   },
   topCurve: {
     backgroundColor: '#800080',
     width: '100%',
-    height: 190,
-    borderBottomLeftRadius: 350,
-    borderBottomRightRadius: 350,
+    height: 100,
+    // borderBottomLeftRadius: 350,
+    // borderBottomRightRadius: 350,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -108,8 +111,11 @@ const styles = StyleSheet.create({
     right: 20,
   },
   buttonContainer: {
+
+    width: 400,
     paddingHorizontal: 25,
     alignItems: 'center',
+    justifyContent: 'center'
   },
   button: {
     flexDirection: 'row',
