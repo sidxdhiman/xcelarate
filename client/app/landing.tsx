@@ -17,11 +17,11 @@ const screenWidth = Dimensions.get('window').width;
 const AdminPanel = ()=> {
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground
+      {/* <ImageBackground
         source={require("../assets/images/0001.jpg")}
         style={styles.backgroundImage}
         resizeMode="cover"
-      >
+      > */}
         {/* Header Section */}
         <View style={styles.headerContainer}>
           <View style={styles.topCurve}>
@@ -65,7 +65,7 @@ const AdminPanel = ()=> {
             <Text style={styles.buttonText}>Log out</Text>
           </TouchableOpacity>
         </View>
-      </ImageBackground>
+      {/* </ImageBackground> */}
     </SafeAreaView>
   );
 }
@@ -73,12 +73,14 @@ const AdminPanel = ()=> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: screenWidth,
+    height: screenHeight
   },
   backgroundImage: {
     flex: 1,
     justifyContent: 'flex-start',
     width: screenWidth,
-    // height: screenHeight,
+    height: screenHeight,
   },
   headerContainer: {
     alignItems: 'center',

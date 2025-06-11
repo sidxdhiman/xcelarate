@@ -13,6 +13,8 @@ import {
 import { router } from 'expo-router';
 import { useAuthStore } from '@/store/useAuthStore';
 import Toast from "react-native-toast-message";
+import { RFValue } from 'react-native-responsive-fontsize';
+import { Dimensions } from 'react-native';
 import { AxiosError } from 'axios';
 
 const LoginScreen = () => {
@@ -85,14 +87,14 @@ const LoginScreen = () => {
   };
 
   return (
-    <ImageBackground source={require('../assets/images/0001.jpg')} style={styles.backgroundImage}>
+    <ImageBackground source={require('../assets/images/0003.png')} style={styles.backgroundImage}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Xcelarate</Text>
+        <Text style={styles.title}>XCELARATE</Text>
         <View style={styles.bottomRight}>
           <Text style={styles.subtitle}>Powered By </Text>
           <Image source={require('../assets/images/Xebia.png')} style={styles.logo} />
         </View>
-        <Text style={styles.loginHeader}>Log In</Text>
+        <Text style={styles.loginHeader}>Log in</Text>
         <TextInput
           style={styles.input}
           placeholder="Email ID"
@@ -156,7 +158,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   title: {
-    fontSize: 60,
+    fontSize: RFValue(60),
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 50,
@@ -173,6 +175,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#fff',
+    marginRight: 5
   },
   logo: {
     width: 70,
@@ -180,15 +183,15 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   loginHeader: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     marginBottom: 10,
     marginTop: 100,
   },
   input: {
-    width: '100%',
+    width: 340,
     height: 45,
     borderColor: '#fff',
     borderWidth: 2,
@@ -198,8 +201,8 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   forgotPasswordWrapper: {
-    width: '100%',
-    alignItems: 'flex-end',
+    width: 340,
+    alignItems: 'center',
     marginBottom: 10,
   },
   forgotPassword: {
@@ -218,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   loginButtonText: {
-    fontWeight: 'bold',
+    fontWeight: '300',
     fontSize: 16,
     color: '#fff',
   },
@@ -226,7 +229,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    width: '101%',
   },
   checkboxContainer: {
     marginRight: 8,
@@ -249,6 +251,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   checkboxLabel: {
+    alignItems: 'center',
     fontSize: 14,
     color: '#FFFFFF',
   },

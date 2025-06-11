@@ -5,14 +5,25 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StyleSheet,
+  ImageBackground,
 } from 'react-native';
 import React from 'react';
 import { router } from 'expo-router';
+import { Dimensions } from 'react-native';
+import {RFValue} from "react-native-responsive-fontsize";
+
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
 
 export default function WelcomeScreen() {
   return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.innerContainer}>
+        <ImageBackground 
+         source={require("../assets/images/0003.png")}
+         style={styles.backgroundImage}
+         resizeMode="cover"
+        >
+          <View style={styles.innerContainer}>
           <Text style={styles.title}>XCELARATE</Text>
 
           <View style={styles.bottomRight}>
@@ -30,8 +41,9 @@ export default function WelcomeScreen() {
             <Text style={styles.buttonText}>Get Started</Text>
           </TouchableOpacity>
         </View>
+        </ImageBackground>
       </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -53,9 +65,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 60,
+    fontSize: RFValue(70),
     fontWeight: 'bold',
-    color: 'blacka',
+    color: 'white',
     marginTop: 200,
   },
   poweredBy: {
@@ -84,8 +96,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: '300',
+    fontSize: 15,
   },
   bottomRight: {
     position: 'absolute',
@@ -95,7 +107,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: 'black',
+    fontSize: 12,
+    color: 'white',
+    marginRight: 5
   },
+  backgroundImage: {
+    height: screenHeight,
+    width: screenWidth
+  }
 });

@@ -5,14 +5,28 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StyleSheet,
+  ImageBackground,
 } from 'react-native';
 import React from 'react';
 import { router } from 'expo-router';
+import { RFValue } from 'react-native-responsive-fontsize';
+import { BackgroundImage } from 'react-native-elements/dist/config';
+import { Dimensions } from 'react-native';
+import {StatusBar} from 'expo-status-bar';
+
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
 
 export default function WelcomeScreen() {
   return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.innerContainer}>
+        {/* <StatusBar style='light' backgroundColor='#XXXXXX' translucent={false}/> */}
+        <ImageBackground 
+          source={require("../assets/images/0003.png")}
+          style={styles.backgroundImage}
+          resizeMode='cover'
+        >
+          <View style={styles.innerContainer}>
           <Text style={styles.title}>XCELARATE</Text>
 
           <View style={styles.bottomRight}>
@@ -27,15 +41,16 @@ export default function WelcomeScreen() {
             style={styles.button}
             onPress={() => router.push('/login')}
           >
-            <Text style={styles.buttonText}>Login</Text>
+            <Text style={styles.buttonText}>Log In</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.button2}
             onPress={() => router.push('/signup')}
           >
-            <Text style={styles.buttonText}>SignUp</Text>
+            <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
         </View>
+        </ImageBackground>
       </SafeAreaView>
   );
 }
@@ -46,6 +61,11 @@ const styles = StyleSheet.create({
   //   width: '100%', // Ensures the image is stretched to the full width
   //   height: '100%', // Ensures the image is stretched to the full height
   // },
+  backgroundImage: {
+    flex: 1,
+    height: screenHeight,
+    width: screenWidth,
+  },
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -59,10 +79,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 50,
+    fontSize: RFValue(70),
     fontWeight: 'bold',
-    color: 'blacka',
-    marginTop: 96,
+    color: 'white',
+    marginTop: 200,
   },
   poweredBy: {
     flexDirection: 'row',
@@ -97,9 +117,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonText: {
+    width: RFValue(50),
+    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: '300',
+    fontSize: 15,
   },
   bottomRight: {
     position: 'absolute',
@@ -109,7 +133,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: 'black',
+    fontSize: 12,
+    color: 'white',
+    marginRight: 5
   },
+  
 });
