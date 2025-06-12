@@ -22,4 +22,6 @@ routers.delete("/users/:email", apiRoutes_1.default);
 //organisation routes
 routers.post("/organisations/", apiRoutes_1.default);
 routers.get("/organisations/", apiRoutes_1.default);
+//question routes
+routers.post("/question", apiRoutes_1.default);
 exports.default = routers;

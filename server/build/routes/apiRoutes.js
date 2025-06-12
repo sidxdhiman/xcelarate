@@ -8,6 +8,7 @@ const router = express_1.default.Router();
 const mainController_1 = require("../controller/mainController");
 const RequestValidator_1 = require("../validator/RequestValidator");
 const orgController_1 = require("../controller/orgController");
+const questionController_1 = require("../controller/questionController");
 const upload_1 = require("../middleware/upload");
 //user crud
 router.get("/users/", mainController_1.MainController.getFunction);
@@ -21,4 +22,6 @@ router.post("/bulkUserUpload", upload_1.upload.single('file'), mainController_1.
 //organisation crud
 router.post("/organisations/", RequestValidator_1.RequestValidator.postOrganisation, orgController_1.orgController.postOrg);
 router.get("/organisations/", orgController_1.orgController.getOrg);
+//question crud
+router.post("/question", questionController_1.questionController.postQuestion);
 exports.default = router;

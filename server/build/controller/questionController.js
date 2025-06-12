@@ -9,27 +9,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteService = void 0;
-const index_1 = require("../database/index");
-class DeleteService {
-    deleteUserByEmail(email) {
+exports.questionController = void 0;
+const { PostQuestion } = require("../service/postService");
+class questionController {
+    static postQuestion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                if (!email || typeof email !== 'string') {
-                    throw new Error("Invalid email format");
+                const questionData = req.body;
+                const question = yield new PostQuestion().postQuestion(questionData);
+                if (question) {
+                    res.status(200).json({ success: true });
                 }
-                // const userExists = await User.findOne({ email });
-                // if (!userExists) {
-                //   throw new Error("User not found");
-                // } TODO: check if email exists
-                const result = yield index_1.User.findOneAndDelete({ email });
-                return result;
+                else {
+                    res.status(404).json({ message: "Question not posted" });
+                }
             }
             catch (error) {
-                console.error("Error deleting user:", error);
-                throw new Error("Failed to delete user");
+                res.status(500).json({ message: "Internal Server Error" });
             }
         });
     }
 }
-exports.DeleteService = DeleteService;
+exports.questionController = questionController;

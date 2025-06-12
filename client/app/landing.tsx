@@ -4,136 +4,103 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
   SafeAreaView,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons, FontAwesome5, MaterialIcons, Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Dimensions } from 'react-native';
-import { RFValue } from 'react-native-responsive-fontsize';
 
-const screenHeight = Dimensions.get('window').width;
-const screenWidth = Dimensions.get('window').width;
+const AdminPanel = () => {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 600;
 
-const AdminPanel = ()=> {
+  const cardSize = isMobile ? width / 2 - 32 : width / 4 - 32;
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* <ImageBackground
-        source={require("../assets/images/0001.jpg")}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      > */}
-        {/* Header Section */}
-        <View style={styles.headerContainer}>
-          <View style={styles.topCurve}>
-            <Text style={styles.headerText}>ADMIN PANEL</Text>
-            {/* <Ionicons
-              name="person-circle"
-              size={28}
-              color="#fff"
-              style={styles.profileIcon}
-            /> */}
-          </View>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>ADMIN PANEL</Text>
+      </View>
 
-        {/* Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => router.push("/userManagement")}
-          >
-            <FontAwesome5 name="users" size={18} color="#000" />
-            <Text style={styles.buttonText}>User Management</Text>
-          </TouchableOpacity>
+      {/* Card Grid */}
+      <View style={[styles.cardGrid, { flexWrap: isMobile ? 'wrap' : 'nowrap' }]}>
+        <TouchableOpacity
+          style={[styles.card, { width: cardSize, height: cardSize }]}
+          onPress={() => router.push('/userManagement')}
+        >
+          <FontAwesome5 name="users" size={42} color="#800080" />
+          <Text style={styles.cardText}>Users</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}
-            // style={styles.button}
-            onPress={() => router.push('/test_pages/test_management')}
-          >
-            <MaterialIcons name="question-answer" size={20} color="#000" />
-            <Text style={styles.buttonText}>Test Management</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.card, { width: cardSize, height: cardSize }]}
+          onPress={() => router.push('/test_pages/test_management')}
+        >
+          <MaterialIcons name="question-answer" size={44} color="#800080" />
+          <Text style={styles.cardText}>Tests</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <Feather name="file-text" size={20} color="#000" />
-            <Text style={styles.buttonText}>Fetch all reports</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={[styles.card, { width: cardSize, height: cardSize }]}>
+          <Feather name="file-text" size={44} color="#800080" />
+          <Text style={styles.cardText}>Reports</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}
-          onPress={()=> router.push('/login')}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#000" />
-            <Text style={styles.buttonText}>Log out</Text>
-          </TouchableOpacity>
-        </View>
-      {/* </ImageBackground> */}
+        <TouchableOpacity
+          style={[styles.card, { width: cardSize, height: cardSize }]}
+          onPress={() => router.push('/login')}
+        >
+          <Ionicons name="log-out-outline" size={44} color="#800080" />
+          <Text style={styles.cardText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: screenWidth,
-    height: screenHeight,
-    alignItems: 'center',
+    backgroundColor: '#f7f3ff',
   },
-  backgroundImage: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    width: screenWidth,
-    height: screenHeight,
-  },
-  headerContainer: {
-    width: '100%',
-    alignItems: 'center',
-    position: 'relative',
-    marginBottom: 50,
-  },
-  topCurve: {
+  header: {
     backgroundColor: '#800080',
-    width: '100%',
-    height: 100,
-    // borderBottomLeftRadius: 350,
-    // borderBottomRightRadius: 350,
-    justifyContent: 'center',
+    paddingVertical: 32,
     alignItems: 'center',
-    position: 'relative',
+    marginBottom: 40,
   },
   headerText: {
     color: '#fff',
     fontSize: 30,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    letterSpacing: 1.5,
   },
-  profileIcon: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-  },
-  buttonContainer: {
-
-    width: 400,
-    paddingHorizontal: 25,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  button: {
+  cardGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    marginVertical: 10,
-    width: '100%',
     justifyContent: 'center',
-    gap: 10,
-    elevation: 4,
+    gap: 20,
+    // paddingHorizontal: 16,
+    flex: 1,
   },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    marginBottom: 20,
+  },
+  cardText: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#4b0082',
+    textAlign: 'center',
   },
 });
 

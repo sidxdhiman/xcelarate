@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Organisation = exports.User = exports.connection = void 0;
+exports.Question = exports.Organisation = exports.User = exports.connection = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const mongoDB = "mongodb://localhost:27017/xcelarate-backend";
 exports.connection = mongoose_1.default.connect(mongoDB, {
@@ -30,6 +30,18 @@ const organisationSchema = new mongoose_1.default.Schema({
     email: String,
     contact: Number
 });
+const questionSchema = new mongoose_1.default.Schema({
+    question: String,
+    optOne: String,
+    optTwo: String,
+    optThree: String,
+    optFour: String,
+    optFive: String,
+    role: String,
+    assessmentName: String
+});
+const Question = mongoose_1.default.model("Questions", questionSchema);
+exports.Question = Question;
 const Organisation = mongoose_1.default.model("Organisations", organisationSchema);
 exports.Organisation = Organisation;
 // const User = mongoose.model("Users", userSchema);

@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostOrganisation = exports.PostUser = void 0;
+exports.PostQuestion = exports.PostOrganisation = exports.PostUser = void 0;
 const index_1 = require("../database/index");
 const index_2 = require("../database/index");
+const index_3 = require("../database/index");
 class PostUser {
     postUser(userData) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -52,3 +53,22 @@ class PostOrganisation {
     }
 }
 exports.PostOrganisation = PostOrganisation;
+;
+class PostQuestion {
+    postQuestion(questionData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!questionData.question) {
+                    throw new Error("Question is required");
+                }
+                const question = yield index_3.Question.create(questionData);
+                console.log("Question posted successfully!");
+            }
+            catch (error) {
+                console.error("Error in posting a question: ");
+                throw new Error(`Error in posting question`);
+            }
+        });
+    }
+}
+exports.PostQuestion = PostQuestion;
