@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   //   height: '100%', // Ensures the image is stretched to the full height
   // },
   container: {
-    // flex: 1,
+    flex: 1,
     backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     resizeMode: 'cover',
-    // height: screenHeight,
-    // width: screenWidth
-    width: '100%',
-    height: '100%'
+    height: screenHeight,
+    width: screenWidth
+    // width: '100%',
+    // height: '100%'
   }
 });
