@@ -57,10 +57,11 @@ const styles = StyleSheet.create({
   //   height: '100%', // Ensures the image is stretched to the full height
   // },
   container: {
-    flex: 1,
+    // flex: 1,
     backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
+    // paddingTop: 50,
   },
   innerContainer: {
     width: '100%',
@@ -76,8 +77,8 @@ const styles = StyleSheet.create({
   },
   titleLogo: {
     marginTop: 250,
-    width: RFValue(400),
-    height: RFValue(37),
+    width: RFValue(300),
+    height: RFValue(28),
     resizeMode: 'cover',
   },
   poweredBy: {
@@ -122,7 +123,11 @@ const styles = StyleSheet.create({
     marginRight: 5
   },
   backgroundImage: {
-    height: screenHeight,
-    width: screenWidth
+    flex: 1,
+    resizeMode: 'cover',
+    // height: screenHeight,
+    // width: screenWidth
+    width: '100%',
+    height: '100%'
   }
 });
