@@ -89,7 +89,11 @@ const LoginScreen = () => {
   return (
     <ImageBackground source={require('../assets/images/0003.png')} style={styles.backgroundImage}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>XCELARATE</Text>
+        {/* <Text style={styles.title}>XCELARATE</Text> */}
+        <Image 
+          source={require('../assets/images/title-logos/title.png')}
+          style={styles.titleLogo}
+        />
         <View style={styles.bottomRight}>
           <Text style={styles.subtitle}>Powered By </Text>
           <Image source={require('../assets/images/Xebia.png')} style={styles.logo} />
@@ -148,9 +152,10 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'cover',
     width: '100%',
+    height: '100%'
   },
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     alignItems: 'center',
     paddingTop: 50,
@@ -164,6 +169,12 @@ const styles = StyleSheet.create({
     marginBottom: 50,
     textAlign: 'center',
     marginTop: 50
+  },
+  titleLogo: {
+    marginTop: 150,
+    width: RFValue(250),
+    height: RFValue(22),
+    resizeMode: 'cover'
   },
   bottomRight: {  // Add the 'bottomRight' style here
     position: 'absolute',

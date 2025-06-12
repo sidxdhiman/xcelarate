@@ -24,7 +24,11 @@ export default function WelcomeScreen() {
          resizeMode="cover"
         >
           <View style={styles.innerContainer}>
-          <Text style={styles.title}>XCELARATE</Text>
+          {/* <Text style={styles.title}>XCELARATE</Text> */}
+          <Image 
+            source={require('../assets/images/title-logos/title.png')}
+            style={styles.titleLogo}
+          />
 
           <View style={styles.bottomRight}>
             <Text style={styles.subtitle}>Powered By </Text>
@@ -69,6 +73,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginTop: 200,
+  },
+  titleLogo: {
+    marginTop: 250,
+    width: RFValue(400),
+    height: RFValue(37),
+    resizeMode: 'cover',
   },
   poweredBy: {
     flexDirection: 'row',
