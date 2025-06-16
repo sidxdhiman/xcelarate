@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ImageBackground, ScrollView, Platform,
+  View, Text, TextInput, TouchableOpacity, ImageBackground, ScrollView, StyleSheet, Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import tw from 'twrnc';
 import { useRouter } from 'expo-router';
-import { KeyboardTypeOptions } from 'react-native';
+import { KeyboardTypeOptions, Dimensions } from 'react-native';
 import { useAuthStore } from '../../store/useAuthStore'; 
-import { Dimensions } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { RFValue } from 'react-native-responsive-fontsize';
+
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const AddUser = () => {
   const router = useRouter();
-
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
@@ -25,116 +24,71 @@ const AddUser = () => {
   const [location, setLocation] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
-
   const { addUser } = useAuthStore();
 
   const handleAddUser = async () => {
-    console.log('addUser function:', addUser);
-
     if (!username || !email || !contact || !organisation || !designation || !accessLevel || !location) {
-      Toast.show({
-        type: 'error',  
-        text1: 'Error',
-        text2: 'All fields are required!',
-      });
+      Toast.show({ type: 'error', text1: 'Error', text2: 'All fields are required!' });
       return;
     }
 
     setError('');
     setLoading(true); 
-
-    const userData = {
-      username,
-      email,
-      contact,
-      organisation,
-      designation,
-      accessLevel,
-      location,
-    };
-
-    console.log('User to add:', userData);
+    const userData = { username, email, contact, organisation, designation, accessLevel, location };
 
     try {
-      if (typeof addUser !== 'function') {
-        throw new Error('addUser function is not available or not a function');
-      }
-
+      if (typeof addUser !== 'function') throw new Error('addUser function is not available');
       const { success } = await addUser(userData);
-
       if (success) {
-        console.log('User added successfully');
         setLoading(false);
-        Toast.show({
-          type: 'success',
-          text1: 'User added successfully!',
-          text2: 'User has been added to the database'
-        });
+        Toast.show({ type: 'success', text1: 'User added successfully!', text2: 'User has been added to the database' });
         router.push('/user_pages/userList');
       } else {
-        console.log('Failed to add user');
         setLoading(false);
-        Toast.show({
-          type: 'error',
-          text1: 'Failed!',
-          text2: 'Failed to add user. Please try again'
-        });
+        Toast.show({ type: 'error', text1: 'Failed!', text2: 'Failed to add user. Please try again' });
       }
     } catch (err) {
-      console.error('Error adding user:', err);
       setLoading(false);
-      Toast.show({
-        type: 'error',
-        text1: 'Error!',
-        text2: 'An error occured. Please try again'
-      });
+      Toast.show({ type: 'error', text1: 'Error!', text2: 'An error occurred. Please try again' });
     }
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/images/0001.jpg')}
-      style={[tw`flex-1`, {width: screenWidth, height: screenHeight}]}
-      resizeMode="cover"
-    >
-      <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
-        <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Add User</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+        <View style={styles.headerArc}>
+          <Text style={styles.headerText}>ADD USER</Text>
+        </View>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        {/* Display error message */}
-        {error ? <Text style={tw`text-red-500 mb-3`}>{error}</Text> : null}
-
-        {/* Input Fields */}
         {[
           { icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
           { icon: 'envelope', placeholder: 'Email', value: email, setter: setEmail, keyboardType: 'email-address' },
           { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact, keyboardType: 'phone-pad' },
           { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
           { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
-          {icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel},
+          { icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel },
         ].map((field, idx) => (
-            <View key={idx} style={tw`flex-row bg-white rounded-full px-4 items-center my-2 h-11 w-full`}>
-            <Icon name={field.icon} size={18} color="#999" style={tw`mr-2`} />
+          <View key={idx} style={styles.inputContainer}>
+            <Icon name={field.icon} size={18} color="#999" style={styles.icon} />
             <TextInput
               placeholder={field.placeholder}
               placeholderTextColor="#999"
               value={field.value}
               onChangeText={field.setter}
               keyboardType={(field.keyboardType || 'default') as KeyboardTypeOptions}
-              style={tw`flex-1 text-black text-base`}
+              style={styles.input}
             />
-          </View>          
+          </View>
         ))}
 
-        {/* Location Picker */}
-        <View style={tw`w-full mt-2 mb-2`}>
-          <Text style={tw`text-white mb-1 ml-1 font-semibold`}>Location</Text>
-          <View style={tw`bg-white rounded-full h-11 justify-center px-3`}>
+        <View style={styles.pickerWrapper}>
+          <Text style={styles.label}>Location</Text>
+          <View style={styles.pickerContainer}>
             <Picker
               selectedValue={location}
               onValueChange={(itemValue) => setLocation(itemValue)}
-              style={tw`text-black w-full`}
+              style={styles.picker}
               dropdownIconColor="#800080"
               mode={Platform.OS === 'ios' ? 'dialog' : 'dropdown'}
             >
@@ -146,20 +100,95 @@ const AddUser = () => {
           </View>
         </View>
 
-        {/* Submit Button */}
         <TouchableOpacity
-          style={tw`bg-[#800080] rounded-full py-3 px-10 mt-5 w-full items-center`}
+          style={styles.submitButton}
           onPress={handleAddUser}
-          disabled={loading} // Disable the button while loading
+          disabled={loading}
         >
-          <Text style={tw`text-white font-semibold text-base`}>
+          <Text style={styles.submitText}>
             {loading ? 'Adding User...' : 'Add User'}
           </Text>
         </TouchableOpacity>
-
       </ScrollView>
-    </ImageBackground>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollContainer: {
+    alignItems: 'center'
+  },
+  headerArc: {
+    backgroundColor: '#800080',
+    paddingVertical: 32,
+    marginBottom: 10,
+    width: '100%'
+  },
+  headerText: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    letterSpacing: 1,
+  },
+  errorText: {
+    color: '#f87171',
+    marginBottom: 12,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    marginVertical: 8,
+    height: 44,
+    width: RFValue(300)
+  },
+  icon: {
+    marginRight: 8,
+    color: 'black'
+  },
+  input: {
+    flex: 1,
+    color: 'black',
+    fontSize: 16,
+  },
+  pickerWrapper: {
+    marginTop: 8,
+    width: RFValue(300),
+    marginBottom: 8,
+  },
+  label: {
+    color: 'black',
+    margin: 10,
+    fontWeight: '600',
+  },
+  pickerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 999,
+    height: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  picker: {
+    color: 'black',
+    margin: 10
+  },
+  submitButton: {
+    backgroundColor: '#800080',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    margin: 20,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  submitText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+});
 
 export default AddUser;

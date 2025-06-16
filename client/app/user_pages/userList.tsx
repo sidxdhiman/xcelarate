@@ -7,9 +7,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import tw from 'twrnc';
 import iconSet from '@expo/vector-icons/build/Fontisto';
 import { SearchBar } from 'react-native-elements';
+import {RFValue} from 'react-native-responsive-fontsize';
 
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
 type User = {
   id: string;
@@ -66,14 +65,11 @@ const userList = () => {
   }, [search]);
 
   return (
-    <ImageBackground
-      source={require('../../assets/images/0001.jpg')}
-      style={{ width: screenWidth, height: screenHeight }}
-      resizeMode="cover"
-    > 
-      <ScrollView contentContainerStyle={tw`p-6`}>
+      <ScrollView>
         
-        <Text style={tw`text-white text-4xl font-bold text-center mb-6 pt-10`}>Users</Text>
+        <View style={styles.headerArc}>
+                <Text style={styles.headerText}>USERS</Text>
+              </View>
         <View style={styles.search}>
         <SearchBar
           placeholder="Search users here..."
@@ -121,7 +117,6 @@ const userList = () => {
           ))
         )}
       </ScrollView>
-    </ImageBackground>
   );
 };
 // tw`bg-white rounded-xl p-4 mb-4 shadow-md`
@@ -131,16 +126,29 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
-    margin: 10
+    margin: 5
   },
   search: {
     flex: 1,
     backgroundColor: 'white',
-    borderRadius: 30,
-    marginLeft: 11,
-    marginRight: 11,
+    borderRadius: 10,
     marginBottom: 10,
-  }
+    paddingHorizontal: 5
+  },
+  headerArc: {
+    backgroundColor: '#800080',
+    paddingVertical: 32,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  headerText: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    letterSpacing: 1,
+  },
 });
 
 

@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
-  View, Text, TouchableOpacity, ImageBackground, ScrollView, ActivityIndicator
+  View, Text, TouchableOpacity, ImageBackground, ScrollView, ActivityIndicator, StyleSheet
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as XLSX from 'xlsx'; // Import xlsx to parse Excel files
-import tw from 'twrnc';
-// import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
@@ -18,16 +16,15 @@ const AddBulkUsers = () => {
   const handleFilePick = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
-  
+
       if (result.assets && result.assets.length > 0) {
         const file = result.assets[0];
         console.log('Selected file:', file);
-  
-        // Convert the base64 URI into a Blob
-        const base64String = file.uri.split(',')[1]; // Remove the "data:" prefix
-        const byteCharacters = atob(base64String); // Decode base64 to byte string
+
+        const base64String = file.uri.split(',')[1];
+        const byteCharacters = atob(base64String); 
         const byteArrays = [];
         for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
           const slice = byteCharacters.slice(offset, offset + 1024);
@@ -37,21 +34,18 @@ const AddBulkUsers = () => {
           }
           byteArrays.push(new Uint8Array(byteNumbers));
         }
-  
+
         const blob = new Blob(byteArrays, { type: file.mimeType });
-  
-        // Create FormData and append the file
+
         const formData = new FormData();
-        formData.append('file', blob, file.name); // Append Blob and file name
-  
+        formData.append('file', blob, file.name);
+
         setLoading(true);
-  
-        // Call the store's uploadBulkUsers method
-        const uploadResponse = await uploadBulkUsers(formData); // send file as FormData
+
+        const uploadResponse = await uploadBulkUsers(formData);
         setLoading(false);
-  
+
         if (uploadResponse.success) {
-          // router.push('/user_pages/userList')
           Toast.show({
             type: 'success',
             text1: 'Users Added Successfully!'
@@ -74,32 +68,61 @@ const AddBulkUsers = () => {
       })
     }
   };  
-  return (
-    <ImageBackground
-      source={require('../../assets/images/0001.jpg')}
-      style={tw`flex-1`}
-      resizeMode="cover"
-    >
-      <ScrollView contentContainerStyle={tw`p-8 items-center justify-center`} keyboardShouldPersistTaps="handled">
-        <Text style={tw`text-4xl font-bold text-white mb-5 py-10`}>Upload bulk users</Text>
 
-        {/* Upload Button */}
-        <TouchableOpacity
-          style={tw`bg-[#800080] flex items-center rounded-full py-3 px-10 mt-5 w-full`}
-          onPress={handleFilePick}
-          disabled={loading} // Disable the button while loading
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={tw`text-white font-semibold text-base`}>
-              Upload Excel File
-            </Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-    </ImageBackground>
+  return (
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <View style={styles.headerArc}>
+                <Text style={styles.headerText}>UPLOAD BULK</Text>
+        </View>
+      <TouchableOpacity
+        style={styles.uploadButton}
+        onPress={handleFilePick}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.uploadButtonText}>
+            Upload Excel File
+          </Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerArc: {
+    backgroundColor: '#800080',
+    paddingVertical: 32,
+    marginBottom: 10,
+    width: '100%'
+  },
+  headerText: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    letterSpacing: 1,
+  },
+  uploadButton: {
+    backgroundColor: '#800080',
+    alignItems: 'center',
+    borderRadius: 999,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    marginTop: 20,
+  },
+  uploadButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+});
 
 export default AddBulkUsers;
