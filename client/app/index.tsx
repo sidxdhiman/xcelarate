@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontWeight: '300',
-    fontSize: 15,
+    fontSize: 12,
   },
   bottomRight: {
     position: 'absolute',

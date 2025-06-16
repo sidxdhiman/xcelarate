@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
   },
   titleLogo: {
     marginTop: 250,
-    width: RFValue(400),
-    height: RFValue(37),
+    width: RFValue(300),
+    height: RFValue(28),
     resizeMode: 'cover'
   },
   poweredBy: {
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     color: 'white',
     fontWeight: '300',
-    fontSize: 15,
+    fontSize: 12,
   },
   bottomRight: {
     position: 'absolute',
