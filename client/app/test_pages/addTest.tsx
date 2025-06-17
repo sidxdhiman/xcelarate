@@ -110,11 +110,12 @@ export default function CreateTestForm() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* <Image source={require('../assets/images/title-logos/title.png')} style={styles.titleLogo} /> */}
-      <Text style={styles.title}>Create New Test</Text>
-
+      <View style={styles.headerArc}>
+        <Text style={styles.headerText}>CREATE NEW TEST</Text>
+      </View>
       <TextInput
         placeholder="Test Title"
-        style={styles.input}
+        style={styles.input1}
         value={title}
         onChangeText={setTitle}
         placeholderTextColor="#ccc"
@@ -144,7 +145,7 @@ export default function CreateTestForm() {
           </View>
           <TextInput
             placeholder="Question text"
-            style={styles.input}
+            style={styles.input2}
             value={q.text}
             onChangeText={text => updateQuestionText(q.id, text)}
             placeholderTextColor="#ccc"
@@ -175,9 +176,9 @@ export default function CreateTestForm() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    paddingBottom: 40,
-    backgroundColor: '#121212',
+    // padding: 20,
+    // paddingBottom: 40,
+    backgroundColor: 'white',
     width: '100%',
     height: '100%'
   },
@@ -188,30 +189,56 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     resizeMode: 'contain',
   },
+  headerArc: {
+    backgroundColor: '#800080',
+    paddingVertical: 32,
+    marginBottom: 10,
+    width: '100%'
+  },
+  headerText: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    letterSpacing: 1,
+  },
   title: {
     fontSize: 24,
-    color: '#fff',
+    color: 'black',
     fontWeight: '700',
     marginBottom: 20,
     alignSelf: 'center',
   },
-  input: {
+  input1: {
     borderWidth: 1,
     borderColor: '#888',
     padding: 10,
     marginVertical: 10,
+    marginHorizontal: 10,
     borderRadius: 8,
-    color: '#fff',
+    color: 'black',
+  },
+  input2: {
+    borderWidth: 1,
+    borderColor: '#888',
+    padding: 10,
+    marginVertical: 10,
+    marginHorizontal: 10,
+    borderRadius: 8,
+    color: 'white',
   },
   label: {
-    color: '#fff',
+    color: 'black',
     fontWeight: '600',
     marginTop: 10,
+    marginHorizontal: 10
   },
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 4,
+    marginHorizontal: 10
   },
   checkbox: {
     width: 20,
@@ -230,13 +257,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   checkboxLabel: {
-    color: '#fff',
+    color: 'black',
   },
   questionCard: {
     backgroundColor: '#222',
     borderRadius: 8,
     padding: 10,
     marginVertical: 10,
+    marginHorizontal: 10
   },
   questionHeader: {
     flexDirection: 'row',
@@ -244,7 +272,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   questionTitle: {
-    color: '#fff',
+    color: 'white',
     fontWeight: 'bold',
   },
   removeBtn: {
@@ -265,6 +293,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     marginTop: 20,
+    marginHorizontal: 10
   },
   addBtnText: {
     color: '#fff',
@@ -276,6 +305,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     marginTop: 20,
+    marginHorizontal: 10
   },
   submitBtnText: {
     color: '#fff',

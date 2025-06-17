@@ -21,7 +21,7 @@ export default function TestManagement() {
     {
       icon: <FontAwesome5 name="list" size={42} color="#800080" />,
       text: 'Test List',
-      path: 'addTest.tsx',
+      path: '/test_pages/testList',
     },
     {
       icon: <FontAwesome5 name="paperclip" size={42} color="#800080" />,
