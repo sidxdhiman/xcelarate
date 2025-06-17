@@ -6,233 +6,192 @@ import {
   StyleSheet,
   TextInput,
   ScrollView,
-  Alert,
-  ImageBackground,
+  useWindowDimensions,
 } from 'react-native';
 
-const questions = [
-  {
-    id: 1,
-    question: 'How satisfied are you with our product?',
-    options: ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Other'],
-  },
-  {
-    id: 2,
-    question: 'How easy was it to use our platform?',
-    options: ['Very Easy', 'Easy', 'Neutral', 'Difficult', 'Other'],
-  },
-];
+const AssessmentQuestion = () => {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 600;
 
-const AssessmentScreen: React.FC = () => {
-  const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [customAnswer, setCustomAnswer] = useState<string>('');
-  const [responses, setResponses] = useState<Record<number, string>>({});
+  const [selectedOption, setSelectedOption] = useState('');
+  const [otherText, setOtherText] = useState('');
+  const [dissatisfiedReason, setDissatisfiedReason] = useState('');
 
-  const currentQuestion = questions[currentQIndex];
+  const options = ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Other'];
 
-  const handleSaveResponse = () => {
-    if (!selectedOption) {
-      Alert.alert('Select an option before saving.');
-      return;
-    }
-
-    if (selectedOption === 'Other' && customAnswer.trim() === '') {
-      Alert.alert('Please provide your custom answer.');
-      return;
-    }
-
-    const answer = selectedOption === 'Other' ? customAnswer : selectedOption;
-
-    setResponses((prev) => ({
-      ...prev,
-      [currentQuestion.id]: answer,
-    }));
-
-    Alert.alert('Response saved!');
-  };
-
-  const handleNext = () => {
-    if (currentQIndex < questions.length - 1) {
-      setCurrentQIndex(currentQIndex + 1);
-      setSelectedOption(null);
-      setCustomAnswer('');
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentQIndex > 0) {
-      setCurrentQIndex(currentQIndex - 1);
-      setSelectedOption(null);
-      setCustomAnswer('');
-    }
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    if (option !== 'Other') setOtherText('');
+    if (option !== 'Dissatisfied') setDissatisfiedReason('');
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/images/0001.jpg')} // Replace with your actual path
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.questionContainer}>
-          <Text style={styles.questionNumber}>Question {currentQIndex + 1}</Text>
-          <Text style={styles.questionText}>{currentQuestion.question}</Text>
+    <ScrollView contentContainerStyle={[styles.scroll, !isMobile && styles.scrollDesktop]}>
+      <View style={styles.card}>
+        <Text style={styles.questionNo}>Question 1</Text>
+        <Text style={styles.questionText}>How satisfied are you with our product?</Text>
 
-          {currentQuestion.options.map((option, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.option,
-                selectedOption === option && styles.selectedOption,
-              ]}
-              onPress={() => setSelectedOption(option)}
-            >
-              <Text
-                style={[
-                  styles.optionText,
-                  selectedOption === option && styles.selectedOptionText,
-                ]}
-              >
-                {option}
-              </Text>
-            </TouchableOpacity>
-          ))}
-
-          {selectedOption === 'Other' && (
-            <TextInput
-              style={styles.textArea}
-              multiline
-              numberOfLines={4}
-              placeholder="Please specify your answer"
-              placeholderTextColor="#666"
-              value={customAnswer}
-              onChangeText={setCustomAnswer}
-            />
-          )}
-
-          <TouchableOpacity style={styles.saveButton} onPress={handleSaveResponse}>
-            <Text style={styles.saveButtonText}>Save Response</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.buttonRow}>
+        {options.map((option, index) => (
           <TouchableOpacity
-            style={[styles.navButton, currentQIndex === 0 && styles.disabledButton]}
-            onPress={handlePrevious}
-            disabled={currentQIndex === 0}
-          >
-            <Text style={styles.navButtonText}>Previous</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
+            key={index}
             style={[
-              styles.navButton,
-              currentQIndex === questions.length - 1 && styles.disabledButton,
+              styles.optionBtn,
+              selectedOption === option && styles.optionSelected,
             ]}
-            onPress={handleNext}
-            disabled={currentQIndex === questions.length - 1}
+            onPress={() => handleOptionSelect(option)}
           >
-            <Text style={styles.navButtonText}>Next</Text>
+            <Text
+              style={[
+                styles.optionText,
+                selectedOption === option && styles.optionTextSelected,
+              ]}
+            >
+              {option}
+            </Text>
+          </TouchableOpacity>
+        ))}
+
+        {selectedOption === 'Dissatisfied' && (
+          <TextInput
+            style={styles.textArea}
+            placeholder="Tell us what went wrong..."
+            multiline
+            numberOfLines={4}
+            value={dissatisfiedReason}
+            onChangeText={setDissatisfiedReason}
+          />
+        )}
+
+        {selectedOption === 'Other' && (
+          <TextInput
+            style={styles.textArea}
+            placeholder="Please specify..."
+            multiline
+            numberOfLines={4}
+            value={otherText}
+            onChangeText={setOtherText}
+          />
+        )}
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={[styles.button, styles.prevBtn]}>
+            <Text style={styles.prevBtnText}>Previous</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.nextBtn]}>
+            <Text style={styles.nextBtnText}>Next</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </ImageBackground>
+      </View>
+
+      {/* Save as Draft - OUTSIDE the card */}
+      <TouchableOpacity style={styles.saveDraftBtn}>
+        <Text style={styles.saveDraftText}>Save as Draft</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
+  scroll: {
+    backgroundColor: '#f6efff',
+    padding: 20,
     alignItems: 'center',
-    padding: 20,
+    paddingTop: 40,
   },
-  questionContainer: {
+  scrollDesktop: {
+    justifyContent: 'center',
+    minHeight: '100%',
+  },
+  card: {
     width: '100%',
-    maxWidth: 500,
-    backgroundColor: 'white',
-    padding: 20,
+    maxWidth: 400,
+    backgroundColor: '#fff',
+    padding: 24,
     borderRadius: 16,
-    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 4,
   },
-  questionNumber: {
-    fontSize: 18,
+  questionNo: {
     color: '#800080',
-    fontWeight: '600',
-    marginBottom: 6,
+    fontWeight: '700',
+    marginBottom: 8,
+    fontSize: 16,
   },
   questionText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 20,
     color: '#333',
   },
-  option: {
+  optionBtn: {
+    borderColor: '#800080',
+    borderWidth: 1,
+    borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#800080',
-    marginBottom: 10,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  optionSelected: {
+    backgroundColor: '#800080',
   },
   optionText: {
     color: '#800080',
-    fontSize: 16,
+    fontWeight: '600',
   },
-  selectedOption: {
-    backgroundColor: '#800080',
-  },
-  selectedOptionText: {
-    color: 'white',
+  optionTextSelected: {
+    color: '#fff',
   },
   textArea: {
-    marginTop: 12,
-    borderColor: '#800080',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    fontSize: 16,
-    color: '#000',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f1f1f1',
+    padding: 12,
+    borderRadius: 8,
+    textAlignVertical: 'top',
+    fontSize: 14,
+    marginBottom: 16,
   },
-  saveButton: {
-    backgroundColor: '#800080',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  saveButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  buttonRow: {
+  buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    maxWidth: 500,
-    marginTop: 20,
+    marginTop: 12,
   },
-  navButton: {
-    flex: 0.48,
-    backgroundColor: '#800080',
+  button: {
+    flex: 1,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: 'center',
   },
-  disabledButton: {
-    backgroundColor: '#999',
+  prevBtn: {
+    backgroundColor: '#a0a0a0',
+    marginRight: 10,
   },
-  navButtonText: {
-    color: 'white',
+  nextBtn: {
+    backgroundColor: '#800080',
+    marginLeft: 10,
+  },
+  prevBtnText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  nextBtnText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  saveDraftBtn: {
+    marginTop: 20,
+    backgroundColor: '#e0ccf4',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+  },
+  saveDraftText: {
+    color: '#4b0082',
     fontWeight: '600',
     fontSize: 16,
   },
 });
 
-export default AssessmentScreen;
+export default AssessmentQuestion;

@@ -2,120 +2,91 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
-  ImageBackground,
+  StyleSheet,
   SafeAreaView,
+  useWindowDimensions,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { useRouter } from 'expo-router';
-import { Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
-const screenHeight = Dimensions.get('window').height;
-const screenWidth = Dimensions.get('window').width;
+const UserLanding = () => {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 600;
 
-const AssessmentPortal: React.FC = () => {
-  const router = useRouter();
+  const cardWidth = isMobile ? (width - 48) : width / 2.2;
+  const cardHeight = 80;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground
-        source={require('../assets/images/0001.jpg')} // Adjust path based on your structure
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <View style={styles.flexContainer}>
-          {/* Header */}
-          <View style={styles.headerWrapper}>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>
-                ASSESSMENT{'\n'}PORTAL
-              </Text>
-            </View>
-          </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>ASSESSMENT{"\n"}PORTAL</Text>
+      </View>
 
-          {/* Spacer */}
-          <View style={styles.flex1} />
+      {/* Buttons as Cards */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.card, { width: cardWidth, height: cardHeight }]}
+          onPress={() => router.push('/user_pages/disclaimer')}
+        >
+          <Ionicons name="play-circle-outline" size={30} color="#800080" />
+          <Text style={styles.cardText}>Start New Assessment</Text>
+        </TouchableOpacity>
 
-          {/* Buttons */}
-          <View style={styles.buttonWrapper}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => router.push('/user_pages/disclaimer')}
-            >
-              <Text style={styles.buttonText}>Start New Assessment</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => router.push('/login')}
-            >
-              <Text style={styles.buttonText}>Log Out</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ImageBackground>
+        <TouchableOpacity
+          style={[styles.card, { width: cardWidth, height: cardHeight }]}
+          onPress={() => router.push('/login')}
+        >
+          <Ionicons name="log-out-outline" size={30} color="#800080" />
+          <Text style={styles.cardText}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
+export default UserLanding;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f7f3ff',
   },
-  backgroundImage: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    width: screenWidth,
-    height: screenHeight
-  },
-  flexContainer: {
-    flex: 1,
-  },
-  headerWrapper: {
+  header: {
     backgroundColor: '#800080',
-    borderBottomLeftRadius: 300,
-    borderBottomRightRadius: 300,
-    height: 180,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
+    paddingVertical: 32,
     alignItems: 'center',
-    position: 'relative',
-    overflow: 'hidden',
+    marginBottom: 40,
   },
-  titleContainer: {
-    marginTop: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    color: 'white',
+  headerText: {
+    color: '#fff',
     fontSize: 28,
-    fontWeight: 'bold',
-    lineHeight: 32,
+    fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: 1.2,
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    gap: 24,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  cardText: {
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4b0082',
     textAlign: 'center',
   },
-  flex1: {
-    flex: 1,
-  },
-  buttonWrapper: {
-    marginTop: 400,
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    gap: 12,
-  },
-  button: {
-    backgroundColor: 'white',
-    paddingVertical: 12,
-    borderRadius: 9999,
-    alignItems: 'center',
-    elevation: 4,
-  },
-  buttonText: {
-    color: 'black',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
 });
-
-export default AssessmentPortal;
