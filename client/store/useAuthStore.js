@@ -129,18 +129,22 @@ export const useAuthStore = create((set, get) => ({
   },
 
   modifyUser: async (email, updatedUserData) => {
-    set({ isModifyingUser: true });
-    try {
-      const res = await axiosInstance.get(`/users/email/${encodeURIComponent(email)}`);
-      set({ authUser: res.data });
-      return { success: true };
-    } catch (error) {
-      console.error("ModifyUser error:", error);
-      return { success: false };
-    } finally {
-      set({ isModifyingUser: false });
-    }
-  },  
+  set({ isModifyingUser: true });
+  try {
+    const res = await axiosInstance.patch(
+      `/users/${encodeURIComponent(email)}`,
+      updatedUserData
+    );
+    set({ authUser: res.data.data }); // assuming response contains updated user in res.data.data
+    return { success: true };
+  } catch (error) {
+    console.error("ModifyUser error:", error);
+    return { success: false };
+  } finally {
+    set({ isModifyingUser: false });
+  }
+},
+  
 
   deleteUser: async (email) => {
     try {

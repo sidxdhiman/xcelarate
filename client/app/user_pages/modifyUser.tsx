@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ImageBackground, ScrollView, StyleSheet, Platform,
+  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -9,9 +9,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
 import { RouteProp } from '@react-navigation/native';
-// import { SearchBar } from 'react-native-elements';
-import { axiosInstance } from '@/lib/axios';
 import { SearchBar } from 'react-native-elements';
+import { axiosInstance } from '@/lib/axios';
 
 // Define your navigation stack param list type
 type RootStackParamList = {
@@ -31,6 +30,8 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
   const [location, setLocation] = useState('');
   const [accessLevel, setAccessLevel] = useState('');
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
 
   const router = useRouter();
   const { fetchUserByEmail, modifyUser } = useAuthStore();
@@ -38,25 +39,35 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
   useEffect(() => {
-    if (!email) return;
-
-    const fetchUser = async () => {
+    const fetchSuggestions = async () => {
+      if (!search.trim()) {
+        setUserSuggestions([]);
+        return;
+      }
       try {
-        const user = await fetchUserByEmail(email);
-        if (user) {
-          setUsername(user.username);
-          setContact(user.contact);
-          setOrganisation(user.organisation);
-          setDesignation(user.designation);
-          setLocation(user.location);
-          setAccessLevel(user.accessLevel);
-        }
+        const res = await axiosInstance.get(`/users?search=${search}`);
+        setUserSuggestions(res.data);
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('Failed to fetch suggestions:', error);
       }
     };
-    fetchUser();
-  }, [email]);
+
+    const delayDebounce = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [search]);
+
+  const handleUserSelect = (user: any) => {
+    setSearch(user.email);
+    setUserSuggestions([]);
+
+    setUsername(user.username);
+    setEmail(user.email);
+    setContact(user.contact);
+    setOrganisation(user.organisation);
+    setDesignation(user.designation);
+    setLocation(user.location);
+    setAccessLevel(user.accessLevel);
+  };
 
   const handleModifyUser = async () => {
     if (!username || !email || !contact || !organisation || !designation || !accessLevel || !location) {
@@ -95,27 +106,42 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
       <View style={styles.headerArc}>
         <Text style={styles.headerText}>MODIFY USER</Text>
       </View>
+
       <View style={styles.search}>
         <SearchBar
           placeholder="Search users here..."
-          // onChangeText={(text: string) => setSearch(text)}
-          // value={search}
+          onChangeText={(text) => setSearch(text)}
+          value={search}
           platform="default"
           containerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0, borderBottomWidth: 0 }}
           inputContainerStyle={{ backgroundColor: '#fff' }}
           inputStyle={{ color: '#000' }}
           round
         />
-        </View>
+      </View>
 
-      {[
-        { icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
+      {userSuggestions.map((user, index) => (
+        <TouchableOpacity
+          key={index}
+          onPress={() => handleUserSelect(user)}
+          style={{
+            backgroundColor: 'white',
+            padding: 10,
+            width: RFValue(300),
+            borderBottomWidth: 1,
+            borderColor: '#eee'
+          }}
+        >
+          <Text style={{ color: 'black' }}>{user.username} ({user.email})</Text>
+        </TouchableOpacity>
+      ))}
+
+      {[{ icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
         { icon: 'envelope', placeholder: 'Email', value: email, setter: setEmail },
         { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact },
         { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
         { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
-        { icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel },
-      ].map((field, idx) => (
+        { icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel }].map((field, idx) => (
         <View key={idx} style={styles.inputContainer}>
           <Icon name={field.icon} size={18} color="#999" style={styles.icon} />
           <TextInput

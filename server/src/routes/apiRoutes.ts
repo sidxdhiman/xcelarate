@@ -9,7 +9,7 @@ import {upload} from "../middleware/upload";
 
 //user crud
 router.get("/users/", MainController.getFunction);
-router.get("/users/:userId/", MainController.getUserFunction);
+router.get("/users/:email/", MainController.getUserFunction);
 router.post("/postUser/", MainController.postFunction); //TODO add request validator
 router.post("/signupUser/", MainController.signUp);
 router.post("/loginUser/", MainController.logIn); //TODO add request validator

@@ -6,7 +6,7 @@ const routers = express.Router();
 
 //get
 routers.get("/users/", router);  
-routers.get('/users/:userId', router);
+routers.get('/users/:email', router);
 
 //post
 routers.post("/bulkUserUpload", router);
