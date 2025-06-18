@@ -8,9 +8,12 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
+import tw from 'twrnc';
 import { RouteProp } from '@react-navigation/native';
 import { SearchBar } from 'react-native-elements';
 import { axiosInstance } from '@/lib/axios';
+import { useNavigation } from '@react-navigation/native';
+import { Pressable } from 'react-native';
 
 // Define your navigation stack param list type
 type RootStackParamList = {
@@ -36,9 +39,12 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
   const router = useRouter();
   const { fetchUserByEmail, modifyUser } = useAuthStore();
 
+  const navigation = useNavigation();
+
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
   useEffect(() => {
+    
     const fetchSuggestions = async () => {
       if (!search.trim()) {
         setUserSuggestions([]);
@@ -74,6 +80,7 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
       Toast.show({ type: 'error', text1: 'Error', text2: 'All fields are required!' });
       return;
     }
+    
 
     const updatedUser = {
       username,
@@ -103,6 +110,11 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
         <Text style={styles.headerText}>MODIFY USER</Text>
       </View>

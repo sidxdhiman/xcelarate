@@ -4,14 +4,20 @@ import {
   View, Text, TouchableOpacity, ImageBackground, ScrollView, ActivityIndicator, StyleSheet
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import tw from 'twrnc';
 import * as XLSX from 'xlsx';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import { Pressable } from 'react-native';
+import { Icon } from 'react-native-elements';
 
 const AddBulkUsers = () => {
   const { uploadBulkUsers } = useAuthStore();
   const [loading, setLoading] = useState(false);
+
+  const navigation = useNavigation();
 
   const handleFilePick = async () => {
     try {
@@ -71,6 +77,11 @@ const AddBulkUsers = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
                 <Text style={styles.headerText}>UPLOAD BULK</Text>
         </View>

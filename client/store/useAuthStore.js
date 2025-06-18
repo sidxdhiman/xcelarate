@@ -149,7 +149,7 @@ export const useAuthStore = create((set, get) => ({
   deleteUser: async (email) => {
     try {
       // Assuming your delete API endpoint expects the email in the URL
-      const res = await axiosInstance.delete(`/users/:email`);
+      const res = await axiosInstance.delete(`/users/${encodeURIComponent(email)}`);
       return { success: true, message: res.data.message }; // Assuming your response includes a message
     } catch (error) {
       console.error("Error deleting user:", error);

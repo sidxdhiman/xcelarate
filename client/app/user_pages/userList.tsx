@@ -6,6 +6,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAuthStore } from '../../store/useAuthStore';
 import tw from 'twrnc';
 import { SearchBar } from 'react-native-elements';
+import { useNavigation } from '@react-navigation/native';
+import { Pressable } from 'react-native';
 
 type User = {
   id: string;
@@ -17,6 +19,8 @@ type User = {
   location: string;
 };
 
+
+
 const UserList = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +28,8 @@ const UserList = () => {
   const [search, setSearch] = useState('');
   const [userSeach, setUserSearch] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const navigation = useNavigation();
 
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
 
@@ -74,6 +80,11 @@ const UserList = () => {
 
   return (
     <ScrollView>
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
         <Text style={styles.headerText}>USERS</Text>
       </View>

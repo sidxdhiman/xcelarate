@@ -4,11 +4,14 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import tw from 'twrnc';
 import { useRouter } from 'expo-router';
 import { KeyboardTypeOptions, Dimensions } from 'react-native';
 import { useAuthStore } from '../../store/useAuthStore'; 
 import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
+import { useNavigation } from '@react-navigation/native';
+import { Pressable } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -26,6 +29,8 @@ const AddUser = () => {
   const [loading, setLoading] = useState(false);
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
   const { addUser } = useAuthStore();
+
+  const navigation = useNavigation();
 
   const handleAddUser = async () => {
     if (!username || !email || !contact || !organisation || !designation || !accessLevel || !location) {
@@ -56,6 +61,11 @@ const AddUser = () => {
 
   return (
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+        <View style={tw`absolute top-4 left-4 z-10`}>
+          <Pressable onPress={()=> navigation.goBack()}>
+            <Icon name='arrow-left' size={22} color='white'></Icon>
+          </Pressable>
+        </View>
         <View style={styles.headerArc}>
           <Text style={styles.headerText}>ADD USER</Text>
         </View>

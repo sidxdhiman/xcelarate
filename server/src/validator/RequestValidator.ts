@@ -6,10 +6,16 @@ import { Organisation } from "../database/index";
 export class RequestValidator {
   public static patchUser(req: Request, res: Response, next: NextFunction) {
     const schema = Joi.object({
+      username: Joi.string(),
       userId: Joi.number(),
       name: Joi.string(),
       password: Joi.string(),
-      email: Joi.string()
+      email: Joi.string(),
+      location: Joi.string(),
+      contact: Joi.number(),
+      organisation: Joi.string(),
+      designation: Joi.string(),
+      accessLevel: Joi.number()
     });
     const { error } = schema.validate(req.body);
     if (error) {

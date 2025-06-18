@@ -25,11 +25,11 @@ const DeleteUser = () => {
       const response = await deleteUser(email);
       setLoading(false);
       if (response.success) {
-        Toast.show({ type: 'success', text1: 'User Deleted Successfully' });
+        Toast.show({ type: 'success', text1: 'User Flagged Successfully' });
         setEmail('');
         router.push('/user_pages/userList');
       } else {
-        Toast.show({ type: 'error', text1: 'Failed to Delete User' });
+        Toast.show({ type: 'error', text1: 'Failed to Flag User' });
       }
     } catch (error) {
       setLoading(false);
@@ -40,7 +40,7 @@ const DeleteUser = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
       <View style={styles.headerArc}>
-        <Text style={styles.headerText}>DELETE USER</Text>
+        <Text style={styles.headerText}>FLAG USER</Text>
       </View>
 
       <View style={styles.inputContainer}>
@@ -60,7 +60,7 @@ const DeleteUser = () => {
         disabled={loading}
       >
         <Text style={styles.submitText}>
-          {loading ? 'Deleting User...' : 'Delete User'}
+          {loading ? 'Flagging User...' : 'Flag User'}
         </Text>
       </TouchableOpacity>
     </ScrollView>
