@@ -9,7 +9,7 @@ const routers = express_1.default.Router();
 //user routes
 //get
 routers.get("/users/", apiRoutes_1.default);
-routers.get('/users/:userId', apiRoutes_1.default);
+routers.get('/users/:email', apiRoutes_1.default);
 //post
 routers.post("/bulkUserUpload", apiRoutes_1.default);
 routers.post("/postUser/", apiRoutes_1.default);

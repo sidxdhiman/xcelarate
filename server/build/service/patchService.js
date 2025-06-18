@@ -15,8 +15,8 @@ class PatchService {
     patchUserByEmail(email, updateData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const result = yield database_1.User.updateOne({ email: email }, { $set: updateData }, { new: true });
-                return result;
+                const updatedUser = yield database_1.User.findOneAndUpdate({ email }, { $set: updateData }, { new: true });
+                return updatedUser;
             }
             catch (error) {
                 console.error("Error updating user by email:", error);

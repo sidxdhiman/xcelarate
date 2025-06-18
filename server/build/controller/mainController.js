@@ -52,12 +52,12 @@ class MainController {
     static getUserFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = parseInt(req.params.userId);
-                if (!mongoose_1.default.Types.ObjectId.isValid(userId)) {
-                    return (res.status(400).json({ message: "Invalid user ID format" }),
-                        logger.errorLog.info("FAILED!-INVALID-USER-ID"));
+                const email = parseInt(req.params.email);
+                if (!mongoose_1.default.Types.ObjectId.isValid(email)) {
+                    return (res.status(400).json({ message: "Invalid EMail ID format" }),
+                        logger.errorLog.info("FAILED!-INVALID-EMAIL-ID"));
                 }
-                const result = yield new GetByIdService().getUserbyId(userId);
+                const result = yield new GetByIdService().getUserbyId(email);
                 if (result) {
                     res.json(result);
                 }
@@ -172,26 +172,28 @@ class MainController {
     static patchFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = parseInt(req.params.userId);
+                const email = req.params.email;
                 const updateData = req.body;
-                if (!mongoose_1.default.Types.ObjectId.isValid(userId)) {
-                    return (res.status(400).json({ message: "Invalid user ID format" }),
-                        logger.errorLog.info("FAILED!-INVALID-USER-ID"));
+                // Optional: Basic email format validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    logger.errorLog.info("FAILED!-INVALID-EMAIL-FORMAT");
+                    return res.status(400).json({ message: "Invalid email format" });
                 }
-                const result = yield new PatchService().patchUserbyId(userId, updateData);
-                if (result.matchedCount === 0) {
-                    return (res
+                const result = yield new PatchService().patchUserByEmail(email, updateData);
+                if (!result) {
+                    logger.errorLog.info("FAILED!-USER-NOT-FOUND");
+                    return res
                         .status(404)
-                        .json({ message: "User not found or no fields were updated" }),
-                        logger.errorLog.info("FAILED!-USER-NOT-UPDATED"));
+                        .json({ message: "User not found or no fields were updated" });
                 }
-                res.status(200).json({ message: "User updated successfully!" }),
-                    logger.accessLog.info("SUCCESS!-USER-UPDATED");
+                logger.accessLog.info("SUCCESS!-USER-UPDATED");
+                return res.status(200).json({ message: "User updated successfully", data: result });
             }
             catch (error) {
                 console.error("Error updating user:", error);
-                res.status(500).json({ message: "Internal Server Error - PATCH" });
                 logger.errorLog.info("FAILED!-INTERNAL-SERVER-ERROR");
+                return res.status(500).json({ message: "Internal Server Error - PATCH" });
             }
         });
     }

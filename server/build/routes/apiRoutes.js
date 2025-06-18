@@ -12,7 +12,7 @@ const questionController_1 = require("../controller/questionController");
 const upload_1 = require("../middleware/upload");
 //user crud
 router.get("/users/", mainController_1.MainController.getFunction);
-router.get("/users/:userId/", mainController_1.MainController.getUserFunction);
+router.get("/users/:email/", mainController_1.MainController.getUserFunction);
 router.post("/postUser/", mainController_1.MainController.postFunction); //TODO add request validator
 router.post("/signupUser/", mainController_1.MainController.signUp);
 router.post("/loginUser/", mainController_1.MainController.logIn); //TODO add request validator
