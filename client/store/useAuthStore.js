@@ -2,6 +2,7 @@ import {axiosInstance} from "../lib/axios";
 // import Toast from "react-native-toast-message";
 import { create } from 'zustand';
 import Toast from "react-native-toast-message";
+import axios from "axios";
 
 const baseURL = "http://localhost:9000/";
 
@@ -156,4 +157,29 @@ export const useAuthStore = create((set, get) => ({
       throw error; // This can be caught in the component
     }
   },  
+
+  // signup: async (signupData) => {
+  //   set({ isSigningUp: true });
+  //   try {
+  //     const res = await axiosInstance.post(`${baseURL}signupUser`, signupData);
+  //     set({ authUser: res.data });
+  //   } catch (error) {
+  //     console.error("Signup error:", error);
+  //   } finally {
+  //     set({ isSigningUp: false });
+  //   }
+  // },
+
+  addAssessment: async (assessmentData) => {
+    set({isAddingAssessment: true});
+    try {
+      const res = await axiosInstance.post(`${baseURL}postAssessment`, assessmentData);
+      set({isAddingAssessment: false, addAssessmentError: null});
+    } catch (error) {
+      console.error("Error adding assessment:", error);
+      set({isAddingAssessment: false, addAssessmentError: error});
+    }
+  }
+
+
 }));

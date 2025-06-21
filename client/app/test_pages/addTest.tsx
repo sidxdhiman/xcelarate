@@ -7,10 +7,9 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
-  Image,
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
+import { useAssessmentStore } from '../../store/useAssessmentStore';
 
 interface Option {
   id: string;
@@ -27,6 +26,8 @@ export default function CreateTestForm() {
   const [title, setTitle] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+
+  const { addAssessment, isAddingAssessment } = useAssessmentStore();
 
   const roleOptions = ['Product Manager', 'Developer', 'Applicable to All'];
 
@@ -80,39 +81,25 @@ export default function CreateTestForm() {
       return;
     }
 
-    Alert.alert('Confirm', 'Are you sure you want to submit this test?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Submit',
-        onPress: async () => {
-          try {
-            await axios.post('/api/tests', {
-              title,
-              roles,
-              questions,
-            });
-            Alert.alert('Success', 'Test submitted successfully!');
-            setTitle('');
-            setRoles([]);
-            setQuestions([]);
-          } catch (err) {
-            console.log(err);
-            Alert.alert('Error', 'Failed to submit test.');
-          }
-        },
-      },
-    ]);
+    console.log('[UI] Submitting assessment...');
+    try {
+      await addAssessment({ title, roles, questions });
+      Alert.alert('Success', 'Test submitted successfully!');
+      setTitle('');
+      setRoles([]);
+      setQuestions([]);
+    } catch (err) {
+      console.error('[UI] Submit error:', err);
+      Alert.alert('Error', 'Failed to submit test.');
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* <Image source={require('../assets/images/title-logos/title.png')} style={styles.titleLogo} /> */}
       <View style={styles.headerArc}>
         <Text style={styles.headerText}>CREATE NEW TEST</Text>
       </View>
+
       <TextInput
         placeholder="Test Title"
         style={styles.input1}
@@ -167,8 +154,17 @@ export default function CreateTestForm() {
         <Text style={styles.addBtnText}>Add Question</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-        <Text style={styles.submitBtnText}>Done</Text>
+      <TouchableOpacity
+        style={styles.submitBtn}
+        onPress={() => {
+          console.log('[UI] Done button pressed');
+          handleSubmit();
+        }}
+        disabled={isAddingAssessment}
+      >
+        <Text style={styles.submitBtnText}>
+          {isAddingAssessment ? 'Submitting...' : 'Done'}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -176,24 +172,15 @@ export default function CreateTestForm() {
 
 const styles = StyleSheet.create({
   container: {
-    // padding: 20,
-    // paddingBottom: 40,
     backgroundColor: 'white',
     width: '100%',
-    height: '100%'
-  },
-  titleLogo: {
-    alignSelf: 'center',
-    width: 220,
-    height: 30,
-    marginVertical: 20,
-    resizeMode: 'contain',
+    paddingBottom: 40,
   },
   headerArc: {
     backgroundColor: '#800080',
     paddingVertical: 32,
     marginBottom: 10,
-    width: '100%'
+    width: '100%',
   },
   headerText: {
     color: '#fff',
@@ -202,13 +189,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     letterSpacing: 1,
-  },
-  title: {
-    fontSize: 24,
-    color: 'black',
-    fontWeight: '700',
-    marginBottom: 20,
-    alignSelf: 'center',
   },
   input1: {
     borderWidth: 1,
@@ -232,13 +212,13 @@ const styles = StyleSheet.create({
     color: 'black',
     fontWeight: '600',
     marginTop: 10,
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 4,
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   checkbox: {
     width: 20,
@@ -264,7 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginVertical: 10,
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   questionHeader: {
     flexDirection: 'row',
@@ -293,7 +273,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     marginTop: 20,
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   addBtnText: {
     color: '#fff',
@@ -305,7 +285,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     marginTop: 20,
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   submitBtnText: {
     color: '#fff',

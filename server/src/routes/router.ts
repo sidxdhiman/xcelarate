@@ -26,6 +26,6 @@ routers.post("/organisations/", router);
 routers.get("/organisations/", router);
 
 //question routes
-routers.post("/question", router);
+routers.post("/postAssessment", router);
 
 export default routers;
