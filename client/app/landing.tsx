@@ -25,7 +25,7 @@ const AdminPanel = () => {
     },
     {
       icon: <MaterialIcons name="question-answer" size={44} color="#800080" />,
-      text: 'Tests',
+      text: 'Assessments',
       path: '/test_pages/test_management',
     },
     {

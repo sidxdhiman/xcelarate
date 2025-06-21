@@ -20,17 +20,17 @@ export default function TestManagement() {
   const cards = [
     {
       icon: <FontAwesome5 name="list" size={42} color="#800080" />,
-      text: 'Test List',
+      text: 'Assessment List',
       path: '/test_pages/testList',
     },
     {
       icon: <FontAwesome5 name="paperclip" size={42} color="#800080" />,
-      text: 'Add Test',
+      text: 'Add Assessment',
       path: '/test_pages/addTest',
     },
     {
       icon: <MaterialIcons name="edit" size={46} color="#800080" />,
-      text: 'Modify Test',
+      text: 'Modify Assessment',
       path: '/test_pages/modifyTest',
     },
     {
@@ -43,7 +43,7 @@ export default function TestManagement() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerArc}>
-        <Text style={styles.headerText}>TEST MANAGEMENT</Text>
+        <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
       </View>
 
       <View

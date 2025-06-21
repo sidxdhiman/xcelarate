@@ -1,6 +1,6 @@
 import { User } from "../database/index";
 import { Organisation } from "../database/index";
-import { Question } from "../database/index";
+import { Assessment } from "../database/index";
 
 export class PostUser {
   public async postUser(userData: any): Promise<any> {
@@ -43,7 +43,7 @@ export class PostQuestion {
       if (!questionData.question) {
         throw new Error("Question is required");
       }
-      const question = await Question.create(questionData);
+      const question = await Assessment.create(questionData);
       console.log("Question posted successfully!");
     } catch (error){
       console.error("Error in posting a question: ");

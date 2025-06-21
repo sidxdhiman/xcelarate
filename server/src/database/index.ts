@@ -38,22 +38,27 @@ export const connection = mongoose.connect(mongoDB, {
     contact:Number
   });
 
-  const questionSchema = new mongoose.Schema({
-    question: String,
-    optOne: String,
-    optTwo: String,
-    optThree: String,
-    optFour: String,
-    optFive: String,
-    role: String,
-    assessmentName: String
+  const optionSchema = new mongoose.Schema({
+    text: String,
+    // TODO isCorrect or not
   });
 
-  const Question = mongoose.model("Questions", questionSchema);
+  const questionSchema = new mongoose.Schema({
+    questionText: String,
+    options: [optionSchema]
+  });
+
+  const assessmentSchema = new mongoose.Schema({
+    title: String,
+    role: String,
+    questions: [questionSchema]
+  });
+
+  const Assessment = mongoose.model("Assessments", assessmentSchema);
   
   const Organisation = mongoose.model("Organisations", organisationSchema);
   // const User = mongoose.model("Users", userSchema);
 
 export const User = mongoose.model<IUser>('User', userSchema);
-export {Organisation, Question};
+export {Organisation, Assessment};
 
