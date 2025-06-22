@@ -50,7 +50,7 @@ export const connection = mongoose.connect(mongoDB, {
 
   const assessmentSchema = new mongoose.Schema({
     title: String,
-    role: String,
+    role: [String],
     questions: [questionSchema]
   });
 

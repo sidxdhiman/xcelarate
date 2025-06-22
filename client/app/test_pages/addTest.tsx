@@ -8,8 +8,10 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { router, useRouter } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
 import { useAssessmentStore } from '../../store/useAssessmentStore';
+import Toast from 'react-native-toast-message';
 
 interface Option {
   id: string;
@@ -84,13 +86,16 @@ export default function CreateTestForm() {
     console.log('[UI] Submitting assessment...');
     try {
       await addAssessment({ title, roles, questions });
-      Alert.alert('Success', 'Test submitted successfully!');
+      // Alert.alert('Success', 'Test submitted successfully!');
+      Toast.show({type: 'success', text1: 'Assessment Added Successfully!'});
+      router.push('/test_pages/testList');
       setTitle('');
       setRoles([]);
       setQuestions([]);
     } catch (err) {
       console.error('[UI] Submit error:', err);
-      Alert.alert('Error', 'Failed to submit test.');
+      // Alert.alert('Error', 'Failed to submit test.');
+      Toast.show({type: 'error', text1: 'Error in Adding Assessment'})
     }
   };
 
