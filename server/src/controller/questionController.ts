@@ -8,6 +8,7 @@ export class questionController {
         try {
             const questionData = req.body
             const question = await new PostQuestion().postQuestion(questionData);
+            console.log('Incoming question data:', req.body);
             if(question) {
                 res.status(200).json({success: true});
             } else {

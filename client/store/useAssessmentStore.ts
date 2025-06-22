@@ -2,6 +2,8 @@
 import { create } from 'zustand';
 import {axiosInstance} from '../lib/axios';
 
+const baseURL = "http://localhost:9000/";
+
 interface Option {
   id: string;
   text: string;
@@ -33,7 +35,7 @@ export const useAssessmentStore = create<AssessmentStore>((set) => ({
   addAssessment: async (data) => {
     set({ isAddingAssessment: true, addAssessmentError: null });
     try {
-      await axiosInstance.post('/api/tests', data);
+      await axiosInstance.post(`${baseURL}postAssessment`, data);
     } catch (error) {
       console.error(error);
       set({ addAssessmentError: error.message });

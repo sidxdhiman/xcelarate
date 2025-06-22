@@ -40,13 +40,19 @@ export class PostOrganisation {
 export class PostQuestion {
   public async postQuestion(questionData: any): Promise<any> {
     try {
-      if (!questionData.question) {
-        throw new Error("Question is required");
+      const { title, roles, questions } = questionData;
+
+      if (!title || !roles || !Array.isArray(questions) || questions.length === 0) {
+        console.log('Invalid assessment payload:', questionData);
+        throw new Error("Assessment data is incomplete");
       }
-      const question = await Assessment.create(questionData);
-      console.log("Question posted successfully!");
-    } catch (error){
-      console.error("Error in posting a question: ");
+
+      const assessment = await Assessment.create(questionData);
+      console.log("Assessment posted successfully!");
+
+      return assessment;
+    } catch (error) {
+      console.error("Error in posting a question: ", error);
       throw new Error(`Error in posting question`);
     }
   }

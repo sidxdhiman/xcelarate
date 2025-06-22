@@ -22,6 +22,6 @@ router.post("/organisations/", RequestValidator.postOrganisation, orgController.
 router.get("/organisations/", orgController.getOrg);
 
 //question crud
-router.post("/question", questionController.postQuestion);
+router.post("/postAssessment", questionController.postQuestion);
 
 export default router;
