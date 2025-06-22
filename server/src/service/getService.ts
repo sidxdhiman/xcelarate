@@ -1,5 +1,5 @@
 import { IntegerType } from "mongodb";
-import { Organisation, User } from "../database";
+import { Organisation, User, Assessment } from "../database";
 
 export class GetService {
   public async getUsers() {
@@ -31,6 +31,17 @@ export class GetOrganisation {
     } catch (error) {
       console.error("Error fetching data from database:", error); 
       throw new Error('Error fetching data');
+    }
+  }
+}
+export class GetAssessment {
+  public async getAssessment() { 
+    try {
+      const assessments = await Assessment.find({});
+      return assessments;
+    } catch (error) {
+      console.error("Error in fetching Assessments", error);
+      throw new Error('Error in fetching data');
     }
   }
 }

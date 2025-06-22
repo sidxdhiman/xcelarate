@@ -1,5 +1,6 @@
 import {Request, Response} from "express";
 import mongoose from "mongoose";
+import { GetAssessment } from "../service/getService";
 
 const {PostQuestion} = require("../service/postService");
 
@@ -18,4 +19,16 @@ export class questionController {
             res.status(500).json({message: "Internal Server Error"});
         }
     }
+    public static async getAssessmentFunction(req: Request, res: Response) {
+        try {
+            const assessmentData = await new GetAssessment().getAssessment();
+            if (assessmentData) {
+                res.status(200).json(assessmentData);
+            } else {
+                res.status(404).json({message: "Error in Fetching Assessments"})
+            }
+        } catch (error) {
+            res.status(500).json({message: "Internal Server Error"})
+        }
+    } 
 }
