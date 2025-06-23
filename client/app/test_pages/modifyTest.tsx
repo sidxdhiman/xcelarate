@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
@@ -12,6 +12,8 @@ import { RouteProp } from '@react-navigation/native';
 // import { SearchBar } from 'react-native-elements';
 import { axiosInstance } from '@/lib/axios';
 import { SearchBar } from 'react-native-elements';
+import { Pressable } from 'react-native';
+import tw from 'twrnc';
 
 // Define your navigation stack param list type
 type RootStackParamList = {
@@ -19,6 +21,8 @@ type RootStackParamList = {
 };
 
 type ModifyUserRouteProp = RouteProp<RootStackParamList, 'ModifyUser'>;
+
+
 
 const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
   const initialEmail = route?.params?.email ?? '';
@@ -34,6 +38,8 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
 
   const router = useRouter();
   const { fetchUserByEmail, modifyUser } = useAuthStore();
+  
+  const navigation = useNavigation();
 
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
@@ -92,8 +98,13 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
-        <Text style={styles.headerText}>MODIFY TEST</Text>
+        <Text style={styles.headerText}>MODIFY{"\n"}ASSESSMENT</Text>
       </View>
       <View style={styles.search}>
         <SearchBar

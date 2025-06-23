@@ -8,13 +8,18 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
+import { Pressable } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import tw from 'twrnc';
 
 export default function UserPanel() {
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
   const horizontalPadding = 32;
   const gapBetweenCards = 16;
+
+  const navigation = useNavigation();
 
   // Adjust number of cards per row based on screen size
   const cardsPerRow = isMobile ? 2 : Math.min(5, Math.floor((width - horizontalPadding) / 160));
@@ -26,6 +31,11 @@ export default function UserPanel() {
     <SafeAreaView style={styles.container}>
       {/* Purple Header */}
       <View style={styles.headerArc}>
+        <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
         <Text style={styles.headerText}>USER MANAGEMENT</Text>
       </View>
 

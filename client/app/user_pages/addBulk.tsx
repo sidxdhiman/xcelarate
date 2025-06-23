@@ -11,7 +11,8 @@ import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { Pressable } from 'react-native';
-import { Icon } from 'react-native-elements';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
 
 const AddBulkUsers = () => {
   const { uploadBulkUsers } = useAuthStore();

@@ -8,9 +8,13 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
+import { Pressable } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import tw from 'twrnc';
 
 export default function TestManagement() {
+  const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
 
@@ -42,6 +46,11 @@ export default function TestManagement() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
         <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
       </View>

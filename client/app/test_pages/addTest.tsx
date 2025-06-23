@@ -8,10 +8,13 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { router, useRouter } from 'expo-router';
+import { router, useNavigation, useRouter } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
 import { useAssessmentStore } from '../../store/useAssessmentStore';
 import Toast from 'react-native-toast-message';
+import { Pressable } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import tw from 'twrnc';
 
 interface Option {
   id: string;
@@ -25,6 +28,7 @@ interface Question {
 }
 
 export default function CreateTestForm() {
+  const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -101,8 +105,13 @@ export default function CreateTestForm() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
-        <Text style={styles.headerText}>CREATE NEW TEST</Text>
+        <Text style={styles.headerText}>CREATE NEW{"\n"}ASSESSMENT</Text>
       </View>
 
       <TextInput

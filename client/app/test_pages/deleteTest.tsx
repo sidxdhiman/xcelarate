@@ -3,16 +3,19 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
+import { Pressable } from 'react-native';
+import tw from 'twrnc';
 
 const DeleteUser = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { deleteUser } = useAuthStore();
+  const navigation = useNavigation();
 
   const handleDeleteUser = async () => {
     if (!email) {
@@ -39,8 +42,13 @@ const DeleteUser = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
-        <Text style={styles.headerText}>ARCHIVE/FLAG TEST</Text>
+        <Text style={styles.headerText}>ARCHIVE{"\n"}ASSESSMENT</Text>
       </View>
 
       <View style={styles.inputContainer}>

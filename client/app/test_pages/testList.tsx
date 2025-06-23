@@ -5,7 +5,9 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAuthStore } from '../../store/useAuthStore';
 import { SearchBar } from 'react-native-elements';
+import { Pressable } from 'react-native';
 import tw from 'twrnc';
+import { useNavigation } from 'expo-router';
 
 type Assessment = {
   _id: string;
@@ -20,7 +22,7 @@ const TestList = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filteredTests, setFilteredTests] = useState<Assessment[]>([]);
-
+  const navigation = useNavigation();
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
 
   useEffect(() => {
@@ -56,6 +58,11 @@ const TestList = () => {
 
   return (
     <ScrollView>
+      <View style={tw`absolute top-4 left-4 z-10`}>
+        <Pressable onPress={()=> navigation.goBack()}>
+          <Icon name='arrow-left' size={22} color="white"></Icon>
+        </Pressable>
+      </View>
       <View style={styles.headerArc}>
         <Text style={styles.headerText}>ASSESSMENTS</Text>
       </View>
