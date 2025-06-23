@@ -35,7 +35,7 @@ const AssessmentQuestion = () => {
         ]}
       >
         <View style={styles.card}>
-          <Text style={styles.questionNo}>Question 2</Text>
+          <Text style={styles.questionNo}>Question 3</Text>
           <Text style={styles.questionText}>How satisfied are you with our product?</Text>
 
           {options.map((option, index) => (
@@ -88,7 +88,7 @@ const AssessmentQuestion = () => {
 
             <TouchableOpacity
               style={[styles.button, styles.nextBtn]}
-              onPress={() => router.push('/user_pages/assessmentQuesFinal')}
+              onPress={() => router.push('/user_pages/submit')}
             >
               <Text style={styles.nextBtnText}>Next</Text>
             </TouchableOpacity>
