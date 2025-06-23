@@ -1,8 +1,8 @@
 import {Request, Response} from "express";
 import mongoose from "mongoose";
-import { GetAssessment } from "../service/getService";
 
 const {PostQuestion} = require("../service/postService");
+const {GetAssessment} = require('../service/getService');
 
 export class questionController {
     public static async postQuestion(req: Request, res:Response) {

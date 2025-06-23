@@ -88,7 +88,7 @@ const AssessmentQuestion = () => {
 
             <TouchableOpacity
               style={[styles.button, styles.nextBtn]}
-              onPress={() => router.push('/userLanding')}
+              onPress={() => router.push('/user_pages/submit')}
             >
               <Text style={styles.nextBtnText}>Next</Text>
             </TouchableOpacity>
