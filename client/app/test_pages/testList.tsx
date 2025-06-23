@@ -1,79 +1,68 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, ActivityIndicator, ImageBackground, Dimensions
+  View, Text, ScrollView, StyleSheet, ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useAuthStore } from '../../store/useAuthStore'; 
-import tw from 'twrnc';
-import iconSet from '@expo/vector-icons/build/Fontisto';
+import { useAuthStore } from '../../store/useAuthStore';
 import { SearchBar } from 'react-native-elements';
-import {RFValue} from 'react-native-responsive-fontsize';
+import tw from 'twrnc';
 
-
-type User = {
-  id: string;
-  username: string;
-  email: string;
-  contact: string;
-  organisation: string;
-  designation: string;
-  location: string;
+type Assessment = {
+  _id: string;
+  title: string;
+  role: string[];
+  questions: { questionText: string; options: { text: string }[] }[];
 };
 
-const userList = () => {
-  const [users, setUsers] = useState<User[]>([]);
+const TestList = () => {
+  const [tests, setTests] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [userSeach, setUserSearch] = useState<User[]>([]);
+  const [filteredTests, setFilteredTests] = useState<Assessment[]>([]);
 
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchTests = async () => {
       try {
-        const res = await axiosInstance.get('/users');
-        setUsers(res.data.reverse());
+        const res = await axiosInstance.get('/getAssessments');
+        setTests(res.data.reverse());
       } catch (err) {
-        console.error('Error fetching users:', err);
-        setError('Failed to load users');
+        console.error('Error fetching tests:', err);
+        setError('Failed to load tests');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUsers();
+    fetchTests();
   }, []);
 
-  const fetchUserSearch = async (query: string) => {
-    try {
-      const res = await axiosInstance.get('/users', {
-        params: {q: query}
-      });
-      setUserSearch(res.data)
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
-    if (search.length > 1) {
-      fetchUserSearch(search);
+    if (search.trim().length > 0) {
+      const query = search.toLowerCase();
+      const filtered = tests.filter(t =>
+        t.title.toLowerCase().includes(query) ||
+        t.role.some(r => r.toLowerCase().includes(query))
+      );
+      setFilteredTests(filtered);
     } else {
-      setUserSearch([]);
+      setFilteredTests([]);
     }
-  }, [search]);
+  }, [search, tests]);
+
+  const displayTests = search.length > 0 ? filteredTests : tests;
 
   return (
-      <ScrollView>
-        
-        <View style={styles.headerArc}>
-                <Text style={styles.headerText}>TESTS</Text>
-              </View>
-        <View style={styles.search}>
+    <ScrollView>
+      <View style={styles.headerArc}>
+        <Text style={styles.headerText}>ASSESSMENTS</Text>
+      </View>
+      <View style={styles.search}>
         <SearchBar
-          placeholder="Search Tests here..."
-          onChangeText={(text: string) => setSearch(text)}
+          placeholder="Search Assessments..."
+          onChangeText={setSearch}
           value={search}
           platform="default"
           containerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0, borderBottomWidth: 0 }}
@@ -81,52 +70,40 @@ const userList = () => {
           inputStyle={{ color: '#000' }}
           round
         />
-        </View>
-        {loading ? (
-          <ActivityIndicator size="large" color="#fff" style={tw`mt-10`} />
-        ) : error ? (
-          <Text style={tw`text-red-500 text-center`}>{error}</Text>
-        ) : (
-          users.map((user) => (
-            <View key={user.id} style={styles.icons}>
-              <View style={tw`flex-row items-center mb-1`}>
-                <Icon name="user" size={18} color="#800080" style={tw`mr-2`} />
-                <Text style={tw`text-black text-base font-semibold`}>{user.username}</Text>
-              </View>
-              <View style={tw`flex-row items-center mb-1`}>
-                <Icon name="envelope" size={16} color="#800080" style={tw`mr-2`} />
-                <Text style={tw`text-black`}>{user.email}</Text>
-              </View>
-              <View style={tw`flex-row items-center mb-1`}>
-                <Icon name="phone" size={16} color="#800080" style={tw`mr-2`} />
-                <Text style={tw`text-black`}>{user.contact}</Text>
-              </View>
-              <View style={tw`flex-row items-center mb-1`}>
-                <Icon name="building" size={16} color="#800080" style={tw`mr-2`} />
-                <Text style={tw`text-black`}>{user.organisation}</Text>
-              </View>
-              <View style={tw`flex-row items-center mb-1`}>
-                <Icon name="briefcase" size={16} color="#800080" style={tw`mr-2`} />
-                <Text style={tw`text-black`}>{user.designation}</Text>
-              </View>
-              <View style={tw`flex-row items-center`}>
-                <Icon name="map-marker" size={16} color="#800080" style={tw`mr-2`} />
-                <Text style={tw`text-black`}>{user.location}</Text>
-              </View>
+      </View>
+      {loading ? (
+        <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
+      ) : error ? (
+        <Text style={tw`text-red-500 text-center`}>{error}</Text>
+      ) : (
+        displayTests.map((test) => (
+          <View key={test._id} style={styles.testCard}>
+            <View style={tw`flex-row items-center mb-1`}>
+              <Icon name="file-text-o" size={18} color="#800080" style={tw`mr-2`} />
+              <Text style={tw`text-black text-base font-semibold`}>{test.title}</Text>
             </View>
-          ))
-        )}
-      </ScrollView>
+            <View style={tw`flex-row items-center mb-1`}>
+              <Icon name="users" size={16} color="#800080" style={tw`mr-2`} />
+              <Text style={tw`text-black`}>{test.role.join(', ')}</Text>
+            </View>
+            <View style={tw`flex-row items-center`}>
+              <Icon name="question" size={16} color="#800080" style={tw`mr-2`} />
+              <Text style={tw`text-black`}>Questions: {test.questions.length}</Text>
+            </View>
+          </View>
+        ))
+      )}
+    </ScrollView>
   );
 };
-// tw`bg-white rounded-xl p-4 mb-4 shadow-md`
+
 const styles = StyleSheet.create({
-  icons: {
+  testCard: {
     alignItems: 'flex-start',
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
-    margin: 5
+    margin: 5,
   },
   search: {
     flex: 1,
@@ -151,6 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-
-export default userList;
-
+export default TestList;

@@ -90,14 +90,10 @@ const AssessmentQuestion = () => {
               style={[styles.button, styles.nextBtn]}
               onPress={() => router.push('/user_pages/submit')}
             >
-              <Text style={styles.nextBtnText}>Next</Text>
+              <Text style={styles.nextBtnText}>End Test</Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        <TouchableOpacity style={styles.saveDraftBtn}>
-          <Text style={styles.saveDraftText}>Save as Draft</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );

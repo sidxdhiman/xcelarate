@@ -95,7 +95,9 @@ const AssessmentQuestion = () => {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.saveDraftBtn}>
+        <TouchableOpacity style={styles.saveDraftBtn}
+        onPress={()=> router.push('/userLanding')}
+        >
           <Text style={styles.saveDraftText}>Save as Draft</Text>
         </TouchableOpacity>
       </ScrollView>

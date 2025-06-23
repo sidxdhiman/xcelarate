@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 const AssessmentQuestion = () => {
   const { width } = useWindowDimensions();
@@ -95,7 +96,9 @@ const AssessmentQuestion = () => {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.saveDraftBtn}>
+        <TouchableOpacity style={styles.saveDraftBtn}
+        onPress={()=> router.push('/userLanding')}
+        >
           <Text style={styles.saveDraftText}>Save as Draft</Text>
         </TouchableOpacity>
       </ScrollView>
