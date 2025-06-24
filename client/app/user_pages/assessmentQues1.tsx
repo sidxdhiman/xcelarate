@@ -19,7 +19,7 @@ const AssessmentQuestion = () => {
   const [otherText, setOtherText] = useState('');
   const [dissatisfiedReason, setDissatisfiedReason] = useState('');
 
-  const options = ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Other'];
+  const options = ['Great', 'Good', 'Neutral', 'Not Good', 'Other'];
 
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
@@ -37,7 +37,7 @@ const AssessmentQuestion = () => {
       >
         <View style={styles.card}>
           <Text style={styles.questionNo}>Question 1</Text>
-          <Text style={styles.questionText}>How satisfied are you with our product?</Text>
+          <Text style={styles.questionText}>How are you feeling today?</Text>
 
           {options.map((option, index) => (
             <View key={index} style={styles.optionContainer}>
@@ -58,7 +58,7 @@ const AssessmentQuestion = () => {
                 </Text>
               </TouchableOpacity>
 
-              {option === 'Dissatisfied' && selectedOption === 'Dissatisfied' && (
+              {option === 'Not Good' && selectedOption === 'Not Good' && (
                 <TextInput
                   style={styles.textArea}
                   placeholder="Tell us what went wrong..."

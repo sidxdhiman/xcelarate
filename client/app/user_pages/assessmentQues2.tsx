@@ -36,7 +36,7 @@ const AssessmentQuestion = () => {
       >
         <View style={styles.card}>
           <Text style={styles.questionNo}>Question 2</Text>
-          <Text style={styles.questionText}>How satisfied are you with our product?</Text>
+          <Text style={styles.questionText}>How you satisfied with your company?</Text>
 
           {options.map((option, index) => (
             <View key={index} style={styles.optionContainer}>
@@ -81,8 +81,11 @@ const AssessmentQuestion = () => {
             </View>
           ))}
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={[styles.button, styles.prevBtn]}>
+          <View style={styles.buttonContainer}
+          >
+            <TouchableOpacity style={[styles.button, styles.prevBtn]}
+            onPress={()=> router.push('/user_pages/assessmentQues1')}
+            >
               <Text style={styles.prevBtnText}>Previous</Text>
             </TouchableOpacity>
 
