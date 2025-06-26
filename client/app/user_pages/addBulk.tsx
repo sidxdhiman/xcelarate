@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import * as FileSystem from "expo-file-system";
+import { Platform, Linking } from 'react-native';
 
 
 const AddBulkUsers = () => {
@@ -22,22 +23,36 @@ const AddBulkUsers = () => {
   const navigation = useNavigation();
 
   const handleDownload = async () => {
-    try {
-      const fileId = "1fYYNYzSQ5vk4Hw8vzTu8XEZLgZyAiei8";
-      const fileUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      const fileName = "format_BulkUpload.xlsx";
-      const downloadPath = FileSystem.documentDirectory + fileName;
+    const fileUrl = 'https://raw.githubusercontent.com/sidxdhiman/xcelarate/main/client/assets/format_BulkUpload.xlsx';
+    const fileName = 'format_BulkUpload.xlsx';
 
-      const result = await FileSystem.downloadAsync(fileUrl, downloadPath);
-      console.log('File downloaded to:', result.uri);
-
-      Alert.alert('Download Complete', `Saved to: ${result.uri}`);
-    } catch (error) {
-      console.error('Download Error:', error)
-      Alert.alert('Download Failed', 'There was a problem downloading the file!');
+    if (Platform.OS === 'web') {
+      // Use browser's download functionality
+      try {
+        const anchor = document.createElement('a');
+        anchor.href = fileUrl;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        console.log('Web download triggered.');
+      } catch (err) {
+        console.error('Web download error:', err);
+        Alert.alert('Download Failed', 'Could not download file on web.');
+      }
+    } else {
+      // Native mobile download using expo-file-system
+      try {
+        const downloadPath = FileSystem.documentDirectory + fileName;
+        const result = await FileSystem.downloadAsync(fileUrl, downloadPath);
+        console.log('File downloaded to:', result.uri);
+        Alert.alert('Download Complete', `Saved to: ${result.uri}`);
+      } catch (err) {
+        console.error('Native download error:', err);
+        Alert.alert('Download Failed', 'Could not download file on device.');
+      }
     }
   };
-
 
   const handleFilePick = async () => {
     try {
