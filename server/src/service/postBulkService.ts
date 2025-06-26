@@ -10,5 +10,5 @@ export class PostBulk {
         console.log("Error in inserting bulk users", error);
         throw new Error("Error in uploading bulk users");
       }
-    }
-  }
+    };
+  };
