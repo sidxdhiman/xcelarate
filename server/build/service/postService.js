@@ -58,14 +58,17 @@ class PostQuestion {
     postQuestion(questionData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                if (!questionData.question) {
-                    throw new Error("Question is required");
+                const { title, roles, questions } = questionData;
+                if (!title || !roles || !Array.isArray(questions) || questions.length === 0) {
+                    console.log('Invalid assessment payload:', questionData);
+                    throw new Error("Assessment data is incomplete");
                 }
-                const question = yield index_3.Question.create(questionData);
-                console.log("Question posted successfully!");
+                const assessment = yield index_3.Assessment.create(questionData);
+                console.log("Assessment posted successfully!");
+                return assessment;
             }
             catch (error) {
-                console.error("Error in posting a question: ");
+                console.error("Error in posting a question: ", error);
                 throw new Error(`Error in posting question`);
             }
         });

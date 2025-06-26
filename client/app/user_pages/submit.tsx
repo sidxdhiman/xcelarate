@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { router, Router } from 'expo-router';
+import { router } from 'expo-router';
 
 const TestSubmitted: React.FC = () => {
   const handleHome = () => {
-    router.push('/userLanding')
+    router.push('/userLanding');
     console.log('Go to Home Screen');
   };
 
   const handleLogout = () => {
-    router.push('/Opening')
+    router.push('/Opening');
     console.log('Logged Out');
   };
 
@@ -57,23 +57,29 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 15,
+    gap: 12,
   },
   button: {
     backgroundColor: '#800080',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-    width: '80%',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    width: 200, // ✅ Compact fixed width
+    alignSelf: 'center', // ✅ Center the button
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   logoutButton: {
     backgroundColor: '#4B004B',
   },
   buttonText: {
     color: '#fff',
-    fontSize: width < 600 ? 16 : 18,
+    fontSize: width < 600 ? 15 : 17,
+    fontWeight: '600',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
 });

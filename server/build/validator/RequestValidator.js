@@ -16,10 +16,16 @@ const index_2 = require("../database/index");
 class RequestValidator {
     static patchUser(req, res, next) {
         const schema = Joi.object({
+            username: Joi.string(),
             userId: Joi.number(),
             name: Joi.string(),
             password: Joi.string(),
-            email: Joi.string()
+            email: Joi.string(),
+            location: Joi.string(),
+            contact: Joi.number(),
+            organisation: Joi.string(),
+            designation: Joi.string(),
+            accessLevel: Joi.number()
         });
         const { error } = schema.validate(req.body);
         if (error) {

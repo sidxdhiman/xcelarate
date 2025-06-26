@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetOrganisation = exports.GetByIdService = exports.GetService = void 0;
+exports.GetAssessment = exports.GetOrganisation = exports.GetByIdService = exports.GetService = void 0;
 const database_1 = require("../database");
 class GetService {
     getUsers() {
@@ -56,3 +56,18 @@ class GetOrganisation {
     }
 }
 exports.GetOrganisation = GetOrganisation;
+class GetAssessment {
+    getAssessment() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const assessments = yield database_1.Assessment.find({});
+                return assessments;
+            }
+            catch (error) {
+                console.error("Error in fetching Assessments", error);
+                throw new Error('Error in fetching data');
+            }
+        });
+    }
+}
+exports.GetAssessment = GetAssessment;

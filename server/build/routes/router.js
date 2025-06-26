@@ -23,5 +23,6 @@ routers.delete("/users/:email", apiRoutes_1.default);
 routers.post("/organisations/", apiRoutes_1.default);
 routers.get("/organisations/", apiRoutes_1.default);
 //question routes
-routers.post("/question", apiRoutes_1.default);
+routers.post("/postAssessment", apiRoutes_1.default);
+apiRoutes_1.default.get("/getAssessments", apiRoutes_1.default);
 exports.default = routers;

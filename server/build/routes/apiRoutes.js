@@ -23,5 +23,6 @@ router.post("/bulkUserUpload", upload_1.upload.single('file'), mainController_1.
 router.post("/organisations/", RequestValidator_1.RequestValidator.postOrganisation, orgController_1.orgController.postOrg);
 router.get("/organisations/", orgController_1.orgController.getOrg);
 //question crud
-router.post("/question", questionController_1.questionController.postQuestion);
+router.post("/postAssessment", questionController_1.questionController.postQuestion);
+router.get("/getAssessments", questionController_1.questionController.getAssessmentFunction);
 exports.default = router;
