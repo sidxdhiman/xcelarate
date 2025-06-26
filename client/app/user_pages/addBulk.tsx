@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
-  View, Text, TouchableOpacity, ImageBackground, ScrollView, ActivityIndicator, StyleSheet
+  View, Text, TouchableOpacity, ImageBackground, ScrollView, ActivityIndicator, StyleSheet, Alert
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import tw from 'twrnc';
-import * as XLSX from 'xlsx';
+// import * as XLSX from 'xlsx';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import * as FileSystem from "expo-file-system";
 
 
 const AddBulkUsers = () => {
@@ -19,6 +20,24 @@ const AddBulkUsers = () => {
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
+
+  const handleDownload = async () => {
+    try {
+      const fileId = "1fYYNYzSQ5vk4Hw8vzTu8XEZLgZyAiei8";
+      const fileUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      const fileName = "format_BulkUpload.xlsx";
+      const downloadPath = FileSystem.documentDirectory + fileName;
+
+      const result = await FileSystem.downloadAsync(fileUrl, downloadPath);
+      console.log('File downloaded to:', result.uri);
+
+      Alert.alert('Download Complete', `Saved to: ${result.uri}`);
+    } catch (error) {
+      console.error('Download Error:', error)
+      Alert.alert('Download Failed', 'There was a problem downloading the file!');
+    }
+  };
+
 
   const handleFilePick = async () => {
     try {
@@ -87,6 +106,12 @@ const AddBulkUsers = () => {
                 <Text style={styles.headerText}>UPLOAD BULK</Text>
         </View>
       <TouchableOpacity
+      style={styles.downloadButton}
+      onPress={handleDownload}
+      >
+        <Text style={styles.downloadButtonText}>Download Xcel Sheet Format</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         style={styles.uploadButton}
         onPress={handleFilePick}
         disabled={loading}
@@ -135,6 +160,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  downloadButton: {
+    backgroundColor: '#B300B3',
+    alignItems: 'center',
+    borderRadius: 999,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    marginTop: 20
+  },
+  downloadButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16
+  }
 });
 
 export default AddBulkUsers;
