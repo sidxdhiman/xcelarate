@@ -1,21 +1,20 @@
 import { create } from 'zustand';
 import { axiosInstance } from '../lib/axios';
+import axios from 'axios';
 
-// Types
-export interface Option {
+interface Option {
   id: string;
   text: string;
-  isCorrect?: boolean;
 }
 
-export interface Question {
+interface Question {
   id: string;
   text: string;
   options: Option[];
 }
 
-export interface Assessment {
-  _id?: string; // Optional for fetched assessments
+interface Assessment {
+  _id: string;
   title: string;
   roles: string[];
   questions: Question[];
@@ -24,40 +23,44 @@ export interface Assessment {
 interface AssessmentStore {
   isAddingAssessment: boolean;
   addAssessmentError: string | null;
-  addAssessment: (data: Assessment) => Promise<string | null>; // return _id after creation
-  fetchAssessmentById: (id: string) => Promise<Assessment | null>;
-}
 
-// Store
-const baseURL = 'http://localhost:9000/';
+  addAssessment: (data: Omit<Assessment, '_id'>) => Promise<Assessment>;
+  getAssessmentById: (id: string) => Promise<Assessment | null>;
+}
 
 export const useAssessmentStore = create<AssessmentStore>((set) => ({
   isAddingAssessment: false,
   addAssessmentError: null,
 
-  // Create new assessment
   addAssessment: async (data) => {
     set({ isAddingAssessment: true, addAssessmentError: null });
+
     try {
-      const res = await axiosInstance.post(`${baseURL}postAssessment`, data);
-      const newId = res.data._id;
-      return newId || null;
-    } catch (error: any) {
-      console.error('[addAssessment] Error:', error);
-      set({ addAssessmentError: error.message });
-      return null;
+      const response = await axiosInstance.post('/postAssessment', data);
+      return response.data as Assessment; // returns object with _id
+    } catch (error) {
+      console.error('[Store] Error posting assessment:', error);
+
+      if (axios.isAxiosError(error)) {
+        set({ addAssessmentError: error.response?.data?.message || error.message });
+      } else if (error instanceof Error) {
+        set({ addAssessmentError: error.message });
+      } else {
+        set({ addAssessmentError: 'Unknown error occurred' });
+      }
+
+      throw error;
     } finally {
       set({ isAddingAssessment: false });
     }
   },
 
-  // Fetch one assessment by ID
-  fetchAssessmentById: async (id) => {
+  getAssessmentById: async (id) => {
     try {
-      const res = await axiosInstance.get(`${baseURL}getAssessment/${id}`);
-      return res.data as Assessment;
+      const response = await axiosInstance.get(`/assessments/${id}`);
+      return response.data as Assessment;
     } catch (error) {
-      console.error('[fetchAssessmentById] Error:', error);
+      console.error('[Store] Error fetching assessment by ID:', error);
       return null;
     }
   },

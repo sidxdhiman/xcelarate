@@ -15,6 +15,8 @@ import Toast from 'react-native-toast-message';
 import { Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
+import * as Clipboard from 'expo-clipboard';
+
 
 interface Option {
   id: string;
@@ -82,26 +84,35 @@ export default function CreateTestForm() {
   };
 
   const handleSubmit = async () => {
-    if (!title || roles.length === 0 || questions.length === 0) {
-      Alert.alert('Error', 'Please fill all fields.');
-      return;
-    }
+  if (!title || roles.length === 0 || questions.length === 0) {
+    Alert.alert('Error', 'Please fill all fields.');
+    return;
+  }
 
-    console.log('[UI] Submitting assessment...');
-    try {
-      await addAssessment({ title, roles, questions });
-      // Alert.alert('Success', 'Test submitted successfully!');
-      Toast.show({type: 'success', text1: 'Assessment Added Successfully!'});
-      router.push('/test_pages/testList');
-      setTitle('');
-      setRoles([]);
-      setQuestions([]);
-    } catch (err) {
-      console.error('[UI] Submit error:', err);
-      // Alert.alert('Error', 'Failed to submit test.');
-      Toast.show({type: 'error', text1: 'Error in Adding Assessment'})
-    }
-  };
+  console.log('[UI] Submitting assessment...');
+  try {
+      const response = await addAssessment({ title, roles, questions });
+  if (response?.id || response?._id) {
+    const id = response.id || response._id;
+    const link = `http://localhost:8081/user_pages/${id}`;
+    await Clipboard.setStringAsync(link);
+    Toast.show({
+      type: 'success',
+      text1: 'Assessment Created!',
+      text2: 'Link copied to clipboard',
+    });
+    router.push('/test_pages/testList');
+  }
+
+    setTitle('');
+    setRoles([]);
+    setQuestions([]);
+  } catch (err) {
+    console.error('[UI] Submit error:', err);
+    Toast.show({ type: 'error', text1: 'Error in Adding Assessment' });
+  }
+};
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

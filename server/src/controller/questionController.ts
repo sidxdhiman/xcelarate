@@ -12,7 +12,7 @@ export class questionController {
       const question = await new PostQuestion().postQuestion(questionData);
       console.log("Incoming question data:", req.body);
       if (question) {
-        res.status(200).json({ success: true });
+        res.status(200).json({ success: true, id: question._id });
       } else {
         res.status(404).json({ message: "Question not posted" });
       }
