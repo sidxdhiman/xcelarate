@@ -8,6 +8,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
+import Modal from 'react-native-modal';
 import { router } from 'expo-router';
 
 const questions = [
@@ -34,6 +35,7 @@ const AssessmentQuestion = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState({});
+  const [isModalVisible, setModalVisible] = useState(false);
 
   const currentQuestion = questions[currentIndex];
 
@@ -51,11 +53,15 @@ const AssessmentQuestion = () => {
     }));
   };
 
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
   const goToNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      router.push('/user_pages/submit');
+      toggleModal();
     }
   };
 
@@ -63,6 +69,11 @@ const AssessmentQuestion = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     }
+  };
+
+  const handleSubmit = () => {
+    toggleModal();
+    router.push('/user_pages/submit');
   };
 
   return (
@@ -138,7 +149,6 @@ const AssessmentQuestion = () => {
           </View>
         </View>
 
-        {/* ✅ Only show Save as Draft if NOT on last question */}
         {currentIndex !== questions.length - 1 && (
           <TouchableOpacity
             style={styles.saveDraftBtn}
@@ -147,6 +157,24 @@ const AssessmentQuestion = () => {
             <Text style={styles.saveDraftText}>Save as Draft</Text>
           </TouchableOpacity>
         )}
+
+        {/* ✅ Modal */}
+        <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
+          <View style={[styles.modalContent, !isMobile && styles.modalBoxWeb]}>
+            <Text style={styles.modalTitle}>Submit Assessment</Text>
+            <Text style={styles.modalMessage}>
+              You are about to submit your responses. Do you want to continue?
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity onPress={toggleModal} style={styles.cancelBtn}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSubmit} style={styles.submitBtn}>
+                <Text style={styles.submitText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </View>
   );
@@ -275,6 +303,52 @@ const styles = StyleSheet.create({
     color: '#4b0082',
     fontWeight: '600',
     fontSize: 16,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  modalBoxWeb: {
+    width: 400, // 👈 Custom width for web
+    alignSelf: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 10,
+    color: '#4b0082',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  cancelBtn: {
+    backgroundColor: '#ccc',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  cancelText: {
+    color: '#333',
+    fontWeight: '600',
+  },
+  submitBtn: {
+    backgroundColor: '#800080',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  submitText: {
+    color: '#fff',
+    fontWeight: '700',
   },
 });
 

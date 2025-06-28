@@ -25,5 +25,7 @@ class PostBulk {
             }
         });
     }
+    ;
 }
 exports.PostBulk = PostBulk;
+;
