@@ -40,21 +40,20 @@ export const connection = mongoose.connect(mongoDB, {
 
   const optionSchema = new mongoose.Schema({
     text: String,
-    // TODO isCorrect or not
   });
 
   const questionSchema = new mongoose.Schema({
-    questionText: String,
+    text: String,
     options: [optionSchema]
   });
 
   const assessmentSchema = new mongoose.Schema({
     title: String,
-    role: [String],
+    roles: [String],  
     questions: [questionSchema]
   });
 
-  const Assessment = mongoose.model("Assessments", assessmentSchema);
+  const Assessment = mongoose.model("Assessment", assessmentSchema);
   
   const Organisation = mongoose.model("Organisations", organisationSchema);
   // const User = mongoose.model("Users", userSchema);

@@ -23,6 +23,7 @@ router.get("/organisations/", orgController.getOrg);
 
 //question crud
 router.post("/postAssessment", questionController.postQuestion);
-router.get("/getAssessments", questionController.getAssessmentFunction);
+router.get("/assessments", questionController.getAssessmentFunction);
+router.get("/assessments/:id", questionController.getAssessmentByIdFunction);
 
 export default router;

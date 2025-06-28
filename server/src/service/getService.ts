@@ -1,5 +1,6 @@
 import { IntegerType } from "mongodb";
 import { Organisation, User, Assessment } from "../database";
+import mongoose from "mongoose";
 
 export class GetService {
   public async getUsers() {
@@ -42,6 +43,18 @@ export class GetAssessment {
     } catch (error) {
       console.error("Error in fetching Assessments", error);
       throw new Error('Error in fetching data');
+    }
+  }
+}
+
+export class GetAssessmentById {
+  public async getAssessmentbyId(Id: string) {
+    try {
+      const assessment = await Assessment.findById(Id);
+      return assessment;
+    } catch (error) {
+      console.error("Error fetching the Assessment", error);
+      throw new Error("Error fetching assessment");
     }
   }
 }
