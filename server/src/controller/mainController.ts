@@ -35,24 +35,26 @@ export class MainController {
   }
   public static async getUserFunction(req: Request, res: Response) {
     try {
-      const email = parseInt(req.params.email);
-      if (!mongoose.Types.ObjectId.isValid(email)) {
-        return (
-          res.status(400).json({ message: "Invalid EMail ID format" }),
-          logger.errorLog.info("FAILED!-INVALID-EMAIL-ID")
-        );
+      const email = req.params.email;
+  
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        logger.errorLog.info("FAILED! - INVALID EMAIL FORMAT");
+        return res.status(400).json({ message: "Invalid email format" });
       }
-      const result = await new GetByIdService().getUserbyId(email);
+  
+      const result = await User.findOne({ email });
+  
       if (result) {
-        res.json(result)
+        res.json(result);
       } else {
         res.status(404).json({ message: "User not found" });
       }
     } catch (error) {
+      console.error(error);
       res.status(500).json({ message: "Internal Server error!-GET" });
     }
-  
   }
+  
   public static async signUp(req: Request, res: Response) {
     try {
       const result = await AuthService.signup(req.body);
