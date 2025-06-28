@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Platform,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
-import { RFValue } from 'react-native-responsive-fontsize';
-import tw from 'twrnc';
-import { RouteProp } from '@react-navigation/native';
 import { SearchBar } from 'react-native-elements';
+import { RouteProp, useNavigation } from '@react-navigation/native';
 import { axiosInstance } from '@/lib/axios';
-import { useNavigation } from '@react-navigation/native';
-import { Pressable } from 'react-native';
 
-// Define your navigation stack param list type
 type RootStackParamList = {
   ModifyUser: { email: string };
 };
@@ -37,14 +40,14 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
   const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
 
   const router = useRouter();
-  const { fetchUserByEmail, modifyUser } = useAuthStore();
-
   const navigation = useNavigation();
+  const { modifyUser } = useAuthStore();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 600;
 
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
   useEffect(() => {
-    
     const fetchSuggestions = async () => {
       if (!search.trim()) {
         setUserSuggestions([]);
@@ -57,15 +60,13 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
         console.error('Failed to fetch suggestions:', error);
       }
     };
-
-    const delayDebounce = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(delayDebounce);
+    const debounce = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounce);
   }, [search]);
 
   const handleUserSelect = (user: any) => {
     setSearch(user.email);
     setUserSuggestions([]);
-
     setUsername(user.username);
     setEmail(user.email);
     setContact(user.contact);
@@ -77,26 +78,18 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
 
   const handleModifyUser = async () => {
     if (!username || !email || !contact || !organisation || !designation || !accessLevel || !location) {
-      Toast.show({ type: 'error', text1: 'Error', text2: 'All fields are required!' });
+      Toast.show({ type: 'error', text1: 'All fields are required!' });
       return;
     }
-    
-
-    const updatedUser = {
-      username,
-      email,
-      contact,
-      organisation,
-      designation,
-      accessLevel,
-      location,
-    };
 
     try {
       setLoading(true);
-      const response = await modifyUser(email, updatedUser);
+      const res = await modifyUser(email, {
+        username, email, contact, organisation, designation, location, accessLevel,
+      });
       setLoading(false);
-      if (response.success) {
+
+      if (res.success) {
         Toast.show({ type: 'success', text1: 'User Modified Successfully' });
         router.push('/user_pages/userList');
       } else {
@@ -104,57 +97,54 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
       }
     } catch (error) {
       setLoading(false);
-      Toast.show({ type: 'error', text1: 'Error', text2: 'An error occurred. Please try again' });
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Please try again later.' });
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-      <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={()=> navigation.goBack()}>
-          <Icon name='arrow-left' size={22} color="white"></Icon>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.backBtn}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={22} color="white" />
         </Pressable>
       </View>
-      <View style={styles.headerArc}>
+
+      <View style={styles.header}>
         <Text style={styles.headerText}>MODIFY USER</Text>
       </View>
 
-      <View style={styles.search}>
+      <View style={[styles.searchBox, !isMobile && styles.desktopBox]}>
         <SearchBar
           placeholder="Search users here..."
-          onChangeText={(text) => setSearch(text)}
           value={search}
+          onChangeText={setSearch}
           platform="default"
-          containerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0, borderBottomWidth: 0 }}
-          inputContainerStyle={{ backgroundColor: '#fff' }}
-          inputStyle={{ color: '#000' }}
           round
+          containerStyle={styles.searchBarContainer}
+          inputContainerStyle={styles.searchInputContainer}
+          inputStyle={styles.searchInput}
         />
       </View>
 
       {userSuggestions.map((user, index) => (
         <TouchableOpacity
           key={index}
+          style={[styles.suggestion, !isMobile && styles.desktopBox]}
           onPress={() => handleUserSelect(user)}
-          style={{
-            backgroundColor: 'white',
-            padding: 10,
-            width: RFValue(300),
-            borderBottomWidth: 1,
-            borderColor: '#eee'
-          }}
         >
-          <Text style={{ color: 'black' }}>{user.username} ({user.email})</Text>
+          <Text style={styles.suggestionText}>{user.username} ({user.email})</Text>
         </TouchableOpacity>
       ))}
 
-      {[{ icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
+      {[
+        { icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
         { icon: 'envelope', placeholder: 'Email', value: email, setter: setEmail },
         { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact },
         { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
         { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
-        { icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel }].map((field, idx) => (
-        <View key={idx} style={styles.inputContainer}>
+        { icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel },
+      ].map((field, idx) => (
+        <View key={idx} style={[styles.inputGroup, !isMobile && styles.desktopBox]}>
           <Icon name={field.icon} size={18} color="#999" style={styles.icon} />
           <TextInput
             placeholder={field.placeholder}
@@ -166,31 +156,28 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
         </View>
       ))}
 
-      <View style={styles.pickerWrapper}>
-        <Text style={styles.label}>Location</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={location}
-            onValueChange={(itemValue) => setLocation(itemValue)}
-            style={styles.picker}
-            dropdownIconColor="#800080"
-            mode={Platform.OS === 'ios' ? 'dialog' : 'dropdown'}
-          >
-            <Picker.Item label="Select a location" value="" />
-            {locations.map((loc) => (
-              <Picker.Item key={loc} label={loc} value={loc} />
-            ))}
-          </Picker>
-        </View>
+      <View style={[styles.inputGroup, !isMobile && styles.desktopBox]}>
+        <Icon name="map-marker" size={18} color="#999" style={styles.icon} />
+        <Picker
+          selectedValue={location}
+          onValueChange={(itemValue) => setLocation(itemValue)}
+          style={styles.picker}
+          mode={Platform.OS === 'ios' ? 'dialog' : 'dropdown'}
+        >
+          <Picker.Item label="Select a location" value="" />
+          {locations.map((loc) => (
+            <Picker.Item key={loc} label={loc} value={loc} />
+          ))}
+        </Picker>
       </View>
 
       <TouchableOpacity
-        style={styles.submitButton}
+        style={[styles.button, !isMobile && styles.desktopBox]}
         onPress={handleModifyUser}
         disabled={loading}
       >
-        <Text style={styles.submitText}>
-          {loading ? 'Saving Changes...' : 'Save Changes'}
+        <Text style={styles.buttonText}>
+          {loading ? 'Saving...' : 'Save Changes'}
         </Text>
       </TouchableOpacity>
     </ScrollView>
@@ -199,80 +186,92 @@ const ModifyUser = ({ route }: { route?: ModifyUserRouteProp }) => {
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    alignItems: 'center'
+    alignItems: 'center',
+    paddingBottom: 40,
+    backgroundColor: '#f2f2f2',
+    minHeight: '100%',
   },
-  search: {
-    flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    marginBottom: 5,
-    paddingHorizontal: 1,
-    width: RFValue(300)
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 10,
   },
-  headerArc: {
+  header: {
     backgroundColor: '#800080',
-    paddingVertical: 32,
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 30,
     marginBottom: 10,
-    width: '100%'
   },
   headerText: {
     color: '#fff',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 10,
-    letterSpacing: 1,
   },
-  inputContainer: {
+  searchBox: {
+    width: '92%',
+    marginBottom: 10,
+  },
+  desktopBox: {
+    width: 500,
+  },
+  searchBarContainer: {
+    backgroundColor: 'transparent',
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+  },
+  searchInputContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 30,
+    paddingHorizontal: 10,
+  },
+  searchInput: {
+    color: '#000',
+  },
+  suggestion: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 6,
+    marginBottom: 5,
+  },
+  suggestionText: {
+    color: 'black',
+  },
+  inputGroup: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    alignItems: 'center',
+    backgroundColor: '#fff',
     borderRadius: 10,
     paddingHorizontal: 12,
-    alignItems: 'center',
-    marginVertical: 8,
     height: 44,
-    width: RFValue(300)
+    marginVertical: 8,
+    width: '92%',
   },
   icon: {
     marginRight: 8,
-    color: 'black'
+    color: 'black',
   },
   input: {
     flex: 1,
-    color: 'black',
     fontSize: 16,
-  },
-  pickerWrapper: {
-    marginTop: 8,
-    width: RFValue(300),
-    marginBottom: 8,
-  },
-  label: {
     color: 'black',
-    margin: 10,
-    fontWeight: '600',
-  },
-  pickerContainer: {
-    backgroundColor: 'white',
-    borderRadius: 999,
-    height: 44,
-    justifyContent: 'center',
-    paddingHorizontal: 12,
   },
   picker: {
+    flex: 1,
     color: 'black',
-    margin: 10
   },
-  submitButton: {
+  button: {
     backgroundColor: '#800080',
     borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 40,
-    margin: 20,
     marginTop: 20,
     alignItems: 'center',
+    width: '92%',
   },
-  submitText: {
+  buttonText: {
     color: 'white',
     fontWeight: '600',
     fontSize: 16,

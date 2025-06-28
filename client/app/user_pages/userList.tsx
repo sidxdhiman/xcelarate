@@ -7,7 +7,7 @@ import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../store/useAuthStore';
 import tw from 'twrnc';
 import { SearchBar } from 'react-native-elements';
-import { router } from 'expo-router';s
+import { router } from 'expo-router';
 
 type User = {
   id: string;
