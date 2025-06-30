@@ -28,7 +28,7 @@ const TestList = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const res = await axiosInstance.get('/getAssessments');
+        const res = await axiosInstance.get('/assessments');
         setTests(res.data.reverse());
       } catch (err) {
         console.error('Error fetching tests:', err);
@@ -91,7 +91,9 @@ const TestList = () => {
             </View>
             <View style={tw`flex-row items-center mb-1`}>
               <Icon name="users" size={16} color="#800080" style={tw`mr-2`} />
-              <Text style={tw`text-black`}>{test.role.join(', ')}</Text>
+              <Text style={tw`text-black`}>
+                {Array.isArray(test.role) ? test.role.join(', ') : 'No roles'}
+              </Text>
             </View>
             <View style={tw`flex-row items-center`}>
               <Icon name="question" size={16} color="#800080" style={tw`mr-2`} />

@@ -26,6 +26,7 @@ interface AssessmentStore {
 
   addAssessment: (data: Omit<Assessment, '_id'>) => Promise<Assessment>;
   getAssessmentById: (id: string) => Promise<Assessment | null>;
+  submitResponses: (assessmentId: string, answers: Record<string, { option: string; text: string }>) => Promise<void>;
 }
 
 export const useAssessmentStore = create<AssessmentStore>((set) => ({
@@ -37,7 +38,7 @@ export const useAssessmentStore = create<AssessmentStore>((set) => ({
 
     try {
       const response = await axiosInstance.post('/postAssessment', data);
-      return response.data as Assessment; // returns object with _id
+      return response.data as Assessment;
     } catch (error) {
       console.error('[Store] Error posting assessment:', error);
 
@@ -62,6 +63,17 @@ export const useAssessmentStore = create<AssessmentStore>((set) => ({
     } catch (error) {
       console.error('[Store] Error fetching assessment by ID:', error);
       return null;
+    }
+  },
+
+  submitResponses: async (assessmentId, answers) => {
+    try {
+      await axiosInstance.post(`/assessments/${assessmentId}/responses`, {
+        answers,
+      });
+    } catch (error) {
+      console.error('[Store] Error submitting responses:', error);
+      throw error;
     }
   },
 }));

@@ -25,5 +25,6 @@ router.get("/organisations/", orgController.getOrg);
 router.post("/postAssessment", questionController.postQuestion);
 router.get("/assessments", questionController.getAssessmentFunction);
 router.get("/assessments/:id", questionController.getAssessmentByIdFunction);
+router.post("/assessments/:id/responses", questionController.submitResponse);
 
 export default router;

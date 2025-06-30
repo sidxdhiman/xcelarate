@@ -53,11 +53,32 @@ export const connection = mongoose.connect(mongoDB, {
     questions: [questionSchema]
   });
 
+  const responseSchema = new mongoose.Schema({
+    assessmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Assessment',
+      required: true,
+    },
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    answers: {
+      type: Map,
+      of: new mongoose.Schema({
+        option: String,
+        text: String,
+      }),
+    },
+  });
+
   const Assessment = mongoose.model("Assessment", assessmentSchema);
   
   const Organisation = mongoose.model("Organisations", organisationSchema);
+
+  const Response = mongoose.model("Responses", responseSchema);
   // const User = mongoose.model("Users", userSchema);
 
 export const User = mongoose.model<IUser>('User', userSchema);
-export {Organisation, Assessment};
+export {Organisation, Assessment, Response};
 

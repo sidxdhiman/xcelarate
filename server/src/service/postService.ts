@@ -1,6 +1,5 @@
-import { User } from "../database/index";
-import { Organisation } from "../database/index";
-import { Assessment } from "../database/index";
+import { User, Organisation, Assessment } from "../database/index";
+import { Response } from "../database/index";
 
 export class PostUser {
   public async postUser(userData: any): Promise<any> {
@@ -10,19 +9,17 @@ export class PostUser {
       }
       const user = await User.create(userData);
       console.log("User posted successfully!");
-
       return { user };
     } catch (error) {
       console.error("Error in creating user");
       throw new Error(`Error in creating user`);
     }
   }
-};
+}
 
 export class PostOrganisation {
   public async postOrganisation(orgData: any): Promise<any> {
     try {
-      // Optional: Validate orgData before creating
       if (!orgData.name) {
         throw new Error("Organisation name is required");
       }
@@ -31,11 +28,11 @@ export class PostOrganisation {
       console.log("Organisation posted successfully!");
       return organisation;
     } catch (error) {
-      console.error("Error in creating organisation:" );
+      console.error("Error in creating organisation:");
       throw new Error(`Error in creating organisation`);
     }
   }
-};
+}
 
 export class PostQuestion {
   public async postQuestion(questionData: any): Promise<any> {
@@ -49,11 +46,32 @@ export class PostQuestion {
 
       const assessment = await Assessment.create(questionData);
       console.log("Assessment posted successfully!");
-
       return assessment;
     } catch (error) {
       console.error("Error in posting a question: ", error);
       throw new Error(`Error in posting question`);
+    }
+  }
+}
+
+export class PostResponse {
+  public async postResponse(assessmentId: string, answers: any): Promise<any> {
+    try {
+      if (!assessmentId || typeof answers !== 'object') {
+        throw new Error("Missing or invalid response data");
+      }
+
+      const newResponse = await Response.create({
+        assessmentId,
+        answers,
+        submittedAt: new Date(),
+      });
+
+      console.log("Response saved successfully!");
+      return newResponse;
+    } catch (error) {
+      console.error("Error saving response:", error);
+      throw new Error("Failed to save assessment response");
     }
   }
 }
