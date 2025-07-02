@@ -117,7 +117,7 @@ const TestList = () => {
                   <Pressable
                     onPress={() =>
                       router.push({
-                        pathname: '/user_pages/[id]/[q]',
+                        pathname: '/[id]/[q]',
                         params: { id: test._id, q: '1' },
                       })
                     }
