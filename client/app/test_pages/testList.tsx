@@ -115,12 +115,13 @@ const TestList = () => {
                   </Text>
 
                   <Pressable
-                    onPress={() =>
+                    onPress={() => {
+                      const encodedData = encodeURIComponent(JSON.stringify(test));
                       router.push({
                         pathname: '/[id]/[q]',
-                        params: { id: test._id, q: '1' },
-                      })
-                    }
+                        params: { id: test._id, q: '0', data: encodedData },
+                      });
+                    }}
                     style={tw`bg-purple-800 px-4 py-2 rounded-lg self-start mb-2`}
                   >
                     <Text style={tw`text-white font-semibold`}>Go to Assessment</Text>
@@ -128,7 +129,7 @@ const TestList = () => {
 
                   <Pressable
                     onPress={async () => {
-                      const link = `http://localhost:8081/user_pages/${test._id}`;
+                      const link = `http://localhost:8081/[id]/${test._id}`;
                       await Clipboard.setStringAsync(link);
                       alert('Link copied to clipboard!');
                     }}
