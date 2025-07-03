@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 
-const mongoDB = "mongodb://localhost:27017/xcelarate-backend";
+const mongoDB = "mongodb+srv://xcelarate:vS6aQk4CE9FlUDUi@cluster0.2xdekrz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 export const connection = mongoose.connect(mongoDB, {
       // useNewUrlParser: true,
