@@ -128,15 +128,16 @@ const TestList = () => {
                   </Pressable>
 
                   <Pressable
-                    onPress={async () => {
-                      const link = `http://localhost:8081/[id]/${test._id}`;
-                      await Clipboard.setStringAsync(link);
-                      alert('Link copied to clipboard!');
-                    }}
-                    style={tw`bg-gray-700 px-4 py-2 rounded-lg self-start`}
-                  >
-                    <Text style={tw`text-white font-semibold`}>Copy Link</Text>
-                  </Pressable>
+                  onPress={async () => {
+                    const encodedData = encodeURIComponent(JSON.stringify(test));
+                    const link = `http://localhost:8081/${test._id}/0?data=${encodedData}`;
+                    await Clipboard.setStringAsync(link);
+                    alert('Link copied to clipboard!');
+                  }}
+                  style={tw`bg-gray-700 px-4 py-2 rounded-lg self-start`}
+                >
+                  <Text style={tw`text-white font-semibold`}>Copy Link</Text>
+                </Pressable>
                 </View>
               )}
             </View>
