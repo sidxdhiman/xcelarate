@@ -64,7 +64,7 @@ const DisclaimerScreen: React.FC = () => {
 
           <TouchableOpacity
             disabled={!agreed}
-            onPress={() => router.push('/details')}
+            onPress={() => router.push('/userDetails')}
             style={[
               styles.button,
               { backgroundColor: agreed ? '#800080' : '#ccc' },

@@ -26,7 +26,7 @@ const UserDetailsScreen = () => {
       return;
     }
 
-    router.push('/user_pages/assessmentQues');
+    router.push('/[id]/[q]');
   };
 
   return (
