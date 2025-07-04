@@ -118,7 +118,7 @@ const TestList = () => {
                     onPress={() => {
                       const encodedData = encodeURIComponent(JSON.stringify(test));
                       router.push({
-                        pathname: '/[id]/[q]',
+                        pathname: '/[id]/disclaimer',
                         params: { id: test._id, q: '0', data: encodedData },
                       });
                     }}
