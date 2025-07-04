@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,26 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 const UserDetailsScreen = () => {
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
+
+  const { id, data } = useLocalSearchParams<{ id: string; data?: string }>();
+
+  const [assessment, setAssessment] = useState<any>(null);
+
+  useEffect(() => {
+    if (data) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(data));
+        setAssessment(parsed);
+      } catch (err) {
+        console.warn('Invalid assessment data:', err);
+      }
+    }
+  }, [data]);
 
   const [name, setName] = useState('');
   const [designation, setDesignation] = useState('');
@@ -26,7 +41,13 @@ const UserDetailsScreen = () => {
       return;
     }
 
-    router.push('/[q]');
+    if (!id || !assessment) {
+      alert('Assessment data is missing.');
+      return;
+    }
+
+    const encoded = encodeURIComponent(JSON.stringify(assessment));
+    router.push(`/assessment/${id}/0?data=${encoded}`);
   };
 
   return (

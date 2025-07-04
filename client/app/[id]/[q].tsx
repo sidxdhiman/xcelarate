@@ -1,27 +1,37 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Text, View, TouchableOpacity, TextInput, ScrollView, StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  StyleSheet,
 } from 'react-native';
 import { Assessment } from '../../types/assessment';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
 
+/* ──────────────────────────────── Types ──────────────────────────────── */
+interface Answer {
+  option: string;
+  text?: string;
+}
+
+/* ──────────────────────────────── Component ──────────────────────────── */
 export default function QuestionScreen() {
-  /* ──────────────────────────────── 1. URL params ───────────────────────── */
+  /* ─────────────────────────────── 1. URL params ─────────────────────── */
   const { id, q, data } = useLocalSearchParams<{
     id: string;
     q?: string;
     data?: string;
   }>();
 
-  /* ──────────────────────────────── 2. Local state ──────────────────────── */
+  /* ─────────────────────────────── 2. Local state ────────────────────── */
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
-  const [responses, setResponses] = useState<
-    Record<string, { option: string; text?: string }>
-  >({});
+  const [responses, setResponses] = useState<Record<string, Answer>>({});
 
-  /* ──────────────────────────────── 3. Resolve assessment ───────────────── */
+  /* ─────────────────────────────── 3. Resolve assessment ─────────────── */
   useEffect(() => {
     const init = async () => {
       // 1️⃣ Fast path – decode JSON from URL (internal navigation)
@@ -52,9 +62,7 @@ export default function QuestionScreen() {
 
       // 3️⃣ Fallback fetch – if the store didn’t have it
       try {
-        const res = await fetch(
-          `http://localhost:8081/api/assessments/${id}`
-        );
+        const res = await fetch(`http://localhost:8081/api/assessments/${id}`);
         const json = (await res.json()) as Assessment;
         setAssessment(json);
       } catch (err) {
@@ -67,41 +75,42 @@ export default function QuestionScreen() {
     init();
   }, [id, data]);
 
-  /* ──────────────────────────────── 4. Derived data ─────────────────────── */
+  /* ─────────────────────────────── 4. Derived data ───────────────────── */
   const index = useMemo(() => Number(q ?? '0'), [q]);
   const question = assessment?.questions?.[index];
   const questionKey = question?._id ?? String(index);
 
-  /* ──────────────────────────────── 5. Helpers ──────────────────────────── */
+  /* ─────────────────────────────── 5. Helpers ─────────────────────────── */
   const selectOption = (option: string) =>
     setResponses(prev => ({
       ...prev,
-      [questionKey]: { option, text: '' },
+      [questionKey]: { ...(prev[questionKey] ?? {}), option, text: '' },
     }));
 
   const changeText = (text: string) =>
     setResponses(prev => ({
       ...prev,
-      [questionKey]: { ...prev[questionKey], text },
+      [questionKey]: { ...(prev[questionKey] ?? { option: '' }), text },
     }));
 
   const go = (idx: number, replace = false) => {
     const encoded = assessment
       ? encodeURIComponent(JSON.stringify(assessment))
       : undefined;
-    const path = {
-      pathname: '/assessment/[id]/[q]',
-      params: { id, q: String(idx), ...(encoded ? { data: encoded } : {}) },
-    };
-    replace ? router.replace(path) : router.push(path);
+
+    const url =
+      `/assessment/${id}/${idx}` + (encoded ? `?data=${encoded}` : '');
+
+    replace ? router.replace(url) : router.push(url);
   };
 
   const submit = async () => {
+    // convert object → array if backend expects it, else send as‑is
     await useAssessmentStore.getState().submitResponses(id, responses);
-    router.replace({ pathname: '/[id]/result', params: { id } });
+    router.replace(`/assessment/${id}/result`);
   };
 
-  /* ──────────────────────────────── 6. Guards ───────────────────────────── */
+  /* ─────────────────────────────── 6. Guards ─────────────────────────── */
   if (loading)
     return (
       <View style={styles.center}>
@@ -121,7 +130,7 @@ export default function QuestionScreen() {
       </View>
     );
 
-  /* ──────────────────────────────── 7. UI ───────────────────────────────── */
+  /* ─────────────────────────────── 7. UI ─────────────────────────────── */
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{assessment.title}</Text>
@@ -139,17 +148,9 @@ export default function QuestionScreen() {
             <View key={optionKey} style={styles.optionWrap}>
               <TouchableOpacity
                 onPress={() => selectOption(opt.text)}
-                style={[
-                  styles.optionBtn,
-                  selected && styles.optionSelected,
-                ]}
+                style={[styles.optionBtn, selected && styles.optionSelected]}
               >
-                <Text
-                  style={[
-                    styles.optionText,
-                    selected && styles.optionTextSel,
-                  ]}
-                >
+                <Text style={[styles.optionText, selected && styles.optionTextSel]}>
                   {opt.text}
                 </Text>
               </TouchableOpacity>
@@ -191,7 +192,7 @@ export default function QuestionScreen() {
   );
 }
 
-/* ──────────────────────────────── Styles ───────────────────────────────── */
+/* ──────────────────────────────── Styles ─────────────────────────────── */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f6efff', padding: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
