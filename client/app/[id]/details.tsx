@@ -46,8 +46,13 @@ const UserDetailsScreen = () => {
       return;
     }
 
+    // const encoded = encodeURIComponent(JSON.stringify(assessment));
+    // router.push(`/assessment/${id}/0?data=${encoded}`);
     const encoded = encodeURIComponent(JSON.stringify(assessment));
-    router.push(`/assessment/${id}/0?data=${encoded}`);
+    router.push({
+      pathname: '/[id]/[q]',
+      params: {id, q: '0', data: encoded},
+    })
   };
 
   return (

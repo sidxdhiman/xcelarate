@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { CheckSquare, Square } from 'lucide-react-native';
 import { Dimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const screenHeight = Dimensions.get('window').height
 const screenWidth = Dimensions.get('window').width
@@ -19,6 +19,8 @@ const DisclaimerScreen: React.FC = () => {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
+
+  const {id, data } = useLocalSearchParams<{id: string; data?: string}>();
 
   const disclaimerTexts: string[] = [
     'This survey is for feedback purpose and responses will only be used for that purpose.',
@@ -64,7 +66,12 @@ const DisclaimerScreen: React.FC = () => {
 
           <TouchableOpacity
             disabled={!agreed}
-            onPress={() => router.push('/userDetails')}
+            onPress={() => 
+              router.push({
+                pathname: '/userDetails',
+                params: {id, data},
+              })
+            }
             style={[
               styles.button,
               { backgroundColor: agreed ? '#800080' : '#ccc' },

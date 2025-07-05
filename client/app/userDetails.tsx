@@ -8,17 +8,20 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 const UserDetailsScreen = () => {
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
+  const { id, data } = useLocalSearchParams<{ id: string; data?: string }>();
 
   const [name, setName] = useState('');
   const [designation, setDesignation] = useState('');
   const [email, setEmail] = useState('');
   const [department, setDepartment] = useState('');
   const [phone, setPhone] = useState('');
+  const [assessment, setAssessment] = useState<any>(null);
+  
 
   const handleSubmit = () => {
     if (!name || !designation || !email || !department || !phone) {
@@ -26,8 +29,23 @@ const UserDetailsScreen = () => {
       return;
     }
 
-    router.push('/[id]/[q]');
+    if (!id || !assessment) {
+      alert('Assessment data is missing.');
+      return;
+    }
+
+    const encoded = encodeURIComponent(JSON.stringify(assessment));
+    router.push({
+      pathname: '/[id]/[q]',
+      params: {
+        id,
+        q: '0',
+        data: encoded,
+      },
+    });
   };
+
+
 
   return (
     <View style={styles.wrapper}>

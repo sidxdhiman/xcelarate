@@ -35,6 +35,7 @@ export default function QuestionScreen() {
   useEffect(() => {
     const init = async () => {
       // 1️⃣ Fast path – decode JSON from URL (internal navigation)
+      console.log('[QuestionScreen] params :', {id, q, hasData: !!data});
       if (data) {
         try {
           setAssessment(JSON.parse(decodeURIComponent(data)));
