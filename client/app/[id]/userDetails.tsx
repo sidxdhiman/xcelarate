@@ -13,27 +13,25 @@ import { router, useLocalSearchParams } from 'expo-router';
 const UserDetailsScreen = () => {
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
-
   const { id, data } = useLocalSearchParams<{ id: string; data?: string }>();
-
-  const [assessment, setAssessment] = useState<any>(null);
-
-  useEffect(() => {
-    if (data) {
-      try {
-        const parsed = JSON.parse(decodeURIComponent(data));
-        setAssessment(parsed);
-      } catch (err) {
-        console.warn('Invalid assessment data:', err);
-      }
-    }
-  }, [data]);
 
   const [name, setName] = useState('');
   const [designation, setDesignation] = useState('');
   const [email, setEmail] = useState('');
   const [department, setDepartment] = useState('');
   const [phone, setPhone] = useState('');
+  const [assessment, setAssessment] = useState<any>(null);
+  
+  useEffect(() => {
+    if (data) {
+        try {
+        const decoded = JSON.parse(decodeURIComponent(data));
+        setAssessment(decoded);
+        } catch (err) {
+        console.warn('Failed to parse assessment data:', err);
+        }
+    }
+    }, [data]);
 
   const handleSubmit = () => {
     if (!name || !designation || !email || !department || !phone) {
@@ -46,14 +44,18 @@ const UserDetailsScreen = () => {
       return;
     }
 
-    // const encoded = encodeURIComponent(JSON.stringify(assessment));
-    // router.push(`/assessment/${id}/0?data=${encoded}`);
     const encoded = encodeURIComponent(JSON.stringify(assessment));
     router.push({
       pathname: '/[id]/[q]',
-      params: {id, q: '0', data: encoded},
-    })
+      params: {
+        id,
+        q: '0',
+        data: encoded,
+      },
+    });
   };
+
+
 
   return (
     <View style={styles.wrapper}>

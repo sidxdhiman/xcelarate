@@ -130,7 +130,8 @@ const TestList = () => {
                   <Pressable
                   onPress={async () => {
                     const encodedData = encodeURIComponent(JSON.stringify(test));
-                    const fullLink = `http://localhost:8081/disclaimer?id=${test._id}&data=${encodedData}`;
+                    // const fullLink = `http://localhost:8081/disclaimer?id=${test._id}&data=${encodedData}`;
+                    const fullLink = `http://localhost:8082/${test._id}/disclaimer?data=${encodedData}`;
 
                     await Clipboard.setStringAsync(fullLink);
                     alert('Link copied to clipboard!');

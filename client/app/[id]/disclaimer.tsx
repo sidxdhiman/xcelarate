@@ -68,7 +68,7 @@ const DisclaimerScreen: React.FC = () => {
             disabled={!agreed}
             onPress={() => 
               router.push({
-                pathname: '/userDetails',
+                pathname: '/[id]/userDetails',
                 params: {id, data},
               })
             }
