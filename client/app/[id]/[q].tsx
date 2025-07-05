@@ -11,31 +11,25 @@ import {
 import { Assessment } from '../../types/assessment';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
 
-/* ──────────────────────────────── Types ──────────────────────────────── */
 interface Answer {
   option: string;
   text?: string;
 }
 
-/* ──────────────────────────────── Component ──────────────────────────── */
 export default function QuestionScreen() {
-  /* ─────────────────────────────── 1. URL params ─────────────────────── */
   const { id, q, data } = useLocalSearchParams<{
     id: string;
     q?: string;
     data?: string;
   }>();
 
-  /* ─────────────────────────────── 2. Local state ────────────────────── */
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
-  const [responses, setResponses] = useState<Record<string, Answer>>({});
+  // const [responses, setResponses] = useState<Record<string, Answer>>({});
+  const [responses, setResponses] = useState<Record<string, { option: string; text: string }>>({});
 
-  /* ─────────────────────────────── 3. Resolve assessment ─────────────── */
   useEffect(() => {
     const init = async () => {
-      // 1️⃣ Fast path – decode JSON from URL (internal navigation)
-      console.log('[QuestionScreen] params :', {id, q, hasData: !!data});
       if (data) {
         try {
           setAssessment(JSON.parse(decodeURIComponent(data)));
@@ -46,12 +40,10 @@ export default function QuestionScreen() {
         }
       }
 
-      // 2️⃣ Ask the store (it returns a Promise)
       try {
         const storeAssessment = await useAssessmentStore
           .getState()
           .getAssessmentById(id);
-
         if (storeAssessment) {
           setAssessment(storeAssessment);
           setLoading(false);
@@ -61,7 +53,6 @@ export default function QuestionScreen() {
         console.warn('Store lookup failed:', err);
       }
 
-      // 3️⃣ Fallback fetch – if the store didn’t have it
       try {
         const res = await fetch(`http://localhost:8081/api/assessments/${id}`);
         const json = (await res.json()) as Assessment;
@@ -76,42 +67,47 @@ export default function QuestionScreen() {
     init();
   }, [id, data]);
 
-  /* ─────────────────────────────── 4. Derived data ───────────────────── */
   const index = useMemo(() => Number(q ?? '0'), [q]);
   const question = assessment?.questions?.[index];
   const questionKey = question?._id ?? String(index);
 
-  /* ─────────────────────────────── 5. Helpers ─────────────────────────── */
   const selectOption = (option: string) =>
-    setResponses(prev => ({
-      ...prev,
-      [questionKey]: { ...(prev[questionKey] ?? {}), option, text: '' },
-    }));
+  setResponses(prev => ({
+    ...prev,
+    [questionKey]: { option, text: prev[questionKey]?.text ?? '' },
+  }));
 
   const changeText = (text: string) =>
     setResponses(prev => ({
       ...prev,
-      [questionKey]: { ...(prev[questionKey] ?? { option: '' }), text },
-    }));
+      [questionKey]: { option: prev[questionKey]?.option ?? '', text },
+  }));
 
   const go = (idx: number, replace = false) => {
     const encoded = assessment
       ? encodeURIComponent(JSON.stringify(assessment))
       : undefined;
 
-    const url =
-      `/assessment/${id}/${idx}` + (encoded ? `?data=${encoded}` : '');
+    const navFn = replace ? router.replace : router.push;
 
-    replace ? router.replace(url) : router.push(url);
+    navFn({
+      pathname: '/[id]/[q]',
+      params: {
+        id,
+        q: String(idx),
+        data: encoded,
+      },
+    });
   };
 
   const submit = async () => {
-    // convert object → array if backend expects it, else send as‑is
     await useAssessmentStore.getState().submitResponses(id, responses);
-    router.replace(`/assessment/${id}/result`);
+    router.replace({
+      pathname: '/[id]/result',
+      params: { id },
+    });
   };
 
-  /* ─────────────────────────────── 6. Guards ─────────────────────────── */
   if (loading)
     return (
       <View style={styles.center}>
@@ -131,7 +127,6 @@ export default function QuestionScreen() {
       </View>
     );
 
-  /* ─────────────────────────────── 7. UI ─────────────────────────────── */
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{assessment.title}</Text>
@@ -193,7 +188,6 @@ export default function QuestionScreen() {
   );
 }
 
-/* ──────────────────────────────── Styles ─────────────────────────────── */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f6efff', padding: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
