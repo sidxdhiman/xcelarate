@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { axiosInstance } from '../lib/axios';
 import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 
 interface Option {
   id: string;
@@ -20,60 +20,99 @@ interface Assessment {
   questions: Question[];
 }
 
+/** One question’s answer */
+export type Answer = { option: string; text: string };
+
+/** All answers for one assessment */
+export type Draft = Record<string, Answer>;
+
 interface AssessmentStore {
+  /* UI state */
   isAddingAssessment: boolean;
   addAssessmentError: string | null;
 
+  /* CRUD */
   addAssessment: (data: Omit<Assessment, '_id'>) => Promise<Assessment>;
   getAssessmentById: (id: string) => Promise<Assessment | null>;
-  submitResponses: (assessmentId: string, answers: Record<string, { option: string; text: string }>) => Promise<void>;
+
+  /* Draft answers keyed by assessmentId */
+  draftResponses: Record<string, Draft>;
+  setDraft: (assessmentId: string, questionKey: string, ans: Answer) => void;
+  clearDraft: (assessmentId: string) => void;
+
+  /* Final submission */
+  submitResponses: (assessmentId: string, answers: Draft) => Promise<void>;
 }
 
-export const useAssessmentStore = create<AssessmentStore>((set) => ({
+export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
+  /* -------------------- UI flags -------------------- */
   isAddingAssessment: false,
   addAssessmentError: null,
 
-  addAssessment: async (data) => {
+  /* -------------------- Create assessment -------------------- */
+  addAssessment: async data => {
     set({ isAddingAssessment: true, addAssessmentError: null });
-
     try {
-      const response = await axiosInstance.post('/postAssessment', data);
-      return response.data as Assessment;
-    } catch (error) {
-      console.error('[Store] Error posting assessment:', error);
-
-      if (axios.isAxiosError(error)) {
-        set({ addAssessmentError: error.response?.data?.message || error.message });
-      } else if (error instanceof Error) {
-        set({ addAssessmentError: error.message });
+      const res = await axiosInstance.post('/postAssessment', data);
+      return res.data as Assessment;
+    } catch (err) {
+      console.error('[Store] Error posting assessment:', err);
+      if (axios.isAxiosError(err)) {
+        set({ addAssessmentError: err.response?.data?.message || err.message });
+      } else if (err instanceof Error) {
+        set({ addAssessmentError: err.message });
       } else {
         set({ addAssessmentError: 'Unknown error occurred' });
       }
-
-      throw error;
+      throw err;
     } finally {
       set({ isAddingAssessment: false });
     }
   },
 
-  getAssessmentById: async (id) => {
+  /* -------------------- Read assessment -------------------- */
+  getAssessmentById: async id => {
     try {
-      const response = await axiosInstance.get(`/assessments/${id}`);
-      return response.data as Assessment;
-    } catch (error) {
-      console.error('[Store] Error fetching assessment by ID:', error);
+      const res = await axiosInstance.get(`/assessments/${id}`);
+      return res.data as Assessment;
+    } catch (err) {
+      console.error('[Store] Error fetching assessment by ID:', err);
       return null;
     }
   },
 
+  /* -------------------- Draft answers -------------------- */
+  draftResponses: {},
+
+  setDraft: (assessmentId, questionKey, ans) =>
+    set(state => ({
+      draftResponses: {
+        ...state.draftResponses,
+        [assessmentId]: {
+          ...(state.draftResponses[assessmentId] ?? {}),
+          [questionKey]: ans,
+        },
+      },
+    })),
+
+  clearDraft: assessmentId =>
+    set(state => {
+      const next = { ...state.draftResponses };
+      delete next[assessmentId];
+      return { draftResponses: next };
+    }),
+
+  /* -------------------- Submit & clear -------------------- */
   submitResponses: async (assessmentId, answers) => {
     try {
       await axiosInstance.post(`/assessments/${assessmentId}/responses`, {
         answers,
       });
-    } catch (error) {
-      console.error('[Store] Error submitting responses:', error);
-      throw error;
+      /* wipe local draft on success */
+      get().clearDraft(assessmentId);
+    } catch (err) {
+      console.error('[Store] Error submitting responses:', err);
+      throw err;
     }
   },
 }));

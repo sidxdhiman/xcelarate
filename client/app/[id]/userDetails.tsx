@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Location from 'expo-location';
 
 const UserDetailsScreen = () => {
   const { width } = useWindowDimensions();
@@ -21,19 +22,35 @@ const UserDetailsScreen = () => {
   const [department, setDepartment] = useState('');
   const [phone, setPhone] = useState('');
   const [assessment, setAssessment] = useState<any>(null);
-  
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+
   useEffect(() => {
     if (data) {
-        try {
+      try {
         const decoded = JSON.parse(decodeURIComponent(data));
         setAssessment(decoded);
-        } catch (err) {
+      } catch (err) {
         console.warn('Failed to parse assessment data:', err);
-        }
+      }
     }
-    }, [data]);
+  }, [data]);
 
-  const handleSubmit = () => {
+  const getLocationAsync = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Location permission denied – we will proceed without tagging your position.');
+        return null;
+      }
+      const pos = await Location.getCurrentPositionAsync({});
+      return { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    } catch (err) {
+      console.warn('Location error:', err);
+      return null;
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!name || !designation || !email || !department || !phone) {
       alert('Please fill in all the details.');
       return;
@@ -44,18 +61,22 @@ const UserDetailsScreen = () => {
       return;
     }
 
-    const encoded = encodeURIComponent(JSON.stringify(assessment));
+    const loc = await getLocationAsync();
+    setCoords(loc ?? null);
+
+    const payload = {
+      ...assessment,
+      user: { name, designation, email, department, phone },
+      location: loc,
+      startedAt: Date.now(),
+    };
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+
     router.push({
       pathname: '/[id]/[q]',
-      params: {
-        id,
-        q: '0',
-        data: encoded,
-      },
+      params: { id, q: '0', data: encoded },
     });
   };
-
-
 
   return (
     <View style={styles.wrapper}>
