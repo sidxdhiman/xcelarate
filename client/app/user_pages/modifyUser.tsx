@@ -104,7 +104,7 @@ const ModifyUser = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.backBtn}>
-        <Pressable onPress={() => navigation.goBack()}>
+        <Pressable onPress={() => router.push('/userManagement')}>
           <Icon name="arrow-left" size={22} color="white" />
         </Pressable>
       </View>

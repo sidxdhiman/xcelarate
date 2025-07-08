@@ -1,5 +1,5 @@
 import { IntegerType } from "mongodb";
-import { Organisation, User, Assessment } from "../database";
+import { Organisation, User, Assessment, Response } from "../database";
 import mongoose from "mongoose";
 
 export class GetService {
@@ -55,6 +55,18 @@ export class GetAssessmentById {
     } catch (error) {
       console.error("Error fetching the Assessment", error);
       throw new Error("Error fetching assessment");
+    }
+  }
+}
+
+export class GetResponseByAssessmentId {
+  public async getResponseByAssessmentId(assessmentId: string) {
+    try {
+      const response = await Response.findOne({ assessmentId });
+      return response;
+    } catch (error) {
+      console.log("Error fetching response:", error);
+      throw new Error("Error fetching response by assessment ID");
     }
   }
 }

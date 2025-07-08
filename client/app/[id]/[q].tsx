@@ -122,7 +122,7 @@ export default function QuestionScreen() {
       params: { id },
     });
     } catch (err) {
-      console.error('Submission failed:', err);
+      console.log('Submission failed:', err);
       alert('Failed to submit. Please try again.');
     }
   };

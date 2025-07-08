@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 import { PostQuestion, PostResponse } from "../service/postService";
 import { GetAssessment, GetAssessmentById } from "../service/getService";
+import { GetResponseByAssessmentId } from "../service/getService";
 
 export class questionController {
   public static async postQuestion(req: Request, res: Response) {
@@ -72,6 +73,27 @@ export class questionController {
       res.status(201).json({ message: "Response submitted successfully", saved });
     } catch (error) {
       console.error("[submitResponse] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  public static async getResponseById(req: Request, res: Response) {
+  try {
+    const assessmentId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+      return res.status(400).json({ message: "Invalid Assessment ID" });
+    }
+
+    const responseData = await new GetResponseByAssessmentId().getResponseByAssessmentId(assessmentId);
+
+    if (!responseData) {
+      return res.status(404).json({ message: "No response found for this assessment" });
+    }
+
+    res.status(200).json(responseData);
+    } catch (error) {
+      console.error("[getResponseById] Error:", error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   }

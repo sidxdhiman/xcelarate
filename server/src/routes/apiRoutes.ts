@@ -27,5 +27,6 @@ router.post("/postAssessment", questionController.postQuestion);
 router.get("/assessments", questionController.getAssessmentFunction);
 router.get("/assessments/:id", questionController.getAssessmentByIdFunction);
 router.post("/assessments/:id/responses", questionController.submitResponse);
+router.get("/assessments/:id/responses", questionController.getResponseById);
 
 export default router;

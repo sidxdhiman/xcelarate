@@ -61,7 +61,7 @@ const TestList = () => {
   return (
     <ScrollView>
       <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={() => navigation.goBack()}>
+        <Pressable onPress={() => router.push('/test_pages/test_management')}>
           <Icon name='arrow-left' size={22} color="white" />
         </Pressable>
       </View>
@@ -131,7 +131,8 @@ const TestList = () => {
                   onPress={async () => {
                     const encodedData = encodeURIComponent(JSON.stringify(test));
                     // const fullLink = `http://localhost:8081/disclaimer?id=${test._id}&data=${encodedData}`;
-                    const fullLink = `http://localhost:8082/${test._id}/disclaimer?data=${encodedData}`;
+                    // const fullLink = `http://localhost:8082/${test._id}/disclaimer?data=${encodedData}`;
+                    const fullLink = `http://localhost:8081/${test._id}/disclaimer?data=${encodedData}`;
 
                     await Clipboard.setStringAsync(fullLink);
                     alert('Link copied to clipboard!');

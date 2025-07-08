@@ -32,7 +32,7 @@ export default function UserPanel() {
       {/* Purple Header */}
       <View style={styles.headerArc}>
         <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={()=> navigation.goBack()}>
+        <Pressable onPress={()=> router.push('/landing')}>
           <Icon name='arrow-left' size={22} color="white"></Icon>
         </Pressable>
       </View>

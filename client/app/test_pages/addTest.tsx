@@ -117,7 +117,7 @@ export default function CreateTestForm() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={()=> navigation.goBack()}>
+        <Pressable onPress={()=> router.push('/test_pages/test_management')}>
           <Icon name='arrow-left' size={22} color="white"></Icon>
         </Pressable>
       </View>

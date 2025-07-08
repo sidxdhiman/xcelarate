@@ -44,7 +44,7 @@ const DeleteUser = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
       <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={()=> navigation.goBack()}>
+        <Pressable onPress={()=> router.push('/userManagement')}>
           <Icon name='arrow-left' size={22} color="white"></Icon>
         </Pressable>
       </View>

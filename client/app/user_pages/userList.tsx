@@ -63,7 +63,7 @@ const UserList = () => {
   return (
     <ScrollView>
       <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={() => router.push('/userManagement')}>
           <Icon name='arrow-left' size={22} color="white" />
         </Pressable>
       </View>
