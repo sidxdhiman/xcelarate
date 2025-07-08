@@ -53,6 +53,14 @@ export const connection = mongoose.connect(mongoDB, {
     questions: [questionSchema]
   });
 
+  const userStartSchema = new mongoose.Schema({
+    name: String,
+    designation: String,
+    email: String,
+    department: String,
+    phone: String
+  })
+
   const responseSchema = new mongoose.Schema({
     assessmentId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -77,8 +85,10 @@ export const connection = mongoose.connect(mongoDB, {
   const Organisation = mongoose.model("Organisations", organisationSchema);
 
   const Response = mongoose.model("Responses", responseSchema);
+
+  const beforeAssessment = mongoose.model("BeforeAssessment", userStartSchema);
   // const User = mongoose.model("Users", userSchema);
 
 export const User = mongoose.model<IUser>('User', userSchema);
-export {Organisation, Assessment, Response};
+export {Organisation, Assessment, Response, beforeAssessment};
 

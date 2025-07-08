@@ -13,6 +13,7 @@ routers.post("/bulkUserUpload", router);
 routers.post("/postUser/", router);
 routers.post("/signupUser/", router);
 routers.post("/loginUser/", router);
+routers.post("postBefore", router);
 
 //patch
 routers.patch("/users/:email", router);

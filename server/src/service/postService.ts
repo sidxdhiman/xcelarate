@@ -1,5 +1,6 @@
-import { User, Organisation, Assessment } from "../database/index";
+import { User, Organisation, Assessment} from "../database/index";
 import { Response } from "../database/index";
+import { beforeAssessment } from "../database/index";
 
 export class PostUser {
   public async postUser(userData: any): Promise<any> {
@@ -13,6 +14,22 @@ export class PostUser {
     } catch (error) {
       console.error("Error in creating user");
       throw new Error(`Error in creating user`);
+    }
+  }
+}
+
+export class PostBeforeAssessment {
+  public async postBefore(userData: any): Promise<any> {
+    try {
+      if (!userData.name || !userData.designation || !userData.email || !userData.department || !userData.phone) {
+        throw new Error("All fields are required");
+      }
+      const user = await beforeAssessment.create(userData);
+      console.log("User Data Collected");
+      return{user};
+    } catch (error) {
+      console.error("Error in collecting data");
+      throw new Error(`Error in collecting data from user`);
     }
   }
 }

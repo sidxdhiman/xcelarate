@@ -16,6 +16,7 @@ router.post("/loginUser/", MainController.logIn); //TODO add request validator
 router.delete("/users/:email", MainController.deleteFunction);
 router.patch("/users/:email", RequestValidator.patchUser, MainController.patchFunction);
 router.post("/bulkUserUpload",upload.single('file'), MainController.postBulk);
+router.post("postBefore", MainController.postBefore);
 
 //organisation crud
 router.post("/organisations/", RequestValidator.postOrganisation, orgController.postOrg);

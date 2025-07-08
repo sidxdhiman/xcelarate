@@ -4,8 +4,8 @@ import xlsx from "xlsx";
 import fs from "fs";
 import { AuthService } from "../service/signUpService";
 import { AuthLoginService } from "../service/logInService";
-import { PostUser } from "../service/postService";
-import { User } from "../database";
+import { PostBeforeAssessment, PostUser } from "../service/postService";
+import { beforeAssessment, User } from "../database";
 var logger = require("../util/logger");
 const {encrypt, decrypt} = require('../security/encrypt&decrypt');
 const { GetService } = require("../service/getService");
@@ -102,6 +102,20 @@ export class MainController {
         res.status(500).json({message: "Internal server error"});
     }
 }
+
+  public static async postBefore(req:Request, res:Response) {
+    try {
+      const userData = req.body
+      const user = await new PostBeforeAssessment().postBefore(userData);
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(400).json({message: "User data not collected"})
+      }
+    } catch (error) {
+      res.status(500).json({message: "Internal Server Error"});
+    }
+  }
   
 public static async postBulk(req: Request, res: Response) {
   try {
