@@ -12,8 +12,28 @@ export interface Question {
 }
 
 export interface Assessment {
-  _id: string;
+  _id?: string;
   title: string;
-  roles: string[];
-  questions: Question[];
+  questions: {
+    _id?: string;
+    text: string;
+    options: {
+      _id?: string;
+      text: string;
+    }[];
+  }[];
+  user?: {
+    name: string;
+    email: string;
+    phone: string;
+    designation: string;
+    department: string;
+  };
+  location?: {
+    lat: number;
+    lon: number;
+  };
+  startedAt?: number;
 }
+
+

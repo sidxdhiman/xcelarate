@@ -26,30 +26,41 @@ export type Answer = { option: string; text: string };
 /** All answers for one assessment */
 export type Draft = Record<string, Answer>;
 
+/** Payload for final submission */
+export interface FullSubmissionPayload {
+  assessmentId: string;
+  title: string;
+  user: {
+    name: string;
+    email: string;
+    designation: string;
+    phone: string;
+    department: string;
+  };
+  location?: { lat: number; lon: number };
+  startedAt: number;
+  submittedAt: number;
+  answers: Record<string, { option: string; text: string }>; // ✅ fixed: option not options
+}
+
 interface AssessmentStore {
-  /* UI state */
   isAddingAssessment: boolean;
   addAssessmentError: string | null;
 
-  /* CRUD */
   addAssessment: (data: Omit<Assessment, '_id'>) => Promise<Assessment>;
   getAssessmentById: (id: string) => Promise<Assessment | null>;
 
-  /* Draft answers keyed by assessmentId */
   draftResponses: Record<string, Draft>;
   setDraft: (assessmentId: string, questionKey: string, ans: Answer) => void;
   clearDraft: (assessmentId: string) => void;
 
-  /* Final submission */
-  submitResponses: (assessmentId: string, answers: Draft) => Promise<void>;
+  submitResponses: (assessmentId: string, payload: FullSubmissionPayload) => Promise<void>;
 }
 
 export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
-  /* -------------------- UI flags -------------------- */
   isAddingAssessment: false,
   addAssessmentError: null,
 
-  /* -------------------- Create assessment -------------------- */
   addAssessment: async data => {
     set({ isAddingAssessment: true, addAssessmentError: null });
     try {
@@ -70,7 +81,6 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  /* -------------------- Read assessment -------------------- */
   getAssessmentById: async id => {
     try {
       const res = await axiosInstance.get(`/assessments/${id}`);
@@ -81,7 +91,6 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  /* -------------------- Draft answers -------------------- */
   draftResponses: {},
 
   setDraft: (assessmentId, questionKey, ans) =>
@@ -102,13 +111,9 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
       return { draftResponses: next };
     }),
 
-  /* -------------------- Submit & clear -------------------- */
-  submitResponses: async (assessmentId, answers) => {
+  submitResponses: async (assessmentId, payload) => {
     try {
-      await axiosInstance.post(`/assessments/${assessmentId}/responses`, {
-        answers,
-      });
-      /* wipe local draft on success */
+      await axiosInstance.post(`/assessments/${assessmentId}/responses`, payload);
       get().clearDraft(assessmentId);
     } catch (err) {
       console.error('[Store] Error submitting responses:', err);

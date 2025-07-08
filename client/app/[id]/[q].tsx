@@ -25,7 +25,6 @@ export default function QuestionScreen() {
 
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
-  // const [responses, setResponses] = useState<Record<string, Answer>>({});
   const [responses, setResponses] = useState<Record<string, { option: string; text: string }>>({});
 
   useEffect(() => {
@@ -72,16 +71,16 @@ export default function QuestionScreen() {
   const questionKey = question?._id ?? String(index);
 
   const selectOption = (option: string) =>
-  setResponses(prev => ({
-    ...prev,
-    [questionKey]: { option, text: prev[questionKey]?.text ?? '' },
-  }));
+    setResponses(prev => ({
+      ...prev,
+      [questionKey]: { option, text: prev[questionKey]?.text ?? '' },
+    }));
 
   const changeText = (text: string) =>
     setResponses(prev => ({
       ...prev,
       [questionKey]: { option: prev[questionKey]?.option ?? '', text },
-  }));
+    }));
 
   const go = (idx: number, replace = false) => {
     const encoded = assessment
@@ -101,12 +100,33 @@ export default function QuestionScreen() {
   };
 
   const submit = async () => {
-    await useAssessmentStore.getState().submitResponses(id, responses);
+  if (!assessment || !id || !assessment.user || !assessment.startedAt) {
+    alert("Missing required assessment data");
+    return;
+  }
+
+  const fullPayload = {
+    assessmentId: id,
+    title: assessment.title,
+    user: assessment.user,
+    location: assessment.location, // optional
+    startedAt: assessment.startedAt,
+    submittedAt: Date.now(),
+    answers: responses,
+  };
+
+  try {
+    await useAssessmentStore.getState().submitResponses(id, fullPayload);
     router.replace({
       pathname: '/[id]/result',
       params: { id },
     });
+    } catch (err) {
+      console.error('Submission failed:', err);
+      alert('Failed to submit. Please try again.');
+    }
   };
+
 
   if (loading)
     return (
@@ -114,12 +134,14 @@ export default function QuestionScreen() {
         <Text>Loading…</Text>
       </View>
     );
+
   if (!assessment)
     return (
       <View style={styles.center}>
         <Text>Assessment not found.</Text>
       </View>
     );
+
   if (!question)
     return (
       <View style={styles.center}>

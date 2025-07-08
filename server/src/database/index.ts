@@ -62,23 +62,38 @@ export const connection = mongoose.connect(mongoDB, {
   })
 
   const responseSchema = new mongoose.Schema({
-    assessmentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Assessment',
-      required: true,
-    },
-    submittedAt: {
-      type: Date,
-      default: Date.now,
-    },
-    answers: {
-      type: Map,
-      of: new mongoose.Schema({
-        option: String,
-        text: String,
-      }),
-    },
-  });
+  assessmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Assessment',
+    required: true,
+  },
+  submittedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  startedAt: {
+    type: Date,
+  },
+  user: {
+    name: String,
+    email: String,
+    phone: String,
+    designation: String,
+    department: String,
+  },
+  location: {
+    lat: Number,
+    lon: Number,
+  },
+  answers: {
+    type: Map,
+    of: new mongoose.Schema({
+      option: String,
+      text: String,
+    }),
+  },
+});
+
 
   const Assessment = mongoose.model("Assessment", assessmentSchema);
   
