@@ -10,11 +10,18 @@ connection
     .catch((error:Error) => console.error('Error connecting to MongoDB', (error)));
 
 
+// app.use(cors({
+//     origin: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     credentials: true,
+//     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+// }));
+
 app.use(cors({
-    origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  origin: 'http://localhost:8081', // OR use "*" during development
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 app.use(bodyParser.json());
 app.use(routers);
