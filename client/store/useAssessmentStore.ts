@@ -106,15 +106,32 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  getResponsesByAssessmentId: async (id) => {
-    try {
-      const res = await axiosInstance.get(`/assessments/${id}/responses`);
-      return res.data as IndividualResponse[];
-    } catch (err) {
-      console.error('[Store] Error fetching responses by assessment ID:', err);
-      return [];
-    }
-  },
+//   getResponsesByAssessmentId: async (assessmentId: string) => {
+//   try {
+//     const res = await axiosInstance.get(`/assessments/${assessmentId}/responses`);
+//     return res.data;
+//   } catch (err) {
+//     console.error('Error in getResponsesByAssessmentId:', err);
+//     return [];
+//   }
+// },
+
+getResponsesByAssessmentId: async (assessmentId: string) => {
+  try {
+    const res = await axiosInstance.get(`/assessments/${assessmentId}/responses`);
+    
+    // If your backend responds with raw array:
+    return Array.isArray(res.data) ? res.data : [];
+
+    // If your backend wraps in { data: [...] }:
+    // return Array.isArray(res.data?.data) ? res.data.data : [];
+    
+  } catch (err) {
+    console.error('Error in getResponsesByAssessmentId:', err);
+    return [];
+  }
+},
+
 
   draftResponses: {},
 

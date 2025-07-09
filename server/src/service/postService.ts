@@ -72,16 +72,34 @@ export class PostQuestion {
 }
 
 export class PostResponse {
-  public async postResponse(assessmentId: string, answers: any): Promise<any> {
+  public async postResponse(assessmentId: string, payload: {
+    user: {
+      name: string;
+      email: string;
+      designation: string;
+      phone: string;
+      department: string;
+    };
+    answers: any;
+    startedAt?: number;
+    submittedAt?: number;
+    location?: {
+      lat: number;
+      lon: number;
+    };
+  }): Promise<any> {
     try {
-      if (!assessmentId || typeof answers !== 'object') {
+      if (!assessmentId || typeof payload.answers !== 'object') {
         throw new Error("Missing or invalid response data");
       }
 
       const newResponse = await Response.create({
         assessmentId,
-        answers,
-        submittedAt: new Date(),
+        answers: payload.answers,
+        submittedAt: payload.submittedAt ? new Date(payload.submittedAt) : new Date(),
+        startedAt: payload.startedAt ? new Date(payload.startedAt) : undefined,
+        location: payload.location,
+        user: payload.user,
       });
 
       console.log("Response saved successfully!");
@@ -92,3 +110,4 @@ export class PostResponse {
     }
   }
 }
+

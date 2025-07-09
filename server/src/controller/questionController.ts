@@ -56,26 +56,34 @@ export class questionController {
     }
   }
 
-  public static async submitResponse(req: Request, res: Response) {
-    try {
-      const assessmentId = req.params.id;
-      const { answers } = req.body;
+ public static async submitResponse(req: Request, res: Response) {
+  try {
+    const assessmentId = req.params.id;
+    const { answers, user, startedAt, submittedAt, location } = req.body;
 
-      if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
-        return res.status(400).json({ message: "Invalid Assessment Id" });
-      }
-
-      if (!answers || typeof answers !== "object") {
-        return res.status(400).json({ message: "Answers are required" });
-      }
-
-      const saved = await new PostResponse().postResponse(assessmentId, answers);
-      res.status(201).json({ message: "Response submitted successfully", saved });
-    } catch (error) {
-      console.error("[submitResponse] Error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+    if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+      return res.status(400).json({ message: "Invalid Assessment Id" });
     }
+
+    if (!answers || typeof answers !== "object" || !user || typeof user !== "object") {
+      return res.status(400).json({ message: "Answers and user details are required" });
+    }
+
+    const saved = await new PostResponse().postResponse(assessmentId, {
+      answers,
+      user,
+      startedAt,
+      submittedAt,
+      location,
+    });
+
+    res.status(201).json({ message: "Response submitted successfully", saved });
+  } catch (error) {
+    console.error("[submitResponse] Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
+}
+
 
   public static async getResponseById(req: Request, res: Response) {
   try {

@@ -25,7 +25,15 @@ export default function QuestionScreen() {
 
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
-  const [responses, setResponses] = useState<Record<string, { option: string; text: string }>>({});
+
+  const {
+    draftResponses,
+    setDraft,
+    submitResponses,
+    getAssessmentById,
+  } = useAssessmentStore();
+
+  const responses = draftResponses[id] ?? {};
 
   useEffect(() => {
     const init = async () => {
@@ -40,24 +48,12 @@ export default function QuestionScreen() {
       }
 
       try {
-        const storeAssessment = await useAssessmentStore
-          .getState()
-          .getAssessmentById(id);
+        const storeAssessment = await getAssessmentById(id);
         if (storeAssessment) {
           setAssessment(storeAssessment);
-          setLoading(false);
-          return;
         }
       } catch (err) {
         console.warn('Store lookup failed:', err);
-      }
-
-      try {
-        const res = await fetch(`http://localhost:8081/api/assessments/${id}`);
-        const json = (await res.json()) as Assessment;
-        setAssessment(json);
-      } catch (err) {
-        console.error('Failed to fetch assessment:', err);
       } finally {
         setLoading(false);
       }
@@ -71,16 +67,16 @@ export default function QuestionScreen() {
   const questionKey = question?._id ?? String(index);
 
   const selectOption = (option: string) =>
-    setResponses(prev => ({
-      ...prev,
-      [questionKey]: { option, text: prev[questionKey]?.text ?? '' },
-    }));
+    setDraft(id, questionKey, {
+      option,
+      text: responses[questionKey]?.text ?? '',
+    });
 
   const changeText = (text: string) =>
-    setResponses(prev => ({
-      ...prev,
-      [questionKey]: { option: prev[questionKey]?.option ?? '', text },
-    }));
+    setDraft(id, questionKey, {
+      option: responses[questionKey]?.option ?? '',
+      text,
+    });
 
   const go = (idx: number, replace = false) => {
     const encoded = assessment
@@ -100,33 +96,32 @@ export default function QuestionScreen() {
   };
 
   const submit = async () => {
-  if (!assessment || !id || !assessment.user || !assessment.startedAt) {
-    alert("Missing required assessment data");
-    return;
-  }
+    if (!assessment || !id || !assessment.user || !assessment.startedAt) {
+      alert('Missing required assessment data');
+      return;
+    }
 
-  const fullPayload = {
-    assessmentId: id,
-    title: assessment.title,
-    user: assessment.user,
-    location: assessment.location, // optional
-    startedAt: assessment.startedAt,
-    submittedAt: Date.now(),
-    answers: responses,
-  };
+    const fullPayload = {
+      assessmentId: id,
+      title: assessment.title,
+      user: assessment.user,
+      location: assessment.location,
+      startedAt: assessment.startedAt,
+      submittedAt: Date.now(),
+      answers: responses,
+    };
 
-  try {
-    await useAssessmentStore.getState().submitResponses(id, fullPayload);
-    router.replace({
-      pathname: '/[id]/result',
-      params: { id },
-    });
+    try {
+      await submitResponses(id, fullPayload);
+      router.replace({
+        pathname: '/[id]/result',
+        params: { id },
+      });
     } catch (err) {
       console.log('Submission failed:', err);
       alert('Failed to submit. Please try again.');
     }
   };
-
 
   if (loading)
     return (
