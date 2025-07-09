@@ -141,6 +141,18 @@ const TestList = () => {
                 >
                   <Text style={tw`text-white font-semibold`}>Copy Link</Text>
                 </Pressable>
+                <Pressable
+                    onPress={() => {
+                      const encodedData = encodeURIComponent(JSON.stringify(test));
+                      router.push({
+                        pathname: '/test_pages/testResponses',
+                        params: { id: test._id, q: '0', data: encodedData },
+                      });
+                    }}
+                    style={tw`bg-purple-800 px-4 py-2 rounded-lg self-start mb-2 mt-2`}
+                  >
+                    <Text style={tw`text-white font-semibold`}>View Responses</Text>
+                  </Pressable>
 
                 </View>
               )}

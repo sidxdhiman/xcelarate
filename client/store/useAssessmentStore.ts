@@ -40,7 +40,21 @@ export interface FullSubmissionPayload {
   location?: { lat: number; lon: number };
   startedAt: number;
   submittedAt: number;
-  answers: Record<string, { option: string; text: string }>; // ✅ fixed: option not options
+  answers: Record<string, { option: string; text: string }>;
+}
+
+/** Response format returned from backend */
+export interface IndividualResponse {
+  name: string;
+  email: string;
+  phone: string;
+  designation: string;
+  department: string;
+  submittedAt: string;
+  answers: {
+    questionText: string;
+    selectedOption: string;
+  }[];
 }
 
 interface AssessmentStore {
@@ -49,6 +63,7 @@ interface AssessmentStore {
 
   addAssessment: (data: Omit<Assessment, '_id'>) => Promise<Assessment>;
   getAssessmentById: (id: string) => Promise<Assessment | null>;
+  getResponsesByAssessmentId: (id: string) => Promise<IndividualResponse[]>;
 
   draftResponses: Record<string, Draft>;
   setDraft: (assessmentId: string, questionKey: string, ans: Answer) => void;
@@ -88,6 +103,16 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     } catch (err) {
       console.error('[Store] Error fetching assessment by ID:', err);
       return null;
+    }
+  },
+
+  getResponsesByAssessmentId: async (id) => {
+    try {
+      const res = await axiosInstance.get(`/assessments/${id}/responses`);
+      return res.data as IndividualResponse[];
+    } catch (err) {
+      console.error('[Store] Error fetching responses by assessment ID:', err);
+      return [];
     }
   },
 
