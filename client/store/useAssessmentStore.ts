@@ -70,6 +70,7 @@ interface AssessmentStore {
   clearDraft: (assessmentId: string) => void;
 
   submitResponses: (assessmentId: string, payload: FullSubmissionPayload) => Promise<void>;
+  patchAssessmentById: (id: string, data: Partial<Omit<Assessment, '_id'>>) => Promise<Assessment | null>;
 }
 
 export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
@@ -162,4 +163,15 @@ getResponsesByAssessmentId: async (assessmentId: string) => {
       throw err;
     }
   },
+
+  patchAssessmentById: async (id, data) => {
+  try {
+    const res = await axiosInstance.patch(`/assessments/${id}`, data);
+    return res.data.updatedAssessment as Assessment;
+  } catch (err) {
+    console.error('[Store] Error patching assessment:', err);
+    return null;
+  }
+},
+
 }));

@@ -1,4 +1,5 @@
 import { User } from "../database";
+import { Assessment } from "../database";
 
 export class PatchService {
   /**
@@ -25,6 +26,35 @@ export class PatchService {
     } catch (error: any) {
       console.error("❌ Error updating user by email:", error.message);
       throw new Error("Failed to update user profile");
+    }
+  }
+}
+
+export class PatchAssessmentService {
+  /**
+   * Update assessment using its ID
+   * @param id - MongoDB ObjectId of the assessment
+   * @param updateData - Object containing fields to update
+   * @returns Updated assessment object
+   */
+  public async patchAssessmentById(id: string, updateData: any): Promise<any> {
+    if (!id) throw new Error("Assessment ID is required for update");
+
+    try {
+      const updatedAssessment = await Assessment.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true }
+      );
+
+      if (!updatedAssessment) {
+        throw new Error("Assessment not found");
+      }
+
+      return updatedAssessment;
+    } catch (error: any) {
+      console.error("❌ Error updating assessment by ID:", error.message);
+      throw new Error("Failed to update assessment");
     }
   }
 }

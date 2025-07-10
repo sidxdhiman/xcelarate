@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, ActivityIndicator, Pressable,
+  View, Text, ScrollView, StyleSheet, ActivityIndicator, Pressable, Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAuthStore } from '../../store/useAuthStore';
 import { SearchBar } from 'react-native-elements';
 import tw from 'twrnc';
-import { router, useNavigation } from 'expo-router';
+import { router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 
 type Assessment = {
@@ -24,7 +24,6 @@ const TestList = () => {
   const [filteredTests, setFilteredTests] = useState<Assessment[]>([]);
   const [expandedTestId, setExpandedTestId] = useState<string | null>(null);
 
-  const navigation = useNavigation();
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
 
   useEffect(() => {
@@ -42,6 +41,17 @@ const TestList = () => {
 
     fetchTests();
   }, []);
+
+  const deleteTest = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/assessments/${id}`);
+      setTests(prev => prev.filter(t => t._id !== id));
+      alert('Assessment deleted successfully');
+    } catch (err) {
+      console.error('Failed to delete:', err);
+      alert('Failed to delete assessment');
+    }
+  };
 
   useEffect(() => {
     if (search.trim().length > 0) {
@@ -122,26 +132,24 @@ const TestList = () => {
                         params: { id: test._id, q: '0', data: encodedData },
                       });
                     }}
-                    style={tw`bg-purple-800 px-4 py-2 rounded-lg self-start mb-2`}
+                    style={styles.actionBtn}
                   >
-                    <Text style={tw`text-white font-semibold`}>Go to Assessment</Text>
+                    <Text style={styles.btnText}>Go to Assessment</Text>
                   </Pressable>
 
                   <Pressable
-                  onPress={async () => {
-                    const encodedData = encodeURIComponent(JSON.stringify(test));
-                    // const fullLink = `http://localhost:8081/disclaimer?id=${test._id}&data=${encodedData}`;
-                    // const fullLink = `http://localhost:8082/${test._id}/disclaimer?data=${encodedData}`;
-                    const fullLink = `http://localhost:8081/${test._id}/disclaimer?data=${encodedData}`;
+                    onPress={async () => {
+                      const encodedData = encodeURIComponent(JSON.stringify(test));
+                      const fullLink = `http://localhost:8081/${test._id}/disclaimer?data=${encodedData}`;
+                      await Clipboard.setStringAsync(fullLink);
+                      alert('Link copied to clipboard!');
+                    }}
+                    style={styles.actionBtn}
+                  >
+                    <Text style={styles.btnText}>Copy Link</Text>
+                  </Pressable>
 
-                    await Clipboard.setStringAsync(fullLink);
-                    alert('Link copied to clipboard!');
-                  }}
-                  style={tw`bg-gray-700 px-4 py-2 rounded-lg self-start`}
-                >
-                  <Text style={tw`text-white font-semibold`}>Copy Link</Text>
-                </Pressable>
-                <Pressable
+                  <Pressable
                     onPress={() => {
                       const encodedData = encodeURIComponent(JSON.stringify(test));
                       router.push({
@@ -149,11 +157,42 @@ const TestList = () => {
                         params: { id: test._id, q: '0', data: encodedData },
                       });
                     }}
-                    style={tw`bg-purple-800 px-4 py-2 rounded-lg self-start mb-2 mt-2`}
+                    style={styles.actionBtn}
                   >
-                    <Text style={tw`text-white font-semibold`}>View Responses</Text>
+                    <Text style={styles.btnText}>View Responses</Text>
                   </Pressable>
 
+                  <Pressable
+                    onPress={() =>
+                      router.push({
+                        pathname: '/test_pages/modifyTest',
+                        params: { id: test._id },
+                      })
+                    }
+                    style={styles.actionBtn}
+                  >
+                    <Text style={styles.btnText}>Edit</Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      Alert.alert(
+                        'Confirm Delete',
+                        'Are you sure you want to delete this assessment?',
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          {
+                            text: 'Delete',
+                            style: 'destructive',
+                            onPress: () => deleteTest(test._id),
+                          },
+                        ]
+                      );
+                    }}
+                    style={[styles.actionBtn, { backgroundColor: '#e53935' }]}
+                  >
+                    <Text style={[styles.btnText, { color: 'white' }]}>Delete</Text>
+                  </Pressable>
                 </View>
               )}
             </View>
@@ -192,6 +231,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     letterSpacing: 1,
+  },
+  actionBtn: {
+    backgroundColor: '#800080',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  btnText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });
 

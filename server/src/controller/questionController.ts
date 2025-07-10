@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { PostQuestion, PostResponse } from "../service/postService";
 import { GetAssessment, GetAssessmentById } from "../service/getService";
 import { GetResponseByAssessmentId } from "../service/getService";
+import { PatchAssessmentService } from "../service/patchService";
+
 
 export class questionController {
   public static async postQuestion(req: Request, res: Response) {
@@ -105,4 +107,22 @@ export class questionController {
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
+
+  public static async patchAssessmentByIdFunction(req: Request, res: Response) {
+  try {
+    const assessmentId = req.params.id;
+    const updateData = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+      return res.status(400).json({ message: "Invalid Assessment ID" });
+    }
+
+    const updatedAssessment = await new PatchAssessmentService().patchAssessmentById(assessmentId, updateData);
+
+    res.status(200).json({ message: "Assessment updated successfully", updatedAssessment });
+  } catch (error) {
+    console.error("[patchAssessmentByIdFunction] Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
 }

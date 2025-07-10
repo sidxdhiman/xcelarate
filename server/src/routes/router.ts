@@ -32,6 +32,7 @@ routers.get("/assessments", router);
 routers.get("/assessments/:id", router);
 routers.post("/assessments/:id/responses", router);
 routers.get("/assessments/:id/responses", router);
+routers.patch("/assessments/:id", router);
 
 
 export default routers;
