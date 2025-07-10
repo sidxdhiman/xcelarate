@@ -5,6 +5,7 @@ import { PostQuestion, PostResponse } from "../service/postService";
 import { GetAssessment, GetAssessmentById } from "../service/getService";
 import { GetResponseByAssessmentId } from "../service/getService";
 import { PatchAssessmentService } from "../service/patchService";
+import { DeleteService } from "../service/deleteService";
 
 
 export class questionController {
@@ -122,6 +123,26 @@ export class questionController {
     res.status(200).json({ message: "Assessment updated successfully", updatedAssessment });
   } catch (error) {
     console.error("[patchAssessmentByIdFunction] Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+public static async deleteAssessmentByIdFunction(req: Request, res: Response) {
+  try {
+    const assessmentId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+      return res.status(400).json({ message: "Invalid Assessment ID" });
+    }
+
+    const deleted = await new DeleteService().deleteAssessmentById(assessmentId);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Assessment not found" });
+    }
+
+    res.status(200).json({ message: "Assessment deleted successfully", deleted });
+  } catch (error) {
+    console.error("[deleteAssessmentByIdFunction] Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

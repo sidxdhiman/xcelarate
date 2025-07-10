@@ -8,11 +8,12 @@ import { SearchBar } from 'react-native-elements';
 import tw from 'twrnc';
 import { router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
+import { useAssessmentStore } from '../../store/useAssessmentStore';
 
 type Assessment = {
   _id: string;
   title: string;
-  role: string[];
+  roles: string[];
   questions: { questionText: string; options: { text: string }[] }[];
 };
 
@@ -25,6 +26,7 @@ const TestList = () => {
   const [expandedTestId, setExpandedTestId] = useState<string | null>(null);
 
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
+  const deleteAssessmentById = useAssessmentStore(state => state.deleteAssessmentById);
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -42,23 +44,12 @@ const TestList = () => {
     fetchTests();
   }, []);
 
-  const deleteTest = async (id: string) => {
-    try {
-      await axiosInstance.delete(`/assessments/${id}`);
-      setTests(prev => prev.filter(t => t._id !== id));
-      alert('Assessment deleted successfully');
-    } catch (err) {
-      console.error('Failed to delete:', err);
-      alert('Failed to delete assessment');
-    }
-  };
-
   useEffect(() => {
     if (search.trim().length > 0) {
       const query = search.toLowerCase();
       const filtered = tests.filter(t =>
         t.title.toLowerCase().includes(query) ||
-        t.role.some(r => r.toLowerCase().includes(query))
+        t.roles?.some(r => r.toLowerCase().includes(query))
       );
       setFilteredTests(filtered);
     } else {
@@ -118,7 +109,7 @@ const TestList = () => {
                     <Text style={tw`font-bold`}>Title:</Text> {test.title}
                   </Text>
                   <Text style={tw`text-black mb-1`}>
-                    <Text style={tw`font-bold`}>Roles:</Text> {Array.isArray(test.role) ? test.role.join(', ') : 'No roles'}
+                    <Text style={tw`font-bold`}>Roles:</Text> {test.roles?.length > 0 ? test.roles.join(', ') : 'No roles'}
                   </Text>
                   <Text style={tw`text-black mb-3`}>
                     <Text style={tw`font-bold`}>Questions:</Text> {test.questions.length}
@@ -174,7 +165,7 @@ const TestList = () => {
                     <Text style={styles.btnText}>Edit</Text>
                   </Pressable>
 
-                  <Pressable
+                  {/* <Pressable
                     onPress={() => {
                       Alert.alert(
                         'Confirm Delete',
@@ -184,10 +175,35 @@ const TestList = () => {
                           {
                             text: 'Delete',
                             style: 'destructive',
-                            onPress: () => deleteTest(test._id),
+                            onPress: async () => {
+                              console.log('Delete button pressed for:', test._id);  // 👈 add this
+
+                              const confirmed = await deleteAssessmentById(test._id);
+                              if (confirmed) {
+                                setTests(prev => prev.filter(t => t._id !== test._id));
+                                alert('Assessment deleted successfully');
+                              } else {
+                                alert('Failed to delete assessment');
+                              }
+                            }
                           },
                         ]
                       );
+                    }}
+                    style={[styles.actionBtn, { backgroundColor: '#e53935' }]}
+                  >
+                    <Text style={[styles.btnText, { color: 'white' }]}>Delete</Text>
+                  </Pressable> */}
+                  <Pressable
+                    onPress={async () => {
+                      console.log('Pressed delete directly'); // ✅ Check if this logs
+                      const confirmed = await deleteAssessmentById(test._id);
+                      if (confirmed) {
+                        setTests(prev => prev.filter(t => t._id !== test._id));
+                        alert('Assessment deleted successfully');
+                      } else {
+                        alert('Failed to delete assessment');
+                      }
                     }}
                     style={[styles.actionBtn, { backgroundColor: '#e53935' }]}
                   >

@@ -14,6 +14,7 @@ export interface Question {
 export interface Assessment {
   _id?: string;
   title: string;
+  roles: string[];
   questions: {
     _id?: string;
     text: string;

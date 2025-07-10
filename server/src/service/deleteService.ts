@@ -1,4 +1,5 @@
-import { User } from "../database/index";
+import mongoose from "mongoose";
+import { Assessment, User } from "../database/index";
 
 export class DeleteService {
   public async deleteUserByEmail(email: string) {
@@ -16,6 +17,24 @@ export class DeleteService {
     } catch (error) {
       console.error("Error deleting user:", error);
       throw new Error("Failed to delete user");
+    }
+  }
+  public async deleteAssessmentById(id: string) {
+    try {
+      if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error("Invalid assessment ID");
+      }
+
+      const deletedAssessment = await Assessment.findByIdAndDelete(id);
+
+      if (!deletedAssessment) {
+        throw new Error("Assessment not found");
+      }
+
+      return deletedAssessment;
+    } catch (error) {
+      console.error("Error deleting assessment:", error);
+      throw new Error("Failed to delete assessment");
     }
   }
 }

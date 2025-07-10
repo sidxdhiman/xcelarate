@@ -24,7 +24,7 @@ interface Question {
 export default function ModifyTest() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { fetchAssessmentById, modifyAssessment } = useAssessmentStore();
+  const { getAssessmentById:fetchAssessmentById, patchAssessmentById:modifyAssessment } = useAssessmentStore();
 
   const [title, setTitle] = useState('');
   const [roles, setRoles] = useState<string[]>([]);

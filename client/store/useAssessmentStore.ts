@@ -13,20 +13,16 @@ interface Question {
   options: Option[];
 }
 
-interface Assessment {
+export interface Assessment {
   _id: string;
   title: string;
   roles: string[];
   questions: Question[];
 }
 
-/** One question’s answer */
 export type Answer = { option: string; text: string };
-
-/** All answers for one assessment */
 export type Draft = Record<string, Answer>;
 
-/** Payload for final submission */
 export interface FullSubmissionPayload {
   assessmentId: string;
   title: string;
@@ -43,7 +39,6 @@ export interface FullSubmissionPayload {
   answers: Record<string, { option: string; text: string }>;
 }
 
-/** Response format returned from backend */
 export interface IndividualResponse {
   name: string;
   email: string;
@@ -64,13 +59,15 @@ interface AssessmentStore {
   addAssessment: (data: Omit<Assessment, '_id'>) => Promise<Assessment>;
   getAssessmentById: (id: string) => Promise<Assessment | null>;
   getResponsesByAssessmentId: (id: string) => Promise<IndividualResponse[]>;
+  patchAssessmentById: (id: string, data: Partial<Omit<Assessment, '_id'>>) => Promise<Assessment | null>;
 
   draftResponses: Record<string, Draft>;
   setDraft: (assessmentId: string, questionKey: string, ans: Answer) => void;
   clearDraft: (assessmentId: string) => void;
 
   submitResponses: (assessmentId: string, payload: FullSubmissionPayload) => Promise<void>;
-  patchAssessmentById: (id: string, data: Partial<Omit<Assessment, '_id'>>) => Promise<Assessment | null>;
+  deleteAssessmentById: (id: string) => Promise<boolean>;
+
 }
 
 export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
@@ -86,8 +83,6 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
       console.error('[Store] Error posting assessment:', err);
       if (axios.isAxiosError(err)) {
         set({ addAssessmentError: err.response?.data?.message || err.message });
-      } else if (err instanceof Error) {
-        set({ addAssessmentError: err.message });
       } else {
         set({ addAssessmentError: 'Unknown error occurred' });
       }
@@ -107,32 +102,25 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-//   getResponsesByAssessmentId: async (assessmentId: string) => {
-//   try {
-//     const res = await axiosInstance.get(`/assessments/${assessmentId}/responses`);
-//     return res.data;
-//   } catch (err) {
-//     console.error('Error in getResponsesByAssessmentId:', err);
-//     return [];
-//   }
-// },
+  getResponsesByAssessmentId: async assessmentId => {
+    try {
+      const res = await axiosInstance.get(`/assessments/${assessmentId}/responses`);
+      return Array.isArray(res.data) ? res.data : [];
+    } catch (err) {
+      console.error('[Store] Error fetching responses:', err);
+      return [];
+    }
+  },
 
-getResponsesByAssessmentId: async (assessmentId: string) => {
-  try {
-    const res = await axiosInstance.get(`/assessments/${assessmentId}/responses`);
-    
-    // If your backend responds with raw array:
-    return Array.isArray(res.data) ? res.data : [];
-
-    // If your backend wraps in { data: [...] }:
-    // return Array.isArray(res.data?.data) ? res.data.data : [];
-    
-  } catch (err) {
-    console.error('Error in getResponsesByAssessmentId:', err);
-    return [];
-  }
-},
-
+  patchAssessmentById: async (id, data) => {
+    try {
+      const res = await axiosInstance.patch(`/assessments/${id}`, data);
+      return res.data.updatedAssessment as Assessment;
+    } catch (err) {
+      console.error('[Store] Error patching assessment:', err);
+      return null;
+    }
+  },
 
   draftResponses: {},
 
@@ -149,9 +137,9 @@ getResponsesByAssessmentId: async (assessmentId: string) => {
 
   clearDraft: assessmentId =>
     set(state => {
-      const next = { ...state.draftResponses };
-      delete next[assessmentId];
-      return { draftResponses: next };
+      const updated = { ...state.draftResponses };
+      delete updated[assessmentId];
+      return { draftResponses: updated };
     }),
 
   submitResponses: async (assessmentId, payload) => {
@@ -163,14 +151,13 @@ getResponsesByAssessmentId: async (assessmentId: string) => {
       throw err;
     }
   },
-
-  patchAssessmentById: async (id, data) => {
+  deleteAssessmentById: async (id: string): Promise<boolean> => {
   try {
-    const res = await axiosInstance.patch(`/assessments/${id}`, data);
-    return res.data.updatedAssessment as Assessment;
+    await axiosInstance.delete(`/assessments/${id}`);
+    return true;
   } catch (err) {
-    console.error('[Store] Error patching assessment:', err);
-    return null;
+    console.error('[Store] Error deleting assessment:', err);
+    return false;
   }
 },
 

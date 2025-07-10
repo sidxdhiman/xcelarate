@@ -33,6 +33,7 @@ routers.get("/assessments/:id", router);
 routers.post("/assessments/:id/responses", router);
 routers.get("/assessments/:id/responses", router);
 routers.patch("/assessments/:id", router);
+routers.delete("/assessments/:id", router);
 
 
 export default routers;
