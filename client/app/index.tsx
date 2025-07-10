@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
-    // paddingTop: 50,
+    //paddingTop: 50,
   },
   innerContainer: {
     width: '100%',

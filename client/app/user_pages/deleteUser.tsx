@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Platform,
+  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
@@ -11,12 +11,11 @@ import { Pressable } from 'react-native';
 import tw from 'twrnc';
 
 const DeleteUser = () => {
-  const [email, setEmail] = useState('');
+  const { email: initialEmail } = useLocalSearchParams();
+  const [email, setEmail] = useState(typeof initialEmail === 'string' ? initialEmail : '');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { deleteUser } = useAuthStore();
-
-  const navigation = useNavigation();
 
   const handleDeleteUser = async () => {
     if (!email) {
@@ -44,10 +43,11 @@ const DeleteUser = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
       <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={()=> router.push('/userManagement')}>
-          <Icon name='arrow-left' size={22} color="white"></Icon>
+        <Pressable onPress={() => router.push('/userManagement')}>
+          <Icon name="arrow-left" size={22} color="white" />
         </Pressable>
       </View>
+
       <View style={styles.headerArc}>
         <Text style={styles.headerText}>FLAG USER</Text>
       </View>
@@ -60,6 +60,7 @@ const DeleteUser = () => {
           value={email}
           onChangeText={setEmail}
           style={styles.input}
+          editable={!initialEmail} // make read-only if passed via query
         />
       </View>
 
@@ -78,13 +79,13 @@ const DeleteUser = () => {
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    alignItems: 'center'
+    alignItems: 'center',
   },
   headerArc: {
     backgroundColor: '#800080',
     paddingVertical: 32,
     marginBottom: 10,
-    width: '100%'
+    width: '100%',
   },
   headerText: {
     color: '#fff',
@@ -102,11 +103,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 8,
     height: 44,
-    width: RFValue(300)
+    width: RFValue(300),
   },
   icon: {
     marginRight: 8,
-    color: 'black'
+    color: 'black',
   },
   input: {
     flex: 1,

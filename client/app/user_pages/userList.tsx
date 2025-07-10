@@ -96,7 +96,7 @@ const UserList = () => {
                 <Pressable onPress={() => openModifyPage(user)} style={tw`mr-4`}>
                   <Feather name="edit" size={20} color="#800080" />
                 </Pressable>
-                <Pressable onPress={() => router.push('/user_pages/deleteUser')}>
+                <Pressable onPress={() => router.push(`/user_pages/deleteUser?email=${encodeURIComponent(user.email)}`)}>
                   <Feather name="trash-2" size={20} color="red" />
                 </Pressable>
               </View>
