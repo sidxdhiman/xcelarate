@@ -135,7 +135,7 @@ const TestList = () => {
                       await Clipboard.setStringAsync(fullLink);
                       alert('Link copied to clipboard!');
                     }}
-                    style={styles.actionBtn}
+                    style={styles.actionBtn2}
                   >
                     <Text style={styles.btnText}>Copy Link</Text>
                   </Pressable>
@@ -250,6 +250,13 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     backgroundColor: '#800080',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  actionBtn2: {
+    backgroundColor: '#5b5b5b',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,

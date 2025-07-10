@@ -34,7 +34,9 @@ export default function TestResponses() {
       setLoading(true);
       try {
         const assessment = await getAssessmentById(id);
+        // const rawResponses = await getResponsesByAssessmentId(id);
         const rawResponses = await getResponsesByAssessmentId(id);
+        console.log('Raw Responses:', rawResponses);
 
         const parsedResponses: UserResponse[] = rawResponses.map((res: any) => {
           const answers: Answer[] = Object.entries(res.answers || {}).map(
