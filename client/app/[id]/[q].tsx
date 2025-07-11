@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import { Assessment } from '../../types/assessment';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
@@ -25,6 +26,9 @@ export default function QuestionScreen() {
 
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Modal state for finish confirmation
+  const [modalVisible, setModalVisible] = useState(false);
 
   const {
     draftResponses,
@@ -95,6 +99,7 @@ export default function QuestionScreen() {
     });
   };
 
+  // Wrap submit logic to confirm via modal
   const submit = async () => {
     if (!assessment || !id || !assessment.user || !assessment.startedAt) {
       alert('Missing required assessment data');
@@ -113,6 +118,7 @@ export default function QuestionScreen() {
 
     try {
       await submitResponses(id, fullPayload);
+      setModalVisible(false);
       router.replace({
         pathname: '/[id]/result',
         params: { id },
@@ -192,7 +198,10 @@ export default function QuestionScreen() {
         </TouchableOpacity>
 
         {index === assessment.questions.length - 1 ? (
-          <TouchableOpacity onPress={submit} style={styles.navBtnFinish}>
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={styles.navBtnFinish}
+          >
             <Text style={styles.navText}>Finish</Text>
           </TouchableOpacity>
         ) : (
@@ -201,6 +210,37 @@ export default function QuestionScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Modal for finish confirmation */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Confirm Submission</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to finish and submit your assessment?
+            </Text>
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.submitButton]}
+                onPress={submit}
+              >
+                <Text style={styles.submitButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -256,4 +296,55 @@ const styles = StyleSheet.create({
   },
   navText: { color: '#fff', fontWeight: '600' },
   disabled: { opacity: 0.4 },
+
+  /* Modal styles */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 10,
+    color: '#4b0082',
+  },
+  modalMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: '#333',
+  },
+  modalButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    marginLeft: 10,
+  },
+  cancelButton: {
+    backgroundColor: '#ccc',
+  },
+  cancelButtonText: {
+    color: '#333',
+    fontWeight: '600',
+  },
+  submitButton: {
+    backgroundColor: '#008000',
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
 });

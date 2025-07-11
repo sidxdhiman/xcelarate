@@ -8,8 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeleteService = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
 const index_1 = require("../database/index");
 class DeleteService {
     deleteUserByEmail(email) {
@@ -28,6 +32,24 @@ class DeleteService {
             catch (error) {
                 console.error("Error deleting user:", error);
                 throw new Error("Failed to delete user");
+            }
+        });
+    }
+    deleteAssessmentById(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!id || !mongoose_1.default.Types.ObjectId.isValid(id)) {
+                    throw new Error("Invalid assessment ID");
+                }
+                const deletedAssessment = yield index_1.Assessment.findByIdAndDelete(id);
+                if (!deletedAssessment) {
+                    throw new Error("Assessment not found");
+                }
+                return deletedAssessment;
+            }
+            catch (error) {
+                console.error("Error deleting assessment:", error);
+                throw new Error("Failed to delete assessment");
             }
         });
     }

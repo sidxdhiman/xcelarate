@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetAssessment = exports.GetOrganisation = exports.GetByIdService = exports.GetService = void 0;
+exports.GetResponseByAssessmentId = exports.GetAssessmentById = exports.GetAssessment = exports.GetOrganisation = exports.GetByIdService = exports.GetService = void 0;
 const database_1 = require("../database");
 class GetService {
     getUsers() {
@@ -71,3 +71,33 @@ class GetAssessment {
     }
 }
 exports.GetAssessment = GetAssessment;
+class GetAssessmentById {
+    getAssessmentbyId(Id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const assessment = yield database_1.Assessment.findById(Id);
+                return assessment;
+            }
+            catch (error) {
+                console.error("Error fetching the Assessment", error);
+                throw new Error("Error fetching assessment");
+            }
+        });
+    }
+}
+exports.GetAssessmentById = GetAssessmentById;
+class GetResponseByAssessmentId {
+    getResponseByAssessmentId(assessmentId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield database_1.Response.findOne({ assessmentId });
+                return response;
+            }
+            catch (error) {
+                console.log("Error fetching response:", error);
+                throw new Error("Error fetching response by assessment ID");
+            }
+        });
+    }
+}
+exports.GetResponseByAssessmentId = GetResponseByAssessmentId;

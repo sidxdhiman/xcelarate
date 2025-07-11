@@ -15,6 +15,7 @@ routers.post("/bulkUserUpload", apiRoutes_1.default);
 routers.post("/postUser/", apiRoutes_1.default);
 routers.post("/signupUser/", apiRoutes_1.default);
 routers.post("/loginUser/", apiRoutes_1.default);
+routers.post("postBefore", apiRoutes_1.default);
 //patch
 routers.patch("/users/:email", apiRoutes_1.default);
 //delete
@@ -24,5 +25,10 @@ routers.post("/organisations/", apiRoutes_1.default);
 routers.get("/organisations/", apiRoutes_1.default);
 //question routes
 routers.post("/postAssessment", apiRoutes_1.default);
-apiRoutes_1.default.get("/getAssessments", apiRoutes_1.default);
+routers.get("/assessments", apiRoutes_1.default);
+routers.get("/assessments/:id", apiRoutes_1.default);
+routers.post("/assessments/:id/responses", apiRoutes_1.default);
+routers.get("/assessments/:assessmentId/responses", apiRoutes_1.default);
+routers.patch("/assessments/:id", apiRoutes_1.default);
+routers.delete("/assessments/:id", apiRoutes_1.default);
 exports.default = routers;

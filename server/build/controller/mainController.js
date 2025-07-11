@@ -13,12 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MainController = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
 const xlsx_1 = __importDefault(require("xlsx"));
 const fs_1 = __importDefault(require("fs"));
 const signUpService_1 = require("../service/signUpService");
 const logInService_1 = require("../service/logInService");
 const postService_1 = require("../service/postService");
+const database_1 = require("../database");
 var logger = require("../util/logger");
 const { encrypt, decrypt } = require('../security/encrypt&decrypt');
 const { GetService } = require("../service/getService");
@@ -52,12 +52,12 @@ class MainController {
     static getUserFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const email = parseInt(req.params.email);
-                if (!mongoose_1.default.Types.ObjectId.isValid(email)) {
-                    return (res.status(400).json({ message: "Invalid EMail ID format" }),
-                        logger.errorLog.info("FAILED!-INVALID-EMAIL-ID"));
+                const email = req.params.email;
+                if (!email || typeof email !== 'string' || !email.includes('@')) {
+                    logger.errorLog.info("FAILED! - INVALID EMAIL FORMAT");
+                    return res.status(400).json({ message: "Invalid email format" });
                 }
-                const result = yield new GetByIdService().getUserbyId(email);
+                const result = yield database_1.User.findOne({ email });
                 if (result) {
                     res.json(result);
                 }
@@ -66,6 +66,7 @@ class MainController {
                 }
             }
             catch (error) {
+                console.error(error);
                 res.status(500).json({ message: "Internal Server error!-GET" });
             }
         });
@@ -121,6 +122,23 @@ class MainController {
             }
             catch (error) {
                 res.status(500).json({ message: "Internal server error" });
+            }
+        });
+    }
+    static postBefore(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userData = req.body;
+                const user = yield new postService_1.PostBeforeAssessment().postBefore(userData);
+                if (user) {
+                    res.json(user);
+                }
+                else {
+                    res.status(400).json({ message: "User data not collected" });
+                }
+            }
+            catch (error) {
+                res.status(500).json({ message: "Internal Server Error" });
             }
         });
     }

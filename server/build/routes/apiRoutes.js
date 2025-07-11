@@ -19,10 +19,16 @@ router.post("/loginUser/", mainController_1.MainController.logIn); //TODO add re
 router.delete("/users/:email", mainController_1.MainController.deleteFunction);
 router.patch("/users/:email", RequestValidator_1.RequestValidator.patchUser, mainController_1.MainController.patchFunction);
 router.post("/bulkUserUpload", upload_1.upload.single('file'), mainController_1.MainController.postBulk);
+router.post("postBefore", mainController_1.MainController.postBefore);
 //organisation crud
 router.post("/organisations/", RequestValidator_1.RequestValidator.postOrganisation, orgController_1.orgController.postOrg);
 router.get("/organisations/", orgController_1.orgController.getOrg);
 //question crud
 router.post("/postAssessment", questionController_1.questionController.postQuestion);
-router.get("/getAssessments", questionController_1.questionController.getAssessmentFunction);
+router.get("/assessments", questionController_1.questionController.getAssessmentFunction);
+router.get("/assessments/:id", questionController_1.questionController.getAssessmentByIdFunction);
+router.post("/assessments/:id/responses", questionController_1.questionController.submitResponse);
+router.get("/assessments/:assessmentId/responses", questionController_1.questionController.getResponseById);
+router.patch("/assessments/:id", questionController_1.questionController.patchAssessmentByIdFunction);
+router.delete("/assessments/:id", questionController_1.questionController.deleteAssessmentByIdFunction);
 exports.default = router;

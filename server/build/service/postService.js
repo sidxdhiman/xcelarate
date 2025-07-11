@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostQuestion = exports.PostOrganisation = exports.PostUser = void 0;
+exports.PostResponse = exports.PostQuestion = exports.PostOrganisation = exports.PostBeforeAssessment = exports.PostUser = void 0;
 const index_1 = require("../database/index");
 const index_2 = require("../database/index");
 const index_3 = require("../database/index");
@@ -32,16 +32,33 @@ class PostUser {
     }
 }
 exports.PostUser = PostUser;
-;
+class PostBeforeAssessment {
+    postBefore(userData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!userData.name || !userData.designation || !userData.email || !userData.department || !userData.phone) {
+                    throw new Error("All fields are required");
+                }
+                const user = yield index_3.beforeAssessment.create(userData);
+                console.log("User Data Collected");
+                return { user };
+            }
+            catch (error) {
+                console.error("Error in collecting data");
+                throw new Error(`Error in collecting data from user`);
+            }
+        });
+    }
+}
+exports.PostBeforeAssessment = PostBeforeAssessment;
 class PostOrganisation {
     postOrganisation(orgData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // Optional: Validate orgData before creating
                 if (!orgData.name) {
                     throw new Error("Organisation name is required");
                 }
-                const organisation = yield index_2.Organisation.create(orgData);
+                const organisation = yield index_1.Organisation.create(orgData);
                 console.log("Organisation posted successfully!");
                 return organisation;
             }
@@ -53,7 +70,6 @@ class PostOrganisation {
     }
 }
 exports.PostOrganisation = PostOrganisation;
-;
 class PostQuestion {
     postQuestion(questionData) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -63,7 +79,7 @@ class PostQuestion {
                     console.log('Invalid assessment payload:', questionData);
                     throw new Error("Assessment data is incomplete");
                 }
-                const assessment = yield index_3.Assessment.create(questionData);
+                const assessment = yield index_1.Assessment.create(questionData);
                 console.log("Assessment posted successfully!");
                 return assessment;
             }
@@ -75,3 +91,29 @@ class PostQuestion {
     }
 }
 exports.PostQuestion = PostQuestion;
+class PostResponse {
+    postResponse(assessmentId, payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!assessmentId || typeof payload.answers !== 'object') {
+                    throw new Error("Missing or invalid response data");
+                }
+                const newResponse = yield index_2.Response.create({
+                    assessmentId,
+                    answers: payload.answers,
+                    submittedAt: payload.submittedAt ? new Date(payload.submittedAt) : new Date(),
+                    startedAt: payload.startedAt ? new Date(payload.startedAt) : undefined,
+                    location: payload.location,
+                    user: payload.user,
+                });
+                console.log("Response saved successfully!");
+                return newResponse;
+            }
+            catch (error) {
+                console.error("Error saving response:", error);
+                throw new Error("Failed to save assessment response");
+            }
+        });
+    }
+}
+exports.PostResponse = PostResponse;

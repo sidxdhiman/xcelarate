@@ -12,11 +12,25 @@ const app = (0, express_1.default)();
 index_1.connection
     .then(() => console.log("Connected to MongoDB"))
     .catch((error) => console.error('Error connecting to MongoDB', (error)));
+// app.use(cors({
+//     origin: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     credentials: true,
+//     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+// }));
+// app.use(cors({
+//   origin: '*',
+//   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true
+// }));
 app.use(cors({
-    origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: [
+        'http://localhost:8081',
+        'http://192.168.1.6:8081',
+        'http://192.168.1.6:8082',
+    ],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 app.use(middleware_1.default.json());
 app.use(router_1.default);
