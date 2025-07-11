@@ -102,9 +102,9 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  getResponsesByAssessmentId: async assessmentId => {
+  getResponsesByAssessmentId: async id => {
     try {
-      const res = await axiosInstance.get(`/assessments/${assessmentId}/responses`);
+      const res = await axiosInstance.get(`/assessments/${id}/responses`);
       return Array.isArray(res.data) ? res.data : [];
     } catch (err) {
       console.error('[Store] Error fetching responses:', err);

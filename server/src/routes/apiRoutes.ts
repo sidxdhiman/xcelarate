@@ -27,7 +27,8 @@ router.post("/postAssessment", questionController.postQuestion);
 router.get("/assessments", questionController.getAssessmentFunction);
 router.get("/assessments/:id", questionController.getAssessmentByIdFunction);
 router.post("/assessments/:id/responses", questionController.submitResponse);
-router.get("/assessments/:assessmentId/responses", questionController.getResponseById);
+// router.get("/assessments/:assessmentId/responses", questionController.getResponseById);
+router.get("/assessments/:id/responses", questionController.getResponseById);
 router.patch("/assessments/:id", questionController.patchAssessmentByIdFunction);
 router.delete("/assessments/:id", questionController.deleteAssessmentByIdFunction);
 

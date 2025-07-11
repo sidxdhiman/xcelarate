@@ -90,15 +90,15 @@ export class questionController {
 
   public static async getResponseById(req: Request, res: Response) {
   try {
-    const assessmentId = req.params.id;
+    const id = req.params.id;
 
-    if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid Assessment ID" });
     }
 
-    const responseData = await new GetResponseByAssessmentId().getResponseByAssessmentId(assessmentId);
+    const responseData = await new GetResponseByAssessmentId().getResponseByAssessmentId(id);
 
-    if (!responseData) {
+    if (!responseData || responseData.length === 0) {
       return res.status(404).json({ message: "No response found for this assessment" });
     }
 

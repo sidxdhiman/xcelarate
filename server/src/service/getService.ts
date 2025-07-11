@@ -60,9 +60,9 @@ export class GetAssessmentById {
 }
 
 export class GetResponseByAssessmentId {
-  public async getResponseByAssessmentId(assessmentId: string) {
+  public async getResponseByAssessmentId(id: string) {
     try {
-      const response = await Response.findOne({ assessmentId });
+      const response = await Response.find({ assessmentId: id });
       return response;
     } catch (error) {
       console.log("Error fetching response:", error);
@@ -70,3 +70,4 @@ export class GetResponseByAssessmentId {
     }
   }
 }
+

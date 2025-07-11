@@ -15,11 +15,16 @@ interface Answer {
 interface UserResponse {
   name: string;
   email: string;
+  startedAt: string | null;
+  submittedAt: string | null;
+  location: { lat: number; lon: number } | null;
   answers: Answer[];
 }
 
 export default function TestResponses() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id: rawId } = useLocalSearchParams<{ id: string }>();
+  const id = decodeURIComponent(rawId?.trim() || '');
+  console.log('Decoded and cleaned ID:', id);
 
   const [responses, setResponses] = useState<UserResponse[]>([]);
   const [title, setTitle] = useState('');
@@ -34,24 +39,28 @@ export default function TestResponses() {
       setLoading(true);
       try {
         const assessment = await getAssessmentById(id);
-        // const rawResponses = await getResponsesByAssessmentId(id);
         const rawResponses = await getResponsesByAssessmentId(id);
         console.log('Raw Responses:', rawResponses);
 
-        const parsedResponses: UserResponse[] = rawResponses.map((res: any) => {
-          const answers: Answer[] = Object.entries(res.answers || {}).map(
-            ([questionText, answerObj]: [string, any]) => ({
-              questionText,
-              selectedOption: answerObj?.option || 'N/A',
-            })
-          );
+        const parsedResponses: UserResponse[] = rawResponses
+          .sort((a: any, b: any) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+          .map((res: any) => {
+            const answers: Answer[] = Object.entries(res.answers || {}).map(
+              ([questionText, answerObj]: [string, any]) => ({
+                questionText,
+                selectedOption: answerObj?.option || answerObj?.text || 'N/A',
+              })
+            );
 
-          return {
-            name: res.user?.name || 'Anonymous',
-            email: res.user?.email || '',
-            answers,
-          };
-        });
+            return {
+              name: res.user?.name || 'Anonymous',
+              email: res.user?.email || '',
+              startedAt: res.startedAt || null,
+              submittedAt: res.submittedAt || null,
+              location: res.location || null,
+              answers,
+            };
+          });
 
         setTitle(assessment?.title || 'Untitled');
         setResponses(parsedResponses);
@@ -84,9 +93,22 @@ export default function TestResponses() {
         ) : (
           responses.map((res, idx) => (
             <View key={idx} style={tw`bg-gray-100 rounded-md p-4 mb-3`}>
-              <Text style={tw`text-base font-semibold text-purple-700 mb-2`}>
+              <Text style={tw`text-base font-semibold text-purple-700`}>
                 Name: {res.name}
               </Text>
+              <Text style={tw`text-sm text-gray-700`}>
+                Started At: {res.startedAt ? new Date(res.startedAt).toLocaleString() : 'null'}
+              </Text>
+              <Text style={tw`text-sm text-gray-700`}>
+                Ended At: {res.submittedAt ? new Date(res.submittedAt).toLocaleString() : 'null'}
+              </Text>
+              <Text style={tw`text-sm text-gray-700 mb-2`}>
+                Location:{' '}
+                {res.location
+                  ? `Latitude: ${res.location.lat}, Longitude: ${res.location.lon}`
+                  : 'null'}
+              </Text>
+
               {res.answers.map((ans, i) => (
                 <View key={i} style={tw`mb-2`}>
                   <Text style={tw`font-medium`}>Q: {ans.questionText}</Text>

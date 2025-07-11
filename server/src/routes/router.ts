@@ -31,7 +31,8 @@ routers.post("/postAssessment", router);
 routers.get("/assessments", router);
 routers.get("/assessments/:id", router);
 routers.post("/assessments/:id/responses", router);
-routers.get("/assessments/:assessmentId/responses", router);
+// routers.get("/assessments/:assessmentId/responses", router);
+routers.get("/assessments/:id/responses", router);
 routers.patch("/assessments/:id", router);
 routers.delete("/assessments/:id", router);
 
