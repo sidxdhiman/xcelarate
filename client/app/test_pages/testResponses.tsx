@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, ActivityIndicator, Pressable,
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Pressable,
+  Alert,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 interface Answer {
   questionText: string;
@@ -40,7 +48,6 @@ export default function TestResponses() {
       try {
         const assessment = await getAssessmentById(id);
         const rawResponses = await getResponsesByAssessmentId(id);
-        console.log('Raw Responses:', rawResponses);
 
         const parsedResponses: UserResponse[] = rawResponses
           .sort((a: any, b: any) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
@@ -75,6 +82,46 @@ export default function TestResponses() {
     fetchAssessmentAndResponses();
   }, [id]);
 
+  const generatePDF = async (res: UserResponse, idx: number) => {
+    const formattedAnswers = res.answers
+      .map(
+        (a, i) =>
+          `<p><strong>Q${i + 1}:</strong> ${a.questionText}<br/><strong>A:</strong> ${a.selectedOption}</p>`
+      )
+      .join('');
+
+    const htmlContent = `
+      <div style="padding: 24px; font-family: Arial, sans-serif;">
+        <h1 style="color: #800080; text-align: center;">Xcelarate</h1>
+        <h2>User Details</h2>
+        <p><strong>Name:</strong> ${res.name}</p>
+        <p><strong>Email:</strong> ${res.email}</p>
+        <p><strong>Started At:</strong> ${res.startedAt}</p>
+        <p><strong>Submitted At:</strong> ${res.submittedAt}</p>
+        <p><strong>Location:</strong> ${
+          res.location
+            ? `Latitude: ${res.location.lat}, Longitude: ${res.location.lon}`
+            : 'null'
+        }</p>
+
+        <h2>Responses</h2>
+        ${formattedAnswers}
+      </div>
+    `;
+
+    try {
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false,
+      });
+
+      await Sharing.shareAsync(uri);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      Alert.alert('Error', 'Failed to generate PDF');
+    }
+  };
+
   return (
     <ScrollView style={tw`bg-white`}>
       <View style={tw`px-4 pt-4`}>
@@ -97,10 +144,16 @@ export default function TestResponses() {
                 Name: {res.name}
               </Text>
               <Text style={tw`text-sm text-gray-700`}>
-                Started At: {res.startedAt ? new Date(res.startedAt).toLocaleString() : 'null'}
+                Started At:{' '}
+                {res.startedAt
+                  ? new Date(res.startedAt).toLocaleString()
+                  : 'null'}
               </Text>
               <Text style={tw`text-sm text-gray-700`}>
-                Ended At: {res.submittedAt ? new Date(res.submittedAt).toLocaleString() : 'null'}
+                Ended At:{' '}
+                {res.submittedAt
+                  ? new Date(res.submittedAt).toLocaleString()
+                  : 'null'}
               </Text>
               <Text style={tw`text-sm text-gray-700 mb-2`}>
                 Location:{' '}
@@ -112,9 +165,18 @@ export default function TestResponses() {
               {res.answers.map((ans, i) => (
                 <View key={i} style={tw`mb-2`}>
                   <Text style={tw`font-medium`}>Q: {ans.questionText}</Text>
-                  <Text style={tw`text-gray-700`}>A: {ans.selectedOption}</Text>
+                  <Text style={tw`text-gray-700`}>
+                    A: {ans.selectedOption}
+                  </Text>
                 </View>
               ))}
+
+              <Pressable
+                onPress={() => generatePDF(res, idx)}
+                style={tw`bg-purple-800 rounded px-4 py-2 mt-2 self-start`}
+              >
+                <Text style={tw`text-white font-bold`}>Download as PDF</Text>
+              </Pressable>
             </View>
           ))
         )}
