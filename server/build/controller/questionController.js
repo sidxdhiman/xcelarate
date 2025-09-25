@@ -106,12 +106,12 @@ class questionController {
     static getResponseById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const assessmentId = req.params.id;
-                if (!mongoose_1.default.Types.ObjectId.isValid(assessmentId)) {
+                const id = req.params.id;
+                if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
                     return res.status(400).json({ message: "Invalid Assessment ID" });
                 }
-                const responseData = yield new getService_2.GetResponseByAssessmentId().getResponseByAssessmentId(assessmentId);
-                if (!responseData) {
+                const responseData = yield new getService_2.GetResponseByAssessmentId().getResponseByAssessmentId(id);
+                if (!responseData || responseData.length === 0) {
                     return res.status(404).json({ message: "No response found for this assessment" });
                 }
                 res.status(200).json(responseData);
