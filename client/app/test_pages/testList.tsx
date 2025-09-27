@@ -15,7 +15,9 @@ import { SearchBar } from 'react-native-elements';
 import tw from 'twrnc';
 import { router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
-import { useAssessmentStore } from '../../store/useAssessmentStore';
+//import { useAssessmentStore } from '../../store/useAssessmentStore';
+import {useAssessmentStore} from '@/store/useAssessmentStore';
+import axiosInstance from '@/lib/axios.js'
 
 type Assessment = {
   _id: string;
@@ -36,7 +38,8 @@ const TestList = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [testToDelete, setTestToDelete] = useState<Assessment | null>(null);
 
-  const axiosInstance = useAuthStore((state) => state.axiosInstance);
+  //const axiosInstance = useAuthStore((state) => state.axiosInstance);
+
   const deleteAssessmentById = useAssessmentStore(state => state.deleteAssessmentById);
 
   useEffect(() => {

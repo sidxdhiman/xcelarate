@@ -10,5 +10,5 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-export { axiosInstance };
+export default axiosInstance;
 

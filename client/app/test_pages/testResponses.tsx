@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, ActivityIndicator, Pressable,
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Pressable,
+  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
+import { PDFDocument, PDFPage } from 'react-native-pdf-lib';
+import * as FileSystem from 'expo-file-system';
 
 interface Answer {
   questionText: string;
   selectedOption: string;
+  inputText?: string;
+  type?: string;
 }
 
 interface UserResponse {
@@ -24,56 +33,114 @@ interface UserResponse {
 export default function TestResponses() {
   const { id: rawId } = useLocalSearchParams<{ id: string }>();
   const id = decodeURIComponent(rawId?.trim() || '');
-  console.log('Decoded and cleaned ID:', id);
 
   const [responses, setResponses] = useState<UserResponse[]>([]);
+  const [filteredResponses, setFilteredResponses] = useState<UserResponse[]>([]);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   const { getAssessmentById, getResponsesByAssessmentId } = useAssessmentStore();
 
+  // Fetch assessment and responses
   useEffect(() => {
-    const fetchAssessmentAndResponses = async () => {
+    const fetchData = async () => {
       if (!id) return;
-
       setLoading(true);
       try {
         const assessment = await getAssessmentById(id);
         const rawResponses = await getResponsesByAssessmentId(id);
-        console.log('Raw Responses:', rawResponses);
 
         const parsedResponses: UserResponse[] = rawResponses
-          .sort((a: any, b: any) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
-          .map((res: any) => {
-            const answers: Answer[] = Object.entries(res.answers || {}).map(
-              ([questionText, answerObj]: [string, any]) => ({
-                questionText,
-                selectedOption: answerObj?.option || answerObj?.text || 'N/A',
+          .sort(
+            (a: any, b: any) =>
+              new Date(b.submittedAt).getTime() -
+              new Date(a.submittedAt).getTime()
+          )
+          .map((res: any) => ({
+            name: res.user?.name || 'Anonymous',
+            email: res.user?.email || '',
+            startedAt: res.startedAt || null,
+            submittedAt: res.submittedAt || null,
+            location: res.location || null,
+            answers: Object.entries(res.answers || {}).map(
+              ([qText, ans]: [string, any]) => ({
+                questionText: qText,
+                selectedOption: ans?.option || 'N/A',
+                inputText: ans?.text || '',
+                type: ans?.type || 'unknown',
               })
-            );
-
-            return {
-              name: res.user?.name || 'Anonymous',
-              email: res.user?.email || '',
-              startedAt: res.startedAt || null,
-              submittedAt: res.submittedAt || null,
-              location: res.location || null,
-              answers,
-            };
-          });
+            ),
+          }));
 
         setTitle(assessment?.title || 'Untitled');
         setResponses(parsedResponses);
+        setFilteredResponses(parsedResponses);
       } catch (err) {
         console.error('Error loading responses:', err);
         setResponses([]);
+        setFilteredResponses([]);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchAssessmentAndResponses();
+    fetchData();
   }, [id]);
+
+  // Filter responses by search term
+  useEffect(() => {
+    if (!search.trim()) {
+      setFilteredResponses(responses);
+      return;
+    }
+    const q = search.toLowerCase();
+    setFilteredResponses(
+      responses.filter(
+        r =>
+          r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q)
+      )
+    );
+  }, [search, responses]);
+
+  // PDF download function
+  const downloadPDF = async (response: UserResponse, idx: number) => {
+    try {
+      const pdfPath = `${FileSystem.documentDirectory}${response.name}_response_${idx + 1}.pdf`;
+      const page = PDFPage.create().setMediaBox(612, 792);
+      let y = 750;
+      const lineHeight = 18;
+
+      const addLine = (text: string) => {
+        page.drawText(text, { x: 40, y });
+        y -= lineHeight;
+      };
+
+      addLine(`Name: ${response.name}`);
+      addLine(`Email: ${response.email || 'N/A'}`);
+      addLine(`Started At: ${response.startedAt || 'N/A'}`);
+      addLine(`Submitted At: ${response.submittedAt || 'N/A'}`);
+      addLine(
+        `Location: ${
+          response.location
+            ? `Lat: ${response.location.lat}, Lon: ${response.location.lon}`
+            : 'N/A'
+        }`
+      );
+      addLine('Answers:');
+      response.answers.forEach((ans, i) => {
+        addLine(`${i + 1}. Q: ${ans.questionText}`);
+        addLine(`   Selected Option: ${ans.selectedOption}`);
+        if (ans.inputText) addLine(`   Text Response: ${ans.inputText}`);
+        addLine(`   Type: ${ans.type}`);
+      });
+
+      await PDFDocument.create(pdfPath).addPages(page).write();
+      alert(`PDF saved to: ${pdfPath}`);
+    } catch (err) {
+      console.error('Error creating PDF:', err);
+      alert('Failed to generate PDF');
+    }
+  };
 
   return (
     <ScrollView style={tw`bg-white`}>
@@ -86,35 +153,75 @@ export default function TestResponses() {
           Responses for: {title}
         </Text>
 
+        <TextInput
+          placeholder="Search by name or email"
+          value={search}
+          onChangeText={setSearch}
+          style={tw`border border-gray-300 rounded-md px-3 py-2 mb-4`}
+        />
+
         {loading ? (
           <ActivityIndicator size="large" color="#800080" />
-        ) : responses.length === 0 ? (
-          <Text style={tw`text-gray-600`}>No responses yet.</Text>
+        ) : filteredResponses.length === 0 ? (
+          <Text style={tw`text-gray-600`}>No responses found.</Text>
         ) : (
-          responses.map((res, idx) => (
+          filteredResponses.map((res, idx) => (
             <View key={idx} style={tw`bg-gray-100 rounded-md p-4 mb-3`}>
               <Text style={tw`text-base font-semibold text-purple-700`}>
                 Name: {res.name}
               </Text>
               <Text style={tw`text-sm text-gray-700`}>
-                Started At: {res.startedAt ? new Date(res.startedAt).toLocaleString() : 'null'}
+                Email: {res.email || 'N/A'}
               </Text>
               <Text style={tw`text-sm text-gray-700`}>
-                Ended At: {res.submittedAt ? new Date(res.submittedAt).toLocaleString() : 'null'}
+                Started At:{' '}
+                {res.startedAt
+                  ? new Date(res.startedAt).toLocaleString()
+                  : 'N/A'}
+              </Text>
+              <Text style={tw`text-sm text-gray-700`}>
+                Submitted At:{' '}
+                {res.submittedAt
+                  ? new Date(res.submittedAt).toLocaleString()
+                  : 'N/A'}
               </Text>
               <Text style={tw`text-sm text-gray-700 mb-2`}>
                 Location:{' '}
                 {res.location
-                  ? `Latitude: ${res.location.lat}, Longitude: ${res.location.lon}`
-                  : 'null'}
+                  ? `Lat: ${res.location.lat}, Lon: ${res.location.lon}`
+                  : 'N/A'}
               </Text>
 
               {res.answers.map((ans, i) => (
-                <View key={i} style={tw`mb-2`}>
-                  <Text style={tw`font-medium`}>Q: {ans.questionText}</Text>
-                  <Text style={tw`text-gray-700`}>A: {ans.selectedOption}</Text>
+                <View
+                  key={i}
+                  style={tw`mb-3 bg-white rounded-md p-2 border border-gray-200`}
+                >
+                  <Text style={tw`font-semibold text-purple-800`}>
+                    Q: {ans.questionText}
+                  </Text>
+                  <Text style={tw`text-gray-800`}>
+                    Selected Option: {ans.selectedOption}
+                  </Text>
+                  {ans.inputText ? (
+                    <Text style={tw`text-gray-600`}>
+                      Text Response: {ans.inputText}
+                    </Text>
+                  ) : null}
+                  <Text style={tw`text-xs text-gray-500`}>
+                    (Type: {ans.type})
+                  </Text>
                 </View>
               ))}
+
+              <Pressable
+                onPress={() => downloadPDF(res, idx)}
+                style={tw`bg-purple-700 px-3 py-2 rounded-md mt-2`}
+              >
+                <Text style={tw`text-white font-semibold text-center`}>
+                  Download PDF
+                </Text>
+              </Pressable>
             </View>
           ))
         )}
@@ -122,3 +229,4 @@ export default function TestResponses() {
     </ScrollView>
   );
 }
+

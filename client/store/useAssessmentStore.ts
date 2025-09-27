@@ -1,96 +1,51 @@
 import { create } from 'zustand';
-import axios from 'axios';
-import { axiosInstance } from '../lib/axios';
+import axiosInstance from '@/lib/axios.js';
 
-interface Option {
-  id: string;
-  text: string;
-}
-
-interface Question {
-  id: string;
-  text: string;
-  options: Option[];
-}
-
-export interface Assessment {
+interface Assessment {
   _id: string;
   title: string;
-  roles: string[];
-  questions: Question[];
+  description?: string;
+  questions?: any[];
 }
 
-export type Answer = { option: string; text: string };
-export type Draft = Record<string, Answer>;
-
-export interface FullSubmissionPayload {
-  assessmentId: string;
-  title: string;
-  user: {
-    name: string;
-    email: string;
-    designation: string;
-    phone: string;
-    department: string;
-  };
-  location?: { lat: number; lon: number };
-  startedAt: number;
-  submittedAt: number;
-  answers: Record<string, { option: string; text: string }>;
+interface AnswerPayload {
+  option?: string;
+  text?: string;
+  type?: string;
 }
 
-export interface IndividualResponse {
-  name: string;
-  email: string;
-  phone: string;
-  designation: string;
-  department: string;
-  submittedAt: string;
-  answers: {
-    questionText: string;
-    selectedOption: string;
-  }[];
-}
-
-interface AssessmentStore {
-  isAddingAssessment: boolean;
+interface StoreState {
   addAssessmentError: string | null;
+  isAddingAssessment: boolean;
+  draftResponses: Record<
+    string,
+    Record<string, AnswerPayload>
+  >;
 
-  addAssessment: (data: Omit<Assessment, '_id'>) => Promise<Assessment>;
+  // actions
   getAssessmentById: (id: string) => Promise<Assessment | null>;
-  getResponsesByAssessmentId: (id: string) => Promise<IndividualResponse[]>;
-  patchAssessmentById: (id: string, data: Partial<Omit<Assessment, '_id'>>) => Promise<Assessment | null>;
-
-  draftResponses: Record<string, Draft>;
-  setDraft: (assessmentId: string, questionKey: string, ans: Answer) => void;
+  getResponsesByAssessmentId: (id: string) => Promise<any[]>;
+  patchAssessmentById: (
+    id: string,
+    data: Partial<Assessment>
+  ) => Promise<Assessment | null>;
+  setDraft: (
+    assessmentId: string,
+    questionKey: string,
+    ans: AnswerPayload
+  ) => void;
   clearDraft: (assessmentId: string) => void;
-
-  submitResponses: (assessmentId: string, payload: FullSubmissionPayload) => Promise<void>;
+  submitResponses: (
+    assessmentId: string,
+    payload: any
+  ) => Promise<void>;
   deleteAssessmentById: (id: string) => Promise<boolean>;
-
 }
 
-export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
-  isAddingAssessment: false,
+export const useAssessmentStore = create<StoreState>((set, get) => ({
   addAssessmentError: null,
-
-  addAssessment: async data => {
-    set({ isAddingAssessment: true, addAssessmentError: null });
-    try {
-      const res = await axiosInstance.post('/postAssessment', data);
-      return res.data as Assessment;
-    } catch (err) {
-      console.error('[Store] Error posting assessment:', err);
-      if (axios.isAxiosError(err)) {
-        set({ addAssessmentError: err.response?.data?.message || err.message });
-      } else {
-        set({ addAssessmentError: 'Unknown error occurred' });
-      }
-      throw err;
-    } finally {
-      set({ isAddingAssessment: false });
-    }
-  },
+  isAddingAssessment: false,
+  draftResponses: {},
 
   getAssessmentById: async id => {
     try {
@@ -122,8 +77,6 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  draftResponses: {},
-
   setDraft: (assessmentId, questionKey, ans) =>
     set(state => ({
       draftResponses: {
@@ -143,22 +96,53 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }),
 
   submitResponses: async (assessmentId, payload) => {
-    try {
-      await axiosInstance.post(`/assessments/${assessmentId}/responses`, payload);
-      get().clearDraft(assessmentId);
-    } catch (err) {
-      console.error('[Store] Error submitting responses:', err);
-      throw err;
-    }
-  },
-  deleteAssessmentById: async (id: string): Promise<boolean> => {
   try {
-    await axiosInstance.delete(`/assessments/${id}`);
-    return true;
-  } catch (err) {
-    console.error('[Store] Error deleting assessment:', err);
-    return false;
+    // normalize answers into { option, text, type }
+    const normalizedAnswers: Record<string, AnswerPayload> = {};
+    Object.entries(payload.answers || {}).forEach(
+      ([qKey, ans]: [string, any]) => {
+        normalizedAnswers[qKey] = {
+          option: ans?.option || '',
+          text: ans?.text || '',
+          type: ans?.type || 'unknown',
+        };
+      }
+    );
+
+    // make sure user object exists
+    const user = payload.user || { name: 'Anonymous', email: '' };
+
+    const finalPayload = {
+      user,
+      startedAt: payload.startedAt || new Date().toISOString(),
+      submittedAt: payload.submittedAt || new Date().toISOString(),
+      location: payload.location || null,
+      answers: normalizedAnswers,
+    };
+
+    await axiosInstance.post(
+      `/assessments/${assessmentId}/responses`,
+      finalPayload
+    );
+
+    get().clearDraft(assessmentId);
+  } catch (err: any) {
+    console.error(
+      '[Store] Error submitting responses:',
+      err.response?.data || err.message
+    );
+    throw err;
   }
 },
 
+  deleteAssessmentById: async (id: string): Promise<boolean> => {
+    try {
+      await axiosInstance.delete(`/assessments/${id}`);
+      return true;
+    } catch (err) {
+      console.error('[Store] Error deleting assessment:', err);
+      return false;
+    }
+  },
 }));
+
