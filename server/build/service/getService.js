@@ -87,10 +87,10 @@ class GetAssessmentById {
 }
 exports.GetAssessmentById = GetAssessmentById;
 class GetResponseByAssessmentId {
-    getResponseByAssessmentId(assessmentId) {
+    getResponseByAssessmentId(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const response = yield database_1.Response.findOne({ assessmentId });
+                const response = yield database_1.Response.find({ assessmentId: id });
                 return response;
             }
             catch (error) {

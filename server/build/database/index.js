@@ -5,17 +5,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.beforeAssessment = exports.Response = exports.Assessment = exports.Organisation = exports.User = exports.connection = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const mongoDB = "mongodb+srv://xcelarate:vS6aQk4CE9FlUDUi@cluster0.2xdekrz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config(); // Load environment variables from .env
+const mongoDB = process.env.MONGO_URI; // Get URI from .env
+if (!mongoDB) {
+    throw new Error("MONGO_URI is not defined in .env");
+}
 exports.connection = mongoose_1.default.connect(mongoDB, {
 // useNewUrlParser: true,
 // useUnifiedTopology: true,
 });
+// ------------------ Schemas ------------------
 const userSchema = new mongoose_1.default.Schema({
     userId: Number,
     username: String,
     email: String,
     password: String,
-    iv: { type: String, required: false }, //TODO: has to be set true but for the time being is set to false
+    iv: { type: String, required: false }, // TODO: make true later
     contact: Number,
     organisation: String,
     designation: String,
@@ -28,26 +34,26 @@ const organisationSchema = new mongoose_1.default.Schema({
     address: String,
     spoc: String,
     email: String,
-    contact: Number
+    contact: Number,
 });
 const optionSchema = new mongoose_1.default.Schema({
     text: String,
 });
 const questionSchema = new mongoose_1.default.Schema({
     text: String,
-    options: [optionSchema]
+    options: [optionSchema],
 });
 const assessmentSchema = new mongoose_1.default.Schema({
     title: String,
     roles: [String],
-    questions: [questionSchema]
+    questions: [questionSchema],
 });
 const userStartSchema = new mongoose_1.default.Schema({
     name: String,
     designation: String,
     email: String,
     department: String,
-    phone: String
+    phone: String,
 });
 const responseSchema = new mongoose_1.default.Schema({
     assessmentId: {
@@ -81,13 +87,9 @@ const responseSchema = new mongoose_1.default.Schema({
         }),
     },
 });
-const Assessment = mongoose_1.default.model("Assessment", assessmentSchema);
-exports.Assessment = Assessment;
-const Organisation = mongoose_1.default.model("Organisations", organisationSchema);
-exports.Organisation = Organisation;
-const Response = mongoose_1.default.model("Responses", responseSchema);
-exports.Response = Response;
-const beforeAssessment = mongoose_1.default.model("BeforeAssessment", userStartSchema);
-exports.beforeAssessment = beforeAssessment;
-// const User = mongoose.model("Users", userSchema);
+// ------------------ Models ------------------
 exports.User = mongoose_1.default.model('User', userSchema);
+exports.Organisation = mongoose_1.default.model('Organisations', organisationSchema);
+exports.Assessment = mongoose_1.default.model('Assessment', assessmentSchema);
+exports.Response = mongoose_1.default.model('Responses', responseSchema);
+exports.beforeAssessment = mongoose_1.default.model('BeforeAssessment', userStartSchema);
