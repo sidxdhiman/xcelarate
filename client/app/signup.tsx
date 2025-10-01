@@ -1,22 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  ScrollView,
-  ImageBackground,
-  Alert,
-  Platform,
-} from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground, Platform } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import { AxiosError } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
+import MobileDropdown from './MobileDropdown'; // import the mobile-only dropdown
 
 const SignUpScreen = () => {
   const router = useRouter();
@@ -30,7 +18,7 @@ const SignUpScreen = () => {
   const [location, setLocation] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [accessLevel, setAccessLevel] = useState(1); // Default 1 = Normal User
+  const [accessLevel, setAccessLevel] = useState(1);
 
   const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
@@ -43,33 +31,14 @@ const SignUpScreen = () => {
       Toast.show({ type: 'error', text1: 'Signup Error', text2: 'Passwords do not match!' });
       return;
     }
-
-    const signupData = {
-      username,
-      email,
-      contact,
-      organisation,
-      designation,
-      location,
-      password,
-      accessLevel, // Updated logic
-    };
-
-    try {
-      await signup(signupData);
-      Toast.show({ type: 'success', text1: 'Signup Successful', text2: 'Welcome aboard!' });
-      router.push('/landing');
-    } catch (err) {
-      const error = err as AxiosError;
-      console.log('Signup error:', error);
-      Toast.show({ type: 'error', text1: 'Signup Failed', text2: 'Something went wrong. Try again.' });
-      Alert.alert('Signup Failed', 'Please try again later.');
-    }
+    await signup({ username, email, contact, organisation, designation, location, password, accessLevel });
+    router.push('/landing');
   };
 
   return (
       <ImageBackground source={require('../assets/images/0003.png')} style={styles.backgroundImage}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          {/* Logo and Powered By */}
           <Image source={require('../assets/images/title-logos/title.png')} style={styles.titleLogo} />
           <View style={styles.bottomRight}>
             <Text style={styles.subtitle}>Powered By </Text>
@@ -78,28 +47,38 @@ const SignUpScreen = () => {
 
           <Text style={styles.header}>Sign Up</Text>
 
+          {/* Input fields */}
           <TextInput style={styles.input} placeholder="Username" placeholderTextColor="#999" value={username} onChangeText={setUsername} />
           <TextInput style={styles.input} placeholder="Email ID" placeholderTextColor="#999" keyboardType="email-address" value={email} onChangeText={setEmail} />
           <TextInput style={styles.input} placeholder="Contact Details" placeholderTextColor="#999" keyboardType="phone-pad" value={contact} onChangeText={setContact} />
           <TextInput style={styles.input} placeholder="Organisation" placeholderTextColor="#999" value={organisation} onChangeText={setOrganisation} />
           <TextInput style={styles.input} placeholder="Designation" placeholderTextColor="#999" value={designation} onChangeText={setDesignation} />
 
-          {/* Location Picker */}
+          {/* Location */}
           <View style={styles.pickerWrapper}>
-            <Picker selectedValue={location} onValueChange={(itemValue) => setLocation(itemValue)} style={styles.picker} dropdownIconColor="#fff" mode={Platform.OS === 'ios' ? 'dialog' : 'dropdown'}>
-              <Picker.Item label="Select a location" value="" color="#999" />
-              {locations.map((loc) => <Picker.Item key={loc} label={loc} value={loc} color="#000" />)}
-            </Picker>
+            {Platform.OS === 'web' ? (
+                <select value={location} onChange={(e) => setLocation(e.target.value)} style={styles.webSelect}>
+                  <option value="" disabled>Select a location</option>
+                  {locations.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
+                </select>
+            ) : (
+                <MobileDropdown data={locations.map((l, i) => ({ key: i, label: l }))} initValue="Select a location" onChange={(option) => setLocation(option.label)} />
+            )}
           </View>
 
-          {/* Access Level Picker */}
+          {/* Access Level */}
           <View style={styles.pickerWrapper}>
-            <Picker selectedValue={accessLevel} onValueChange={(itemValue) => setAccessLevel(Number(itemValue))} style={styles.picker}>
-              <Picker.Item label="Normal User" value={1} />
-              <Picker.Item label="Super Admin" value={5} />
-            </Picker>
+            {Platform.OS === 'web' ? (
+                <select value={accessLevel} onChange={(e) => setAccessLevel(Number(e.target.value))} style={styles.webSelect}>
+                  <option value={1}>Normal User</option>
+                  <option value={5}>Super Admin</option>
+                </select>
+            ) : (
+                <MobileDropdown data={[{ key: 1, label: 'Normal User' }, { key: 5, label: 'Super Admin' }]} initValue="Select Access Level" onChange={(option) => setAccessLevel(Number(option.key))} />
+            )}
           </View>
 
+          {/* Passwords */}
           <TextInput style={styles.input} placeholder="Create Password" placeholderTextColor="#999" secureTextEntry value={password} onChangeText={setPassword} />
           <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor="#999" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
@@ -107,10 +86,6 @@ const SignUpScreen = () => {
             <Text style={styles.signupButtonText}>Create Account</Text>
           </TouchableOpacity>
 
-          <Text style={styles.haveAccount}>
-            Already have an account?{' '}
-            <Text style={styles.link} onPress={() => router.push('/login')}>Log in</Text>
-          </Text>
         </ScrollView>
       </ImageBackground>
   );
@@ -118,19 +93,17 @@ const SignUpScreen = () => {
 
 const styles = StyleSheet.create({
   backgroundImage: { flex: 1, resizeMode: 'cover', width: '100%', height: '100%' },
-  container: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', alignItems: 'center', paddingTop: 50, paddingHorizontal: 20, paddingBottom: 30 },
-  titleLogo: { marginTop: 120, width: RFValue(250), height: RFValue(22), resizeMode: 'cover' },
+  container: { flexGrow: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', paddingTop: 50, paddingHorizontal: 20, paddingBottom: 30 },
+  titleLogo: { marginTop: 60, width: RFValue(250), height: RFValue(22), resizeMode: 'cover' },
   bottomRight: { position: 'absolute', bottom: 20, right: 20, flexDirection: 'row', alignItems: 'center' },
   subtitle: { fontSize: 14, color: '#fff', marginRight: 5 },
   logo: { width: 70, height: 70, resizeMode: 'contain' },
-  header: { fontSize: 20, fontWeight: 'bold', color: '#fff', alignSelf: 'center', marginBottom: 20, marginTop: 60 },
-  input: { width: 340, height: 45, borderColor: '#fff', borderWidth: 2, borderRadius: 50, paddingHorizontal: 15, marginBottom: 15, color: '#fff' },
-  pickerWrapper: { width: 340, height: 45, borderColor: '#fff', borderWidth: 2, borderRadius: 50, paddingHorizontal: Platform.OS === 'ios' ? 10 : 0, marginBottom: 15, justifyContent: 'center' },
-  picker: { borderRadius: 50, width: '100%', height: '100%' },
+  header: { fontSize: 20, fontWeight: 'bold', color: '#fff', alignSelf: 'center', marginBottom: 20, marginTop: 30 },
+  input: { width: '100%', maxWidth: 340, height: 45, borderColor: '#fff', borderWidth: 2, borderRadius: 50, paddingHorizontal: 15, marginBottom: 15, color: '#fff' },
+  pickerWrapper: { width: '100%', maxWidth: 340, marginBottom: 15 },
+  webSelect: { width: '100%', height: 45, borderRadius: 50, borderWidth: 2, borderColor: '#fff', backgroundColor: 'rgba(255,255,255,0.1)', color: '#fff', paddingHorizontal: 15, fontSize: 16 },
   signupButton: { backgroundColor: '#740968', borderRadius: 50, paddingVertical: 13, paddingHorizontal: 40, marginTop: 10, marginBottom: 15 },
   signupButtonText: { fontWeight: '300', fontSize: 16, color: '#fff', textAlign: 'center' },
-  haveAccount: { fontSize: 14, color: '#FFFFFF', marginTop: 10, textAlign: 'center' },
-  link: { color: 'white', textDecorationLine: 'underline' },
 });
 
 export default SignUpScreen;
