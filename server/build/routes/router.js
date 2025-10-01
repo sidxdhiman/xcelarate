@@ -32,3 +32,4 @@ routers.get("/assessments/:assessmentId/responses", apiRoutes_1.default);
 routers.patch("/assessments/:id", apiRoutes_1.default);
 routers.delete("/assessments/:id", apiRoutes_1.default);
 exports.default = routers;
+

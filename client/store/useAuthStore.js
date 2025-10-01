@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
+import axiosInstance from "../lib/axios";
 import Toast from "react-native-toast-message";
 
 export const useAuthStore = create((set, get) => ({
@@ -23,7 +23,10 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       console.log("Error in checkAuth:", error);
       set({ authUser: null });
-      Toast.show({ type: "error", text1: "Session expired or user not authenticated" });
+      Toast.show({
+        type: "error",
+        text1: "Session expired or user not authenticated",
+      });
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -33,7 +36,7 @@ export const useAuthStore = create((set, get) => ({
   signup: async (signupData) => {
     set({ isSigningUp: true });
     try {
-      const res = await axiosInstance.post("/signupUser", signupData);
+      const res = await axiosInstance.post("/api/signupUser", signupData);
       set({ authUser: res.data });
     } catch (error) {
       console.error("Signup error:", error);
@@ -47,7 +50,7 @@ export const useAuthStore = create((set, get) => ({
   login: async (data) => {
     set({ isLoggingIn: true });
     try {
-      const res = await axiosInstance.post("/loginUser", data);
+      const res = await axiosInstance.post("/api/loginUser", data);
       if (res.data.success) {
         set({ authUser: res.data.data });
         return { success: true, ...res.data.data };
@@ -71,14 +74,17 @@ export const useAuthStore = create((set, get) => ({
       get().disconnectSocket?.();
     } catch (error) {
       console.error("Logout error:", error);
-      Toast.show({ type: "error", text1: error?.response?.data?.message || "Logout failed" });
+      Toast.show({
+        type: "error",
+        text1: error?.response?.data?.message || "Logout failed",
+      });
     }
   },
 
   // --- Add User ---
   addUser: async (data) => {
     try {
-      const res = await axiosInstance.post("/postUser", data);
+      const res = await axiosInstance.post("/api/postUser", data);
       console.log(res.data);
       return { success: true };
     } catch (error) {
@@ -90,13 +96,16 @@ export const useAuthStore = create((set, get) => ({
   // --- Bulk Upload Users ---
   uploadBulkUsers: async (formData) => {
     try {
-      const res = await axiosInstance.post("/bulkUserUpload", formData, {
+      const res = await axiosInstance.post("/api/bulkUserUpload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return res.data;
     } catch (error) {
       console.error("Bulk upload error:", error);
-      return { success: false, message: error.response?.data?.message || "Upload failed" };
+      return {
+        success: false,
+        message: error.response?.data?.message || "Upload failed",
+      };
     }
   },
 
@@ -105,12 +114,18 @@ export const useAuthStore = create((set, get) => ({
     set({ isUpdatingProfile: true });
     try {
       const { email, ...updateData } = data;
-      const res = await axiosInstance.patch(`/users/${encodeURIComponent(email)}`, updateData);
+      const res = await axiosInstance.patch(
+          `/api/users/${encodeURIComponent(email)}`,
+          updateData
+      );
       set({ authUser: res.data.data });
       Toast.show({ type: "success", text1: "Profile updated successfully" });
     } catch (error) {
       console.error("Error in updateProfile:", error);
-      Toast.show({ type: "error", text1: error?.response?.data?.message || "Profile update failed" });
+      Toast.show({
+        type: "error",
+        text1: error?.response?.data?.message || "Profile update failed",
+      });
     } finally {
       set({ isUpdatingProfile: false });
     }
@@ -119,7 +134,9 @@ export const useAuthStore = create((set, get) => ({
   // --- Fetch User by Email ---
   fetchUserByEmail: async (email) => {
     try {
-      const res = await axiosInstance.get(`/users/${encodeURIComponent(email)}`);
+      const res = await axiosInstance.get(
+          `/api/users/${encodeURIComponent(email)}`
+      );
       return res.data;
     } catch (error) {
       console.error("FetchUserByEmail error:", error);
@@ -137,8 +154,8 @@ export const useAuthStore = create((set, get) => ({
     set({ isModifyingUser: true });
     try {
       const res = await axiosInstance.patch(
-        `/users/${encodeURIComponent(email)}`,
-        updatedUserData
+          `/api/users/${encodeURIComponent(email)}`,
+          updatedUserData
       );
       set({ authUser: res.data.data });
       return { success: true };
@@ -153,7 +170,9 @@ export const useAuthStore = create((set, get) => ({
   // --- Delete User ---
   deleteUser: async (email) => {
     try {
-      const res = await axiosInstance.delete(`/users/${encodeURIComponent(email)}`);
+      const res = await axiosInstance.delete(
+          `/api/users/${encodeURIComponent(email)}`
+      );
       return { success: true, message: res.data.message };
     } catch (error) {
       console.error("DeleteUser error:", error);
