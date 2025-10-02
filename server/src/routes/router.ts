@@ -4,6 +4,6 @@ import apiRoutes from "./apiRoutes";
 const router = express.Router();
 
 // ✅ Mount all API routes under /api
-router.use("/api", apiRoutes);
+router.use("/", apiRoutes);
 
 export default router;
