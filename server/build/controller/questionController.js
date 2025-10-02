@@ -14,12 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.questionController = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
+const pdfkit_1 = __importDefault(require("pdfkit"));
 const postService_1 = require("../service/postService");
 const getService_1 = require("../service/getService");
-const getService_2 = require("../service/getService");
 const patchService_1 = require("../service/patchService");
 const deleteService_1 = require("../service/deleteService");
 class questionController {
+    // -------------------- CREATE ASSESSMENT --------------------
     static postQuestion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -39,6 +40,7 @@ class questionController {
             }
         });
     }
+    // -------------------- GET ALL ASSESSMENTS --------------------
     static getAssessmentFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -56,6 +58,7 @@ class questionController {
             }
         });
     }
+    // -------------------- GET ASSESSMENT BY ID --------------------
     static getAssessmentByIdFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -77,6 +80,7 @@ class questionController {
             }
         });
     }
+    // -------------------- SUBMIT RESPONSE --------------------
     static submitResponse(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -103,6 +107,7 @@ class questionController {
             }
         });
     }
+    // -------------------- GET RESPONSES BY ASSESSMENT ID --------------------
     static getResponseById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -110,7 +115,7 @@ class questionController {
                 if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
                     return res.status(400).json({ message: "Invalid Assessment ID" });
                 }
-                const responseData = yield new getService_2.GetResponseByAssessmentId().getResponseByAssessmentId(id);
+                const responseData = yield new getService_1.GetResponseByAssessmentId().getResponseByAssessmentId(id);
                 if (!responseData || responseData.length === 0) {
                     return res.status(404).json({ message: "No response found for this assessment" });
                 }
@@ -122,6 +127,7 @@ class questionController {
             }
         });
     }
+    // -------------------- UPDATE ASSESSMENT --------------------
     static patchAssessmentByIdFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -139,6 +145,7 @@ class questionController {
             }
         });
     }
+    // -------------------- DELETE ASSESSMENT --------------------
     static deleteAssessmentByIdFunction(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -154,6 +161,65 @@ class questionController {
             }
             catch (error) {
                 console.error("[deleteAssessmentByIdFunction] Error:", error);
+                res.status(500).json({ message: "Internal Server Error" });
+            }
+        });
+    }
+    // -------------------- DOWNLOAD PDF --------------------
+    static getAssessmentPdf(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const id = req.params.id;
+                if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+                    return res.status(400).json({ message: "Invalid Assessment ID" });
+                }
+                const assessment = yield new getService_1.GetAssessmentById().getAssessmentbyId(id);
+                const responses = yield new getService_1.GetResponseByAssessmentId().getResponseByAssessmentId(id);
+                if (!assessment) {
+                    return res.status(404).json({ message: "Assessment not found" });
+                }
+                // Create PDF
+                const doc = new pdfkit_1.default();
+                res.setHeader("Content-Type", "application/pdf");
+                res.setHeader("Content-Disposition", `attachment; filename=assessment_${id}.pdf`);
+                doc.pipe(res);
+                // Title
+                doc.fontSize(20).text("Assessment Report", { align: "center" }).moveDown();
+                doc.fontSize(14).text(`Assessment: ${assessment.title || "Untitled"}`);
+                doc.moveDown();
+                // Questions
+                if (assessment.questions && assessment.questions.length > 0) {
+                    doc.fontSize(16).text("Questions:", { underline: true }).moveDown(0.5);
+                    assessment.questions.forEach((q, index) => {
+                        doc.fontSize(12).text(`${index + 1}. ${q.text}`);
+                    });
+                    doc.moveDown();
+                }
+                // Responses
+                if (responses && responses.length > 0) {
+                    doc.fontSize(16).text("Responses:", { underline: true }).moveDown(0.5);
+                    responses.forEach((resp, idx) => {
+                        var _a;
+                        doc.fontSize(12).text(`Response ${idx + 1}:`);
+                        if ((_a = resp.user) === null || _a === void 0 ? void 0 : _a.name)
+                            doc.text(`- User: ${resp.user.name}`);
+                        if (resp.submittedAt)
+                            doc.text(`- Submitted At: ${new Date(resp.submittedAt).toLocaleString()}`);
+                        if (resp.answers) {
+                            Object.entries(resp.answers).forEach(([qId, ans]) => {
+                                doc.text(`   Q${qId}: ${ans}`);
+                            });
+                        }
+                        doc.moveDown();
+                    });
+                }
+                else {
+                    doc.text("No responses submitted yet.");
+                }
+                doc.end();
+            }
+            catch (error) {
+                console.error("[getAssessmentPdf] Error:", error);
                 res.status(500).json({ message: "Internal Server Error" });
             }
         });

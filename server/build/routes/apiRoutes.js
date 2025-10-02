@@ -32,4 +32,6 @@ router.post("/assessments/:id/responses", questionController_1.questionControlle
 router.get("/assessments/:id/responses", questionController_1.questionController.getResponseById);
 router.patch("/assessments/:id", questionController_1.questionController.patchAssessmentByIdFunction);
 router.delete("/assessments/:id", questionController_1.questionController.deleteAssessmentByIdFunction);
+// pdf creation route
+router.get("/assessments/:id/pdf", questionController_1.questionController.getAssessmentPdf);
 exports.default = router;
