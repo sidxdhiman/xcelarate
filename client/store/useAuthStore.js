@@ -17,7 +17,7 @@ export const useAuthStore = create((set, get) => ({
   // --- Auth Check ---
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/api/auth/check");
+      const res = await axiosInstance.get("/auth/check");
       set({ authUser: res.data });
       get().connectSocket?.();
     } catch (error) {
@@ -36,7 +36,7 @@ export const useAuthStore = create((set, get) => ({
   signup: async (signupData) => {
     set({ isSigningUp: true });
     try {
-      const res = await axiosInstance.post("/api/signupUser", signupData);
+      const res = await axiosInstance.post("/signupUser", signupData);
       set({ authUser: res.data });
     } catch (error) {
       console.error("Signup error:", error);
@@ -50,7 +50,7 @@ export const useAuthStore = create((set, get) => ({
   login: async (data) => {
     set({ isLoggingIn: true });
     try {
-      const res = await axiosInstance.post("/api/loginUser", data);
+      const res = await axiosInstance.post("/loginUser", data);
       if (res.data.success) {
         set({ authUser: res.data.data });
         return { success: true, ...res.data.data };
@@ -68,7 +68,7 @@ export const useAuthStore = create((set, get) => ({
   // --- Logout ---
   logout: async () => {
     try {
-      await axiosInstance.post("/api/auth/logout");
+      await axiosInstance.post("/auth/logout");
       set({ authUser: null });
       Toast.show({ type: "success", text1: "Logged out successfully" });
       get().disconnectSocket?.();
@@ -84,7 +84,7 @@ export const useAuthStore = create((set, get) => ({
   // --- Add User ---
   addUser: async (data) => {
     try {
-      const res = await axiosInstance.post("/api/postUser", data);
+      const res = await axiosInstance.post("/postUser", data);
       console.log(res.data);
       return { success: true };
     } catch (error) {
@@ -96,7 +96,7 @@ export const useAuthStore = create((set, get) => ({
   // --- Bulk Upload Users ---
   uploadBulkUsers: async (formData) => {
     try {
-      const res = await axiosInstance.post("/api/bulkUserUpload", formData, {
+      const res = await axiosInstance.post("/bulkUserUpload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return res.data;
@@ -115,7 +115,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { email, ...updateData } = data;
       const res = await axiosInstance.patch(
-          `/api/users/${encodeURIComponent(email)}`,
+          `/users/${encodeURIComponent(email)}`,
           updateData
       );
       set({ authUser: res.data.data });
@@ -135,7 +135,7 @@ export const useAuthStore = create((set, get) => ({
   fetchUserByEmail: async (email) => {
     try {
       const res = await axiosInstance.get(
-          `/api/users/${encodeURIComponent(email)}`
+          `/users/${encodeURIComponent(email)}`
       );
       return res.data;
     } catch (error) {
@@ -154,7 +154,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isModifyingUser: true });
     try {
       const res = await axiosInstance.patch(
-          `/api/users/${encodeURIComponent(email)}`,
+          `/users/${encodeURIComponent(email)}`,
           updatedUserData
       );
       set({ authUser: res.data.data });
@@ -171,7 +171,7 @@ export const useAuthStore = create((set, get) => ({
   deleteUser: async (email) => {
     try {
       const res = await axiosInstance.delete(
-          `/api/users/${encodeURIComponent(email)}`
+          `/users/${encodeURIComponent(email)}`
       );
       return { success: true, message: res.data.message };
     } catch (error) {
@@ -181,4 +181,3 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 }));
-
