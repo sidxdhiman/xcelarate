@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { router, useNavigation, useRouter } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
-import { useAssessmentStore } from '../../store/useAssessmentStore';
+import useAssessmentStore from "../../store/useAssessmentStore"
 import Toast from 'react-native-toast-message';
 import { Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
