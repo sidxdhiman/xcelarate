@@ -23,7 +23,7 @@ router.post("/organisations/", RequestValidator.postOrganisation, orgController.
 router.get("/organisations/", orgController.getOrg);
 
 //question crud
-router.post("/postAssessment", questionController.postQuestion);
+router.post("/Assessment", questionController.postQuestion);
 router.get("/assessments", questionController.getAssessmentFunction);
 router.get("/assessments/:id", questionController.getAssessmentByIdFunction);
 router.post("/assessments/:id/responses", questionController.submitResponse);
