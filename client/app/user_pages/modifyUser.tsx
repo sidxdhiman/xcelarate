@@ -12,11 +12,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useAuthStore } from '../../store/useAuthStore';
+import {useAuthStore} from '@/store/useAuthStore';
 import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
+// import { Picker } from '@react-native-picker/picker';
+// import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
-import { axiosInstance } from '@/lib/axios';
+import axiosInstance from '@/lib/axios';
 
 const ModifyUser = () => {
   const { width } = useWindowDimensions();
