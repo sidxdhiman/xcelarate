@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Pressable, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Pressable, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import tw from 'twrnc';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -8,20 +8,27 @@ import { useAssessmentStore } from '@/store/useAssessmentStore';
 export default function TestResponses() {
     const { id: rawId } = useLocalSearchParams<{ id: string }>();
     const id = decodeURIComponent(rawId?.trim() || '');
-    const [title, setTitle] = useState('');
     const [loading, setLoading] = useState(true);
     const [pdfLoading, setPdfLoading] = useState(false);
-    const [search, setSearch] = useState('');
+    const [title, setTitle] = useState('');
 
-    const { fetchAssessmentById, downloadAssessmentPdf } = useAssessmentStore();
+    const {
+        fetchAssessmentById,
+        fetchAssessmentResponses,
+        downloadAssessmentPdf,
+        assessmentResponses
+    } = useAssessmentStore();
 
+    // Fetch assessment info + responses
     useEffect(() => {
-        const fetchAssessment = async () => {
-            if (!id) return;
+        if (!id) return;
+
+        const fetchData = async () => {
             setLoading(true);
             try {
-                const assessment = await fetchAssessmentById(id);
-                setTitle(assessment?.title || 'Untitled');
+                const data = await fetchAssessmentById(id);
+                setTitle(data?.title || 'Untitled');
+                await fetchAssessmentResponses(id); // fetch all responses
             } catch (err) {
                 console.error('Error fetching assessment:', err);
                 Alert.alert('Error', 'Failed to load assessment info.');
@@ -29,7 +36,8 @@ export default function TestResponses() {
                 setLoading(false);
             }
         };
-        fetchAssessment();
+
+        fetchData();
     }, [id]);
 
     const handleDownloadPDF = async () => {
@@ -60,12 +68,27 @@ export default function TestResponses() {
                         Responses for: {title}
                     </Text>
 
-                    <TextInput
-                        placeholder="Search (not used)"
-                        value={search}
-                        onChangeText={setSearch}
-                        style={tw`border border-gray-300 rounded-md px-3 py-2 mb-4`}
-                    />
+                    {assessmentResponses.length ? (
+                        assessmentResponses.map((resp: any, idx: number) => (
+                            <View key={idx} style={tw`border p-3 rounded mb-3`}>
+                                <Text style={tw`font-semibold text-purple-700`}>
+                                    User: {resp.user?.name || 'Anonymous'}
+                                </Text>
+                                <Text style={tw`text-gray-700`}>
+                                    Submitted At: {new Date(resp.submittedAt).toLocaleString()}
+                                </Text>
+                                {Object.entries(resp.answers).map(([qKey, ans]: [string, any]) => (
+                                    <View key={qKey} style={tw`mt-2`}>
+                                        <Text style={tw`font-semibold`}>Q: {qKey}</Text>
+                                        {ans.option && <Text>A: {ans.option}</Text>}
+                                        {ans.text && <Text>A: {ans.text}</Text>}
+                                    </View>
+                                ))}
+                            </View>
+                        ))
+                    ) : (
+                        <Text style={tw`text-gray-600 mb-4`}>No responses yet.</Text>
+                    )}
 
                     <Pressable
                         onPress={handleDownloadPDF}
@@ -76,8 +99,6 @@ export default function TestResponses() {
                             {pdfLoading ? 'Downloading...' : 'Download All Responses PDF'}
                         </Text>
                     </Pressable>
-
-                    <Text style={tw`text-gray-600`}>All responses will be included in the PDF.</Text>
                 </>
             )}
         </ScrollView>

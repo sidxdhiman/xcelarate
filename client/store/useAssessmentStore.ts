@@ -12,23 +12,26 @@ interface AnswerPayload {
 interface AssessmentStore {
   assessments: Assessment[];
   currentAssessment: Assessment | null;
+  assessment: any | null; // added for responses
   isFetching: boolean;
   isSubmitting: boolean;
   error: string | null;
   draftResponses: Record<string, Record<string, AnswerPayload>>;
   fetchAssessments: () => Promise<void>;
   fetchAssessmentById: (id: string) => Promise<Assessment | null>;
+  fetchAssessmentResponses: (id: string) => Promise<void>;
   submitAssessmentResponse: (id: string, payload: any) => Promise<boolean>;
   downloadAssessmentPdf: (id: string) => Promise<void>;
   setDraft: (assessmentId: string, questionKey: string, ans: AnswerPayload) => void;
   clearDraft: (assessmentId: string) => void;
   deleteAssessmentById: (id: string) => Promise<boolean>;
-  addAssessment: (data: Partial<Assessment>) => Promise<Assessment | null>; // 👈 NEW
+  addAssessment: (data: Partial<Assessment>) => Promise<Assessment | null>;
 }
 
 export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
   assessments: [],
   currentAssessment: null,
+  assessment: null, // initial state for responses
   isFetching: false,
   isSubmitting: false,
   error: null,
@@ -57,7 +60,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  // Fetch all
+  // Fetch all assessments
   fetchAssessments: async () => {
     set({ isFetching: true, error: null });
     try {
@@ -72,7 +75,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  // Fetch one
+  // Fetch a single assessment
   fetchAssessmentById: async (id: string) => {
     set({ isFetching: true, error: null });
     try {
@@ -89,13 +92,27 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
+  // Fetch all responses for an assessment
+  fetchAssessmentResponses: async (id: string) => {
+    set({ isFetching: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(`/assessments/${id}/responses`);
+      set({ assessmentResponses: data }); // store responses separately
+    } catch (error: any) {
+      console.error("Error fetching assessment responses:", error);
+      set({ error: error?.response?.data?.message || "Failed to fetch responses" });
+      Toast.show({ type: "error", text1: "Failed to load responses" });
+    } finally {
+      set({ isFetching: false });
+    }
+  },
+
   // Patch / update existing assessment
   patchAssessmentById: async (id: string, data: Partial<Assessment>) => {
     set({ isSubmitting: true, error: null });
     try {
       const res = await axiosInstance.patch(`/assessments/${id}`, data);
 
-      // Optionally update local state
       set((state) => ({
         assessments: state.assessments.map((a) =>
             a.id === id ? res.data : a
@@ -115,7 +132,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  // Submit
+  // Submit assessment response
   submitAssessmentResponse: async (id: string, payload: any) => {
     set({ isSubmitting: true, error: null });
     try {
@@ -153,11 +170,10 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  // PDF
+  // Download assessment PDF
   downloadAssessmentPdf: async (id: string) => {
     set({ isFetching: true, error: null });
     try {
-      // import from your lib
       const { downloadAssessmentPDF } = await import("@/lib/pdfGenerator");
       await downloadAssessmentPDF(id);
 
@@ -171,8 +187,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-
-  // Delete
+  // Delete assessment
   deleteAssessmentById: async (id: string) => {
     set({ isFetching: true, error: null });
     try {
@@ -189,7 +204,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  // Draft
+  // Draft handling
   setDraft: (assessmentId, questionKey, ans) =>
       set((state) => ({
         draftResponses: {
@@ -208,5 +223,3 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
         return { draftResponses: updated };
       }),
 }));
-
-// export default useAssessmentStore;
