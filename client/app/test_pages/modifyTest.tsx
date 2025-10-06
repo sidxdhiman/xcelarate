@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
-import { useAssessmentStore } from '../../store/useAssessmentStore';
+import { useAssessmentStore } from '@/store/useAssessmentStore';
 import Toast from 'react-native-toast-message';
 import { Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -24,7 +24,7 @@ interface Question {
 export default function ModifyTest() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { getAssessmentById:fetchAssessmentById, patchAssessmentById:modifyAssessment } = useAssessmentStore();
+  const { fetchAssessmentById:fetchAssessmentById, patchAssessmentById:modifyAssessment } = useAssessmentStore();
 
   const [title, setTitle] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
@@ -113,16 +113,18 @@ export default function ModifyTest() {
 
     try {
       setLoading(true);
+
       const result = await modifyAssessment(id as string, {
         title,
         roles,
         questions,
       });
+
       setLoading(false);
 
       if (result) {
         Toast.show({ type: 'success', text1: 'Assessment Updated!' });
-        router.push('/test_pages/testList');
+        router.push('/test_pages/testList'); // navigate back
       } else {
         Toast.show({ type: 'error', text1: 'Update Failed' });
       }
@@ -131,6 +133,7 @@ export default function ModifyTest() {
       Toast.show({ type: 'error', text1: 'Error', text2: 'Please try again.' });
     }
   };
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
