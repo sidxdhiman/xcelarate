@@ -157,8 +157,11 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
   downloadAssessmentPdf: async (id: string) => {
     set({ isFetching: true, error: null });
     try {
-      await axiosInstance.get(`/assessments/${id}/pdf`, { responseType: "blob" });
-      Toast.show({ type: "success", text1: "PDF downloaded" });
+      // import from your lib
+      const { downloadAssessmentPDF } = await import("@/lib/pdfGenerator");
+      await downloadAssessmentPDF(id);
+
+      Toast.show({ type: "success", text1: "PDF downloaded successfully" });
     } catch (error: any) {
       console.error("Error downloading PDF:", error);
       set({ error: error?.response?.data?.message || "Failed to download PDF" });
@@ -167,6 +170,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
       set({ isFetching: false });
     }
   },
+
 
   // Delete
   deleteAssessmentById: async (id: string) => {
