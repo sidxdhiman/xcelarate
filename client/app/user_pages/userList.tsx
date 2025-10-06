@@ -88,8 +88,8 @@ const UserList = () => {
         {loading ? (
             <ActivityIndicator size="large" color="#800080" />
         ) : (
-            (filteredUsers.length ? filteredUsers : users).map((user) => (
-                <View key={user.id} style={[styles.card, !isMobile && styles.cardWeb]}>
+            (filteredUsers.length ? filteredUsers : users).map((user, index) => (
+                <View key={user.id || user.email || index} style={[styles.card, !isMobile && styles.cardWeb]}>
                   <View style={tw`flex-row justify-between items-center`}>
                     <Text style={tw`text-lg font-bold text-black`}>{user.username}</Text>
                     <View style={tw`flex-row`}>

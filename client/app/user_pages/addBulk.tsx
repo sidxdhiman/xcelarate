@@ -60,44 +60,53 @@ const AddBulkUsers = () => {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
-      if (result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
-        console.log('Selected file:', file);
+      if (!result.assets || result.assets.length === 0) return;
 
-        const base64String = file.uri.split(',')[1];
-        const byteCharacters = atob(base64String); 
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
-          const slice = byteCharacters.slice(offset, offset + 1024);
-          const byteNumbers = new Array(slice.length);
-          for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-          }
-          byteArrays.push(new Uint8Array(byteNumbers));
-        }
+      const file = result.assets[0];
+      console.log('Selected file:', file);
 
-        const blob = new Blob(byteArrays, { type: file.mimeType });
+      setLoading(true);
+
+      // ✅ Web: use fetch() to get blob
+      let fileData;
+      if (Platform.OS === 'web') {
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
 
         const formData = new FormData();
         formData.append('file', blob, file.name);
+        fileData = formData;
+      }
+      // ✅ Native (mobile): use FileSystem to read the file
+      else {
+        const base64 = await FileSystem.readAsStringAsync(file.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
 
-        setLoading(true);
+        const formData = new FormData();
+        formData.append('file', {
+          uri: file.uri,
+          name: file.name,
+          type: file.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        fileData = formData;
+      }
 
-        const uploadResponse = await uploadBulkUsers(formData);
-        setLoading(false);
+      // ✅ Upload via store function
+      const uploadResponse = await uploadBulkUsers(fileData);
+      setLoading(false);
 
-        if (uploadResponse.success) {
-          Toast.show({
-            type: 'success',
-            text1: 'Users Added Successfully!'
-          })
-        } else {
-          router.push('/user_pages/userList')
-          Toast.show({
-            type: 'success',
-            text1: 'Users Added Successfully'
-          })
-        }
+      if (uploadResponse?.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'Users Added Successfully!',
+        });
+      } else {
+        router.push('/user_pages/userList');
+        Toast.show({
+          type: 'success',
+          text1: 'Users Added Successfully',
+        });
       }
     } catch (error) {
       console.error('File picking/upload error:', error);
@@ -105,10 +114,10 @@ const AddBulkUsers = () => {
       Toast.show({
         type: 'error',
         text1: 'Failed',
-        text2: 'Failed to upload file!'
-      })
+        text2: 'Failed to upload file!',
+      });
     }
-  };  
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
@@ -124,7 +133,7 @@ const AddBulkUsers = () => {
       style={styles.downloadButton}
       onPress={handleDownload}
       >
-        <Text style={styles.downloadButtonText}>Download Xcel Sheet Format</Text>
+        <Text style={styles.downloadButtonText}>Download Excel Sheet Format</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.uploadButton}

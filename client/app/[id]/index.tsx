@@ -6,7 +6,7 @@ import { useAssessmentStore } from '@/store/useAssessmentStore';
 
 export default function AssessmentLoader() {
   const { id } = useLocalSearchParams();
-  const getAssessmentById = useAssessmentStore(s => s.getAssessmentById);
+  const getAssessmentById = useAssessmentStore(s => s.fetchAssessmentById);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [err, setErr] = useState(false);
 
