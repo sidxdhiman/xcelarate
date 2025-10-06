@@ -1,151 +1,284 @@
+// import {
+//   View,
+//   Text,
+//   Image,
+//   TouchableOpacity,
+//   SafeAreaView,
+//   StyleSheet,
+//   ImageBackground,
+// } from 'react-native';
+// import React from 'react';
+// import { router } from 'expo-router';
+// import { RFValue } from 'react-native-responsive-fontsize';
+// import { BackgroundImage } from 'react-native-elements/dist/config';
+// import { Dimensions } from 'react-native';
+// import {StatusBar} from 'expo-status-bar';
+//
+// const screenHeight = Dimensions.get('window').height;
+// const screenWidth = Dimensions.get('window').width;
+//
+// export default function WelcomeScreen() {
+//   return (
+//       <SafeAreaView style={styles.container}>
+//         {/* <StatusBar style='light' backgroundColor='#XXXXXX' translucent={false}/> */}
+//         <ImageBackground
+//           source={require("../assets/images/0003.png")}
+//           style={styles.backgroundImage}
+//           resizeMode='cover'
+//         >
+//           <View style={styles.innerContainer}>
+//           {/* <Text style={styles.title}>XCELARATE</Text> */}
+//           <Image
+//             source={require('../assets/images/title-logos/title.png')}
+//             style={styles.titleLogo}
+//           />
+//
+//           <View style={styles.bottomRight}>
+//             <Text style={styles.subtitle}>Powered By </Text>
+//             <Image
+//               source={require('../assets/images/Xebia.png')}
+//               style={styles.logo}
+//             />
+//           </View>
+//
+//           <TouchableOpacity
+//             style={styles.button}
+//             onPress={() => router.push('/login')}
+//           >
+//             <Text style={styles.buttonText}>Log In</Text>
+//           </TouchableOpacity>
+//           <TouchableOpacity
+//             style={styles.button2}
+//             onPress={() => router.push('/signup')}
+//           >
+//             <Text style={styles.buttonText}>Sign Up</Text>
+//           </TouchableOpacity>
+//         </View>
+//         </ImageBackground>
+//       </SafeAreaView>
+//   );
+// }
+//
+// const styles = StyleSheet.create({
+//   // backgroundImage: {
+//   //  flex: 1, // Ensures it covers the full screen
+//   //   width: '100%', // Ensures the image is stretched to the full width
+//   //   height: '100%', // Ensures the image is stretched to the full height
+//   // },
+//   backgroundImage: {
+//     flex: 1,
+//     // height: screenHeight,
+//     // width: screenWidth,
+//       height: '100%',
+//       width: '100%',
+//
+//   },
+//   container: {
+//     flex: 1,
+//     backgroundColor: 'white',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//   },
+//   innerContainer: {
+//     width: '100%',
+//     height: '100%',
+//     alignItems: 'center',
+//     justifyContent: 'flex-start',
+//   },
+//   title: {
+//     fontSize: RFValue(50),
+//     fontWeight: 'bold',
+//     color: 'white',
+//     marginTop: 200,
+//   },
+//   titleLogo: {
+//     marginTop: 250,
+//     width: RFValue(300),
+//     height: RFValue(28),
+//     resizeMode: 'cover'
+//   },
+//   poweredBy: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 16,
+//     marginLeft: 80,
+//   },
+//   poweredByText: {
+//     fontSize: 12,
+//     color: '#4B5563',
+//     marginRight: 4,
+//   },
+//   logo: {
+//     width: 70,
+//     height: 70,
+//     resizeMode: 'contain',
+//   },
+//   button: {
+//     backgroundColor: '#740968',
+//     paddingVertical: 16,
+//     paddingHorizontal: 96,
+//     borderRadius: 9999,
+//     marginTop: 256,
+//     elevation: 5,
+//   },
+//   button2: {
+//     backgroundColor: '#740968',
+//     paddingVertical: 16,
+//     paddingHorizontal: 96,
+//     borderRadius: 999,
+//     marginTop: 25,
+//     elevation: 5,
+//   },
+//   buttonText: {
+//     width: RFValue(50),
+//     textAlign: 'center',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     color: 'white',
+//     fontWeight: '300',
+//     fontSize: 12,
+//   },
+//   bottomRight: {
+//     position: 'absolute',
+//     bottom: 20,
+//     right: 20,
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//   },
+//   subtitle: {
+//     fontSize: 12,
+//     color: 'white',
+//     marginRight: 5
+//   },
+//
+// });
+
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  SafeAreaView,
-  StyleSheet,
-  ImageBackground,
+    View,
+    Text,
+    Image,
+    TouchableOpacity,
+    StyleSheet,
+    ImageBackground,
+    Dimensions,
+    Platform,
 } from 'react-native';
 import React from 'react';
 import { router } from 'expo-router';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { BackgroundImage } from 'react-native-elements/dist/config';
-import { Dimensions } from 'react-native';
-import {StatusBar} from 'expo-status-bar';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 
 export default function WelcomeScreen() {
-  return (
-      <SafeAreaView style={styles.container}>
-        {/* <StatusBar style='light' backgroundColor='#XXXXXX' translucent={false}/> */}
-        <ImageBackground 
-          source={require("../assets/images/0003.png")}
-          style={styles.backgroundImage}
-          resizeMode='cover'
-        >
-          <View style={styles.innerContainer}>
-          {/* <Text style={styles.title}>XCELARATE</Text> */}
-          <Image 
-            source={require('../assets/images/title-logos/title.png')}
-            style={styles.titleLogo}
-          />
+    return (
+        <View style={styles.root}>
+            {/* Extend image under notch */}
+            <StatusBar style="light" translucent backgroundColor="transparent" />
 
-          <View style={styles.bottomRight}>
-            <Text style={styles.subtitle}>Powered By </Text>
-            <Image
-              source={require('../assets/images/Xebia.png')}
-              style={styles.logo}
-            />
-          </View>
+            <ImageBackground
+                source={require('../assets/images/0003.png')}
+                style={styles.backgroundImage}
+                resizeMode="cover"
+            >
+                <SafeAreaView style={styles.safeArea}>
+                    <View style={styles.innerContainer}>
+                        <Image
+                            source={require('../assets/images/title-logos/title.png')}
+                            style={styles.titleLogo}
+                        />
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => router.push('/login')}
-          >
-            <Text style={styles.buttonText}>Log In</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button2}
-            onPress={() => router.push('/signup')}
-          >
-            <Text style={styles.buttonText}>Sign Up</Text>
-          </TouchableOpacity>
+                        <View style={styles.bottomRight}>
+                            <Text style={styles.subtitle}>Powered By </Text>
+                            <Image
+                                source={require('../assets/images/Xebia.png')}
+                                style={styles.logo}
+                            />
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => router.push('/login')}
+                        >
+                            <Text style={styles.buttonText}>Log In</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.button2}
+                            onPress={() => router.push('/signup')}
+                        >
+                            <Text style={styles.buttonText}>Sign Up</Text>
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
+            </ImageBackground>
         </View>
-        </ImageBackground>
-      </SafeAreaView>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
-  // backgroundImage: {
-  //  flex: 1, // Ensures it covers the full screen
-  //   width: '100%', // Ensures the image is stretched to the full width
-  //   height: '100%', // Ensures the image is stretched to the full height
-  // },
-  backgroundImage: {
-    flex: 1,
-    height: screenHeight,
-    width: screenWidth,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  innerContainer: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  title: {
-    fontSize: RFValue(50),
-    fontWeight: 'bold',
-    color: 'white',
-    marginTop: 200,
-  },
-  titleLogo: {
-    marginTop: 250,
-    width: RFValue(300),
-    height: RFValue(28),
-    resizeMode: 'cover'
-  },
-  poweredBy: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    marginLeft: 80,
-  },
-  poweredByText: {
-    fontSize: 12,
-    color: '#4B5563',
-    marginRight: 4,
-  },
-  logo: {
-    width: 70,
-    height: 70,
-    resizeMode: 'contain',
-  },
-  button: {
-    backgroundColor: '#740968',
-    paddingVertical: 16,
-    paddingHorizontal: 96,
-    borderRadius: 9999,
-    marginTop: 256,
-    elevation: 5,
-  },
-  button2: {
-    backgroundColor: '#740968',
-    paddingVertical: 16,
-    paddingHorizontal: 96,
-    borderRadius: 999,
-    marginTop: 25,
-    elevation: 5,
-  },
-  buttonText: {
-    width: RFValue(50),
-    textAlign: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'white',
-    fontWeight: '300',
-    fontSize: 12,
-  },
-  bottomRight: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  subtitle: {
-    fontSize: 12,
-    color: 'white',
-    marginRight: 5
-  },
-  
+    root: {
+        flex: 1,
+    },
+    backgroundImage: {
+        flex: 1,
+        width: screenWidth,
+        height: screenHeight,
+    },
+    safeArea: {
+        flex: 1,
+    },
+    innerContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+    },
+    titleLogo: {
+        marginTop: screenHeight * 0.3,
+        width: RFValue(300),
+        height: RFValue(28),
+        resizeMode: 'contain',
+    },
+    logo: {
+        width: 70,
+        height: 70,
+        resizeMode: 'contain',
+    },
+    button: {
+        backgroundColor: '#740968',
+        paddingVertical: 16,
+        paddingHorizontal: 96,
+        borderRadius: 9999,
+        marginTop: 100,
+        elevation: 5,
+    },
+    button2: {
+        backgroundColor: '#740968',
+        paddingVertical: 16,
+        paddingHorizontal: 96,
+        borderRadius: 9999,
+        marginTop: 25,
+        elevation: 5,
+    },
+    buttonText: {
+        textAlign: 'center',
+        color: 'white',
+        fontWeight: '300',
+        fontSize: 12,
+    },
+    bottomRight: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    subtitle: {
+        fontSize: 12,
+        color: 'white',
+        marginRight: 5,
+    },
 });
+
