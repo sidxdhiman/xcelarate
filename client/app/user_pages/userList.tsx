@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Feather } from '@expo/vector-icons';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { SearchBar } from 'react-native-elements';
 import { router } from 'expo-router';
 
@@ -46,7 +46,7 @@ const UserList = () => {
   useEffect(() => {
     if (search.trim()) {
       setFilteredUsers(users.filter(u =>
-        u.username?.toLowerCase().includes(search.toLowerCase())
+          u.username?.toLowerCase().includes(search.toLowerCase())
       ));
     } else {
       setFilteredUsers([]);
@@ -55,61 +55,61 @@ const UserList = () => {
 
   const openModifyPage = (user) => {
     const query = Object.entries(user)
-      .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
-      .join('&');
+        .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
+        .join('&');
     router.push(`/user_pages/modifyUser?${query}`);
   };
 
   return (
-    <ScrollView>
-      <View style={tw`absolute top-4 left-4 z-10`}>
-        <Pressable onPress={() => router.push('/userManagement')}>
-          <Icon name='arrow-left' size={22} color="white" />
-        </Pressable>
-      </View>
+      <ScrollView>
+        <View style={tw`absolute top-4 left-4 z-10`}>
+          <Pressable onPress={() => router.push('/userManagement')}>
+            <Icon name='arrow-left' size={22} color="white" />
+          </Pressable>
+        </View>
 
-      <View style={styles.headerArc}>
-        <Text style={styles.headerText}>USERS</Text>
-      </View>
+        <View style={styles.headerArc}>
+          <Text style={styles.headerText}>USERS</Text>
+        </View>
 
-      <View style={[styles.searchContainer, !isMobile && styles.searchWeb]}>
-        <SearchBar
-          placeholder="Search users..."
-          value={search}
-          onChangeText={setSearch}
-          round
-          platform="default"
-          containerStyle={styles.searchBarContainer}
-          inputContainerStyle={styles.searchInputContainer}
-          inputStyle={styles.searchInput}
-        />
-      </View>
+        <View style={[styles.searchContainer, !isMobile && styles.searchWeb]}>
+          <SearchBar
+              placeholder="Search users..."
+              value={search}
+              onChangeText={setSearch}
+              round
+              platform="default"
+              containerStyle={styles.searchBarContainer}
+              inputContainerStyle={styles.searchInputContainer}
+              inputStyle={styles.searchInput}
+          />
+        </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#800080" />
-      ) : (
-        (filteredUsers.length ? filteredUsers : users).map((user) => (
-          <View key={user.id} style={[styles.card, !isMobile && styles.cardWeb]}>
-            <View style={tw`flex-row justify-between items-center`}>
-              <Text style={tw`text-lg font-bold text-black`}>{user.username}</Text>
-              <View style={tw`flex-row`}>
-                <Pressable onPress={() => openModifyPage(user)} style={tw`mr-4`}>
-                  <Feather name="edit" size={20} color="#800080" />
-                </Pressable>
-                <Pressable onPress={() => router.push(`/user_pages/deleteUser?email=${encodeURIComponent(user.email)}`)}>
-                  <Feather name="trash-2" size={20} color="red" />
-                </Pressable>
-              </View>
-            </View>
-            <Text>{user.email}</Text>
-            <Text>{user.contact}</Text>
-            <Text>{user.organisation}</Text>
-            <Text>{user.designation}</Text>
-            <Text>{user.location}</Text>
-          </View>
-        ))
-      )}
-    </ScrollView>
+        {loading ? (
+            <ActivityIndicator size="large" color="#800080" />
+        ) : (
+            (filteredUsers.length ? filteredUsers : users).map((user) => (
+                <View key={user.id} style={[styles.card, !isMobile && styles.cardWeb]}>
+                  <View style={tw`flex-row justify-between items-center`}>
+                    <Text style={tw`text-lg font-bold text-black`}>{user.username}</Text>
+                    <View style={tw`flex-row`}>
+                      <Pressable onPress={() => openModifyPage(user)} style={tw`mr-4`}>
+                        <Feather name="edit" size={20} color="#800080" />
+                      </Pressable>
+                      <Pressable onPress={() => router.push(`/user_pages/deleteUser?email=${encodeURIComponent(user.email)}`)}>
+                        <Feather name="trash-2" size={20} color="red" />
+                      </Pressable>
+                    </View>
+                  </View>
+                  <Text>{user.email}</Text>
+                  <Text>{user.contact}</Text>
+                  <Text>{user.organisation}</Text>
+                  <Text>{user.designation}</Text>
+                  <Text>{user.location}</Text>
+                </View>
+            ))
+        )}
+      </ScrollView>
   );
 };
 
@@ -129,4 +129,3 @@ const styles = StyleSheet.create({
 });
 
 export default UserList;
-  

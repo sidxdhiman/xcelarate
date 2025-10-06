@@ -33,11 +33,6 @@ export default function TestManagement() {
       path: '/test_pages/addTest',
     },
     {
-      icon: <MaterialIcons name="edit" size={46} color="#800080" />,
-      text: 'Modify Assessment',
-      path: '/test_pages/modifyTest',
-    },
-    {
       icon: <Ionicons name="trash-bin-outline" size={44} color="#800080" />,
       text: 'Archive',
       path: '/test_pages/deleteTest',

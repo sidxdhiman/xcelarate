@@ -33,8 +33,8 @@ export default function QuestionScreen() {
   const {
     draftResponses,
     setDraft,
-    submitResponses,
-    getAssessmentById,
+    submitAssessmentResponse,
+    fetchAssessmentById,
   } = useAssessmentStore();
 
   const responses = draftResponses[id] ?? {};
@@ -52,7 +52,7 @@ export default function QuestionScreen() {
       }
 
       try {
-        const storeAssessment = await getAssessmentById(id);
+        const storeAssessment = await fetchAssessmentById(id);
         if (storeAssessment) {
           setAssessment(storeAssessment);
         }
@@ -117,7 +117,7 @@ export default function QuestionScreen() {
     };
 
     try {
-      await submitResponses(id, fullPayload);
+      await submitAssessmentResponse(id, fullPayload);
       setModalVisible(false);
       router.replace({
         pathname: '/[id]/result',

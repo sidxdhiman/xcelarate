@@ -186,7 +186,7 @@ interface AssessmentStore {
   addAssessment: (data: Partial<Assessment>) => Promise<Assessment | null>; // 👈 NEW
 }
 
-const useAssessmentStore = create<AssessmentStore>((set, get) => ({
+export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
   assessments: [],
   currentAssessment: null,
   isFetching: false,
@@ -339,4 +339,4 @@ const useAssessmentStore = create<AssessmentStore>((set, get) => ({
       }),
 }));
 
-export default useAssessmentStore;
+// export default useAssessmentStore;

@@ -14,9 +14,8 @@ import { SearchBar } from 'react-native-elements';
 import tw from 'twrnc';
 import { router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
-
 // ✅ Fixed default import
-import useAssessmentStore from '@/store/useAssessmentStore';
+import {useAssessmentStore} from '@/store/useAssessmentStore';
 import { useAuthStore } from '@/store/useAuthStore';
 
 type Assessment = {

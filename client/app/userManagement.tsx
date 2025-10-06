@@ -67,14 +67,6 @@ export default function UserPanel() {
 
         <TouchableOpacity
           style={[styles.card, { width: cardSize, height: cardSize }]}
-          onPress={() => router.push('/user_pages/modifyUser')}
-        >
-          <MaterialIcons name="edit" size={46} color="#800080" />
-          <Text style={styles.cardText}>Modify User</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.card, { width: cardSize, height: cardSize }]}
           onPress={() => router.push('/user_pages/deleteUser')}
         >
           <Ionicons name="trash-bin-outline" size={44} color="#800080" />
