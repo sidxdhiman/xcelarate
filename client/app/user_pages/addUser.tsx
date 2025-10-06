@@ -12,6 +12,7 @@ import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
 import { useNavigation } from '@react-navigation/native';
 import { Pressable } from 'react-native';
+import MobileDropdown from '@/app/MobileDropdown';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -92,25 +93,31 @@ const AddUser = () => {
           </View>
         ))}
 
-        <View style={styles.pickerWrapper}>
-          <Text style={styles.label}>Location</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={location}
-              onValueChange={(itemValue) => setLocation(itemValue)}
-              style={styles.picker}
-              dropdownIconColor="#800080"
-              mode={Platform.OS === 'ios' ? 'dialog' : 'dropdown'}
-            >
-              <Picker.Item label="Select a location" value="" />
-              {locations.map((loc) => (
-                <Picker.Item key={loc} label={loc} value={loc} />
-              ))}
-            </Picker>
+          <View style={styles.pickerWrapper}>
+              <Text style={styles.label}>Location</Text>
+              {Platform.OS === 'web' ? (
+                  <select
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      style={styles.webSelect}
+                  >
+                      <option value="">Select a location</option>
+                      {locations.map((loc) => (
+                          <option key={loc} value={loc}>
+                              {loc}
+                          </option>
+                      ))}
+                  </select>
+              ) : (
+                  <MobileDropdown
+                      data={locations.map((l, i) => ({ key: i, label: l }))}
+                      initValue="Select a location"
+                      onChange={(option) => setLocation(option.label)}
+                  />
+              )}
           </View>
-        </View>
 
-        <TouchableOpacity
+          <TouchableOpacity
           style={styles.submitButton}
           onPress={handleAddUser}
           disabled={loading}
@@ -200,6 +207,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+    webSelect: {
+        width: RFValue(300),
+        height: 44,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: '#fff',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        color: '#fff',
+        paddingHorizontal: 12,
+        fontSize: 16,
+    },
 });
 
 export default AddUser;

@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform, View } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 
+
 interface Props {
     data: { key: number | string; label: string }[];
     initValue: string;
