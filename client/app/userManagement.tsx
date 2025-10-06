@@ -80,7 +80,7 @@ export default function UserPanel() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f3ff', // Admin panel background match
+    backgroundColor: '#f7f3ff',
   },
   headerArc: {
     backgroundColor: '#800080',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 10,
+    // marginTop: 10,
     letterSpacing: 1,
   },
   cardGrid: {

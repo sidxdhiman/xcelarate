@@ -90,7 +90,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f6efff',
     height: screenHeight,
-    width: screenWidth
+    width: screenWidth,
+    paddingTop: 70
   },
   webCenter: {
     justifyContent: 'center',

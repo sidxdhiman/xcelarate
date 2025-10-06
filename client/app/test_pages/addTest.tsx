@@ -1,3 +1,5 @@
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 import React, { useState } from 'react';
 import {
   View,
@@ -9,7 +11,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, useNavigation, useRouter } from 'expo-router';
-import { v4 as uuidv4 } from 'uuid';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { useAssessmentStore } from "@/store/useAssessmentStore"
 import Toast from 'react-native-toast-message';
 import { Pressable } from 'react-native';
@@ -118,7 +121,7 @@ export default function CreateTestForm() {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={tw`absolute top-4 left-4 z-10`}>
         <Pressable onPress={()=> router.push('/test_pages/test_management')}>
-          <Icon name='arrow-left' size={22} color="white"></Icon>
+          <Icon style={tw`pt-10`} name='arrow-left' size={22} color="white"></Icon>
         </Pressable>
       </View>
       <View style={styles.headerArc}>
@@ -206,6 +209,7 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     marginBottom: 10,
     width: '100%',
+    paddingTop: 60
   },
   headerText: {
     color: '#fff',

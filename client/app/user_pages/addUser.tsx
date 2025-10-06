@@ -63,7 +63,7 @@ const AddUser = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <View style={tw`absolute top-4 left-4 z-10`}>
           <Pressable onPress={()=> router.push('/userManagement')}>
-            <Icon name='arrow-left' size={22} color='white'></Icon>
+            <Icon style={tw`pt-10`} name='arrow-left' size={22} color='white'></Icon>
           </Pressable>
         </View>
         <View style={styles.headerArc}>
@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
   },
   headerArc: {
     backgroundColor: '#800080',
+    paddingTop: 70,
     paddingVertical: 32,
     marginBottom: 10,
     width: '100%'

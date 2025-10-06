@@ -123,7 +123,7 @@ const AddBulkUsers = () => {
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={tw`absolute top-4 left-4 z-10`}>
         <Pressable onPress={()=> navigation.goBack()}>
-          <Icon name='arrow-left' size={22} color="white"></Icon>
+          <Icon style={tw`pt-10`} name='arrow-left' size={22} color="white"></Icon>
         </Pressable>
       </View>
       <View style={styles.headerArc}>
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#800080',
     paddingVertical: 32,
     marginBottom: 10,
+    paddingTop: 70,
     width: '100%'
   },
   headerText: {

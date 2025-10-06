@@ -97,7 +97,7 @@ const TestList = () => {
         <ScrollView>
           <View style={tw`absolute top-4 left-4 z-10`}>
             <Pressable onPress={() => router.push('/test_pages/test_management')}>
-              <Icon name="arrow-left" size={22} color="white" />
+              <Icon style={tw`pt-10`} name="arrow-left" size={22} color="white" />
             </Pressable>
           </View>
 
@@ -246,7 +246,7 @@ const TestList = () => {
 const styles = StyleSheet.create({
   testCard: { backgroundColor: 'white', borderRadius: 10, padding: 20, margin: 5 },
   search: { flex: 1, backgroundColor: 'white', borderRadius: 10, marginBottom: 10, paddingHorizontal: 5 },
-  headerArc: { backgroundColor: '#800080', paddingVertical: 32, alignItems: 'center', marginBottom: 10 },
+  headerArc: { backgroundColor: '#800080', paddingVertical: 32, alignItems: 'center', marginBottom: 10, paddingTop: 80 },
   headerText: { color: '#fff', fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginTop: 10, letterSpacing: 1 },
   actionBtn: { backgroundColor: '#800080', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, marginTop: 8 },
   actionBtn2: { backgroundColor: '#5b5b5b', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, marginTop: 8 },

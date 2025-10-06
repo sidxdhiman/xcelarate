@@ -62,17 +62,17 @@ const UserList = () => {
 
   return (
       <ScrollView>
-        <View style={tw`absolute top-4 left-4 z-10`}>
-          <Pressable onPress={() => router.push('/userManagement')}>
-            <Icon name='arrow-left' size={22} color="white" />
-          </Pressable>
-        </View>
 
-        <View style={styles.headerArc}>
-          <Text style={styles.headerText}>USERS</Text>
-        </View>
+          <View style={styles.headerArc}>
+              <View style={tw`absolute top-10 left-4 z-10`}>
+                  <Pressable onPress={() => router.push('/userManagement')}>
+                      <Icon style={tw`pt-5`}name="arrow-left" size={22} color="white" />
+                  </Pressable>
+              </View>
+              <Text style={styles.headerText}>USERS</Text>
+          </View>
 
-        <View style={[styles.searchContainer, !isMobile && styles.searchWeb]}>
+          <View style={[styles.searchContainer, !isMobile && styles.searchWeb]}>
           <SearchBar
               placeholder="Search users..."
               value={search}
@@ -114,7 +114,7 @@ const UserList = () => {
 };
 
 const styles = StyleSheet.create({
-  headerArc: { backgroundColor: '#800080', paddingVertical: 32, alignItems: 'center' },
+  headerArc: { backgroundColor: '#800080', paddingVertical: 32, alignItems: 'center', paddingTop: 80 },
   headerText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
   searchContainer: { margin: 12 },
   searchWeb: { alignSelf: 'center', width: 500 },

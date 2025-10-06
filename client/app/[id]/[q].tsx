@@ -246,7 +246,7 @@ export default function QuestionScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f6efff', padding: 20 },
+  container: { flex: 1, backgroundColor: '#f6efff', padding: 20, paddingTop: 80 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   title: { fontSize: 22, fontWeight: '700', color: '#4b0082' },

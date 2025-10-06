@@ -149,8 +149,8 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: '#f6efff',
-    paddingTop: 50,
-    paddingHorizontal: 16,
+    paddingTop: 100,
+    paddingHorizontal: 16
   },
   scrollContainer: {
     flexGrow: 1,
