@@ -18,7 +18,7 @@ const SignUpScreen = () => {
     const [location, setLocation] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const accessLevel = 1; // fixed as normal user
+    // const accessLevel = 1; // fixed as normal user
 
     const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
@@ -31,8 +31,8 @@ const SignUpScreen = () => {
             Toast.show({ type: 'error', text1: 'Signup Error', text2: 'Passwords do not match!' });
             return;
         }
-        await signup({ username, email, contact, organisation, designation, location, password, accessLevel });
-        router.push('/landing');
+        await signup({ username, email, contact, organisation, designation, location, password });
+        router.push('/userLanding');
     };
 
     return (
