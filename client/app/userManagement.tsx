@@ -65,13 +65,13 @@ export default function UserPanel() {
           <Text style={styles.cardText}>Add Bulk</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.card, { width: cardSize, height: cardSize }]}
-          onPress={() => router.push('/user_pages/deleteUser')}
-        >
-          <Ionicons name="trash-bin-outline" size={44} color="#800080" />
-          <Text style={styles.cardText}>Archive</Text>
-        </TouchableOpacity>
+        {/*<TouchableOpacity*/}
+        {/*  style={[styles.card, { width: cardSize, height: cardSize }]}*/}
+        {/*  onPress={() => router.push('/user_pages/deleteUser')}*/}
+        {/*>*/}
+        {/*  <Ionicons name="trash-bin-outline" size={44} color="#800080" />*/}
+        {/*  <Text style={styles.cardText}>Archive</Text>*/}
+        {/*</TouchableOpacity>*/}
       </View>
     </SafeAreaView>
   );

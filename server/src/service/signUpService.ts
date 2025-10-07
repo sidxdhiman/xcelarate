@@ -11,7 +11,7 @@ export class AuthService {
     designation?: string;
     location?: string;
     currentProject?: string;
-    accessLevel?: number;
+    // accessLevel?: number;
   }): Promise<any> {
     const {
       name,
@@ -22,7 +22,7 @@ export class AuthService {
       designation,
       location,
       currentProject,
-      accessLevel
+      // accessLevel
     } = userData;
 
     const existingUser = await User.findOne({ email });
@@ -42,7 +42,7 @@ export class AuthService {
       designation,
       location,
       currentProject,
-      accessLevel
+      // accessLevel
     });
 
     // const token = jwt.sign(

@@ -28,11 +28,11 @@ const AdminPanel = () => {
       text: 'Assessments',
       path: '/test_pages/test_management',
     },
-    {
-      icon: <Feather name="file-text" size={44} color="#800080" />,
-      text: 'Reports',
-      path: '',
-    },
+    // {
+    //   icon: <Feather name="file-text" size={44} color="#800080" />,
+    //   text: 'Reports',
+    //   path: '',
+    // },
     {
       icon: <Ionicons name="log-out-outline" size={44} color="#800080" />,
       text: 'Logout',

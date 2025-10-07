@@ -32,11 +32,11 @@ export default function TestManagement() {
       text: 'Add Assessment',
       path: '/test_pages/addTest',
     },
-    {
-      icon: <Ionicons name="trash-bin-outline" size={44} color="#800080" />,
-      text: 'Archive',
-      path: '/test_pages/deleteTest',
-    },
+    // {
+    //   icon: <Ionicons name="trash-bin-outline" size={44} color="#800080" />,
+    //   text: 'Archive',
+    //   path: '/test_pages/deleteTest',
+    // },
   ];
 
   return (
