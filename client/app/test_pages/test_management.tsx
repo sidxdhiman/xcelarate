@@ -1,135 +1,3 @@
-// import React from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   TouchableOpacity,
-//   SafeAreaView,
-//   useWindowDimensions,
-// } from 'react-native';
-// import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-// import { router, useNavigation } from 'expo-router';
-// import { Pressable } from 'react-native';
-// import Icon from 'react-native-vector-icons/FontAwesome';
-// import tw from 'twrnc';
-//
-// export default function TestManagement() {
-//   const navigation = useNavigation();
-//   const { width } = useWindowDimensions();
-//   const isMobile = width < 600;
-//
-//   const cardWidth = isMobile ? (width - 48) / 2 : width / 5.5;
-//   const cardHeight = cardWidth;
-//
-//   const cards = [
-//     {
-//       icon: <FontAwesome5 name="list" size={42} color="#800080" />,
-//       text: 'Assessment List',
-//       path: '/test_pages/testList',
-//     },
-//     {
-//       icon: <FontAwesome5 name="paperclip" size={42} color="#800080" />,
-//       text: 'Add Assessment',
-//       path: '/test_pages/addTest',
-//     },
-//     // {
-//     //   icon: <Ionicons name="trash-bin-outline" size={44} color="#800080" />,
-//     //   text: 'Archive',
-//     //   path: '/test_pages/deleteTest',
-//     // },
-//   ];
-//
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <View style={tw`absolute top-4 left-4 z-10`}>
-//         <Pressable onPress={()=> router.push('/landing')}>
-//           <Icon style={tw`pt-10`} name='arrow-left' size={22} color="white"></Icon>
-//         </Pressable>
-//       </View>
-//       <View style={styles.headerArc}>
-//         <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
-//       </View>
-//
-//       <View
-//         style={[
-//           styles.cardGrid,
-//           {
-//             flexWrap: isMobile ? 'wrap' : 'nowrap',
-//             justifyContent: isMobile ? 'space-between' : 'center',
-//           },
-//         ]}
-//       >
-//         {cards.map((card, index) => (
-//           <TouchableOpacity
-//             key={index}
-//             onPress={() => router.push(card.path)}
-//             style={[
-//               styles.card,
-//               {
-//                 width: cardWidth,
-//                 height: cardHeight,
-//                 marginRight:
-//                   !isMobile && index !== cards.length - 1 ? 16 : 0,
-//                 marginBottom: isMobile ? 16 : 0,
-//               },
-//             ]}
-//           >
-//             {card.icon}
-//             <Text style={styles.cardText}>{card.text}</Text>
-//           </TouchableOpacity>
-//         ))}
-//       </View>
-//     </SafeAreaView>
-//   );
-// }
-//
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#f7f3ff',
-//   },
-//   headerArc: {
-//     backgroundColor: '#800080',
-//     paddingVertical: 32,
-//     alignItems: 'center',
-//     marginBottom: 40,
-//     paddingTop: 50
-//   },
-//   headerText: {
-//     color: '#fff',
-//     fontSize: 28,
-//     fontWeight: 'bold',
-//     textAlign: 'center',
-//     marginTop: 10,
-//     letterSpacing: 1,
-//   },
-//   cardGrid: {
-//     flexDirection: 'row',
-//     paddingHorizontal: 16,
-//     flex: 1,
-//   },
-//   card: {
-//     backgroundColor: '#fff',
-//     borderRadius: 20,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     padding: 12,
-//     elevation: 5,
-//     shadowColor: '#000',
-//     shadowOpacity: 0.1,
-//     shadowRadius: 6,
-//     shadowOffset: { width: 0, height: 4 },
-//   },
-//   cardText: {
-//     marginTop: 12,
-//     fontSize: 16,
-//     fontWeight: '700',
-//     color: '#4b0082',
-//     textAlign: 'center',
-//   },
-// });
-
-
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -140,12 +8,14 @@ import {
     Pressable,
     TouchableOpacity,
     Modal,
+    Share,
+    TextInput,
+    FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SearchBar } from 'react-native-elements';
 import tw from 'twrnc';
 import { router } from 'expo-router';
-import * as Clipboard from 'expo-clipboard';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -165,6 +35,14 @@ const TestManagement = () => {
     const [expandedTestId, setExpandedTestId] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [testToDelete, setTestToDelete] = useState<Assessment | null>(null);
+
+    // new states for send/share
+    const [sendModalVisible, setSendModalVisible] = useState(false);
+    const [filterType, setFilterType] = useState<'organization' | 'role' | null>(null);
+    const [filterSearchModalVisible, setFilterSearchModalVisible] = useState(false);
+    const [filterResults, setFilterResults] = useState<string[]>([]);
+    const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+    const [filterSearch, setFilterSearch] = useState('');
 
     const deleteAssessmentById = useAssessmentStore((state) => state.deleteAssessmentById);
     const axiosInstance = useAuthStore((state) => state.axiosInstance);
@@ -228,7 +106,7 @@ const TestManagement = () => {
             <ScrollView>
                 {/* Back Button */}
                 <View style={tw`absolute top-4 left-4 z-10`}>
-                    <Pressable onPress={() => router.push('/landing')}>
+                    <Pressable onPress={() => router.back()}>
                         <Icon style={tw`pt-10`} name="arrow-left" size={22} color="white" />
                     </Pressable>
                 </View>
@@ -307,30 +185,28 @@ const TestManagement = () => {
                                             <Text style={tw`font-bold`}>Questions:</Text> {test.questions.length}
                                         </Text>
 
-                                        {/* Keep original action buttons */}
+                                        {/* New Buttons */}
                                         <Pressable
                                             onPress={() => {
-                                                const encodedData = encodeURIComponent(JSON.stringify(test));
-                                                router.push({
-                                                    pathname: '/[id]/disclaimer',
-                                                    params: { id: test._id, q: '0', data: encodedData },
-                                                });
+                                                setTestToDelete(test);
+                                                setSendModalVisible(true);
                                             }}
                                             style={styles.actionBtn}
                                         >
-                                            <Text style={styles.btnText}>Go to Assessment</Text>
+                                            <Text style={styles.btnText}>Send To</Text>
                                         </Pressable>
 
                                         <Pressable
                                             onPress={async () => {
-                                                const encodedData = encodeURIComponent(JSON.stringify(test));
-                                                const fullLink = `http://localhost:8081/${test._id}/disclaimer?data=${encodedData}`;
-                                                await Clipboard.setStringAsync(fullLink);
-                                                alert('Link copied to clipboard!');
+                                                const link = `https://yourapp.com/${test._id}/disclaimer`;
+                                                await Share.share({
+                                                    message: `You’ve been assigned an assessment!\n${link}`,
+                                                    title: 'Share Assessment',
+                                                });
                                             }}
-                                            style={styles.actionBtn2}
+                                            style={[styles.actionBtn2, { backgroundColor: '#5b5b5b' }]}
                                         >
-                                            <Text style={styles.btnText}>Copy Link</Text>
+                                            <Text style={styles.btnText}>Share Assessment</Text>
                                         </Pressable>
 
                                         <Pressable
@@ -394,6 +270,119 @@ const TestManagement = () => {
                                 onPress={confirmDelete}
                             >
                                 <Text style={styles.deleteButtonText}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Send Assessment Modal */}
+            <Modal visible={sendModalVisible} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContainer}>
+                        <Text style={styles.modalTitle}>Send Assessment</Text>
+                        <Text style={styles.modalMessage}>Choose how you want to send this assessment:</Text>
+
+                        <TouchableOpacity
+                            style={[styles.modalButton, { backgroundColor: '#800080', marginBottom: 10 }]}
+                            onPress={() => {
+                                setFilterType('organization');
+                                setSendModalVisible(false);
+                                setFilterSearchModalVisible(true);
+                            }}
+                        >
+                            <Text style={styles.deleteButtonText}>By Organization</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.modalButton, { backgroundColor: '#5b5b5b' }]}
+                            onPress={() => {
+                                setFilterType('role');
+                                setSendModalVisible(false);
+                                setFilterSearchModalVisible(true);
+                            }}
+                        >
+                            <Text style={styles.deleteButtonText}>By Role</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.modalButton, styles.cancelButton, { marginTop: 10 }]}
+                            onPress={() => setSendModalVisible(false)}
+                        >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Filter Search Modal */}
+            <Modal visible={filterSearchModalVisible} transparent animationType="slide">
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContainer, { maxHeight: '70%' }]}>
+                        <Text style={styles.modalTitle}>
+                            {filterType === 'organization' ? 'Select Organization' : 'Select Role'}
+                        </Text>
+                        <TextInput
+                            style={{
+                                borderWidth: 1,
+                                borderColor: '#aaa',
+                                borderRadius: 8,
+                                paddingHorizontal: 10,
+                                height: 45,
+                                marginBottom: 10,
+                            }}
+                            placeholder={`Search ${filterType}...`}
+                            value={filterSearch}
+                            onChangeText={(text) => {
+                                setFilterSearch(text);
+                                const base =
+                                    filterType === 'organization'
+                                        ? ['Google', 'Meta', 'Amazon', 'Xebia', 'Adobe']
+                                        : ['Developer', 'Designer', 'QA Engineer', 'Manager'];
+                                setFilterResults(base.filter((b) => b.toLowerCase().includes(text.toLowerCase())));
+                            }}
+                        />
+
+                        <FlatList
+                            data={filterResults}
+                            keyExtractor={(item) => item}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={{
+                                        paddingVertical: 10,
+                                        borderBottomWidth: 1,
+                                        borderColor: '#eee',
+                                        backgroundColor: selectedFilter === item ? '#eee' : 'white',
+                                    }}
+                                    onPress={() => setSelectedFilter(item)}
+                                >
+                                    <Text style={{ color: '#333', fontSize: 16 }}>{item}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+
+                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 }}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => {
+                                    setFilterSearchModalVisible(false);
+                                    setSelectedFilter(null);
+                                }}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: '#800080' }]}
+                                onPress={() => {
+                                    setFilterSearchModalVisible(false);
+                                    alert(
+                                        `Assessment "${testToDelete?.title}" sent to all ${
+                                            filterType === 'organization' ? 'users in organization' : 'users with role'
+                                        } "${selectedFilter}".`
+                                    );
+                                }}
+                            >
+                                <Text style={styles.deleteButtonText}>Send</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

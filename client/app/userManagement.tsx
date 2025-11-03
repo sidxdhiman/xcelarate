@@ -257,7 +257,7 @@ export default function UserManagement() {
         {/* Header */}
         <View style={styles.headerArc}>
           <View style={tw`absolute top-4 left-4 z-10 flex-row items-center gap-4`}>
-            <Pressable onPress={() => router.push("/landing")}>
+            <Pressable onPress={() => router.back()}>
               <Icon name="arrow-left" size={22} color="white" />
             </Pressable>
           </View>
