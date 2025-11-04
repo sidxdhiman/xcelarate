@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "module": "commonjs",                                /* Specify what module code is generated. */
-    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
-    "strict": true,                                      /* Enable all strict type-checking options. */
-    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */,
+    "target": "es2016",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
     "noImplicitAny": true,
     "resolveJsonModule": true,
     "allowJs": true,
     "lib": ["ES6"],
     "rootDir": "src",
     "outDir": "build",
-    "jsx": "react-native"
+    "jsx": "react-native",
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src", "src/types"]
 }

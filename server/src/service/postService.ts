@@ -1,7 +1,7 @@
 import { User, Organisation, Assessment} from "../database/index";
 import { Response } from "../database/index";
 import { beforeAssessment } from "../database/index";
-import nodemailer from "nodemailer";
+import nodemailer = require("nodemailer");
 
 export class PostUser {
   public async postUser(userData: any): Promise<any> {
