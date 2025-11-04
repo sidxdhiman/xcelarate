@@ -220,4 +220,20 @@ export class questionController {
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
+    public static async sendAssessment(req: Request, res: Response) {
+        try {
+            const { assessmentId, filterType, filterValue } = req.body;
+
+            const sender = new PostSendAssessment();
+            const result = await sender.sendAssessmentEmail({ assessmentId, filterType, filterValue });
+
+            res.status(200).json({
+                message: "Assessment emails sent successfully",
+                details: result,
+            });
+        } catch (error: any) {
+            console.error("[sendAssessment] Error:", error);
+            res.status(500).json({ message: error.message || "Failed to send assessment emails" });
+        }
+    }
 }

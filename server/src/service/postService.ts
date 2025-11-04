@@ -1,6 +1,7 @@
 import { User, Organisation, Assessment} from "../database/index";
 import { Response } from "../database/index";
 import { beforeAssessment } from "../database/index";
+import nodemailer from "nodemailer";
 
 export class PostUser {
   public async postUser(userData: any): Promise<any> {
@@ -109,5 +110,82 @@ export class PostResponse {
       throw new Error("Failed to save assessment response");
     }
   }
+}
+export class PostSendAssessment {
+    public async sendAssessmentEmail(data: {
+        assessmentId: string;
+        filterType: "organization" | "role";
+        filterValue: string;
+    }): Promise<any> {
+        try {
+            const { assessmentId, filterType, filterValue } = data;
+
+            if (!assessmentId || !filterType || !filterValue) {
+                throw new Error("Missing required parameters");
+            }
+
+            // 1️⃣ Fetch assessment details
+            const assessment = await Assessment.findById(assessmentId);
+            if (!assessment) {
+                throw new Error("Assessment not found");
+            }
+
+            // 2️⃣ Fetch users based on filter
+            let users: any[] = [];
+            if (filterType === "organization") {
+                users = await User.find({ organisation: filterValue });
+            } else if (filterType === "role") {
+                users = await User.find({ designation: filterValue });
+            }
+
+            if (!users.length) {
+                throw new Error("No users found for the selected filter");
+            }
+
+            // 3️⃣ Configure nodemailer transporter
+            const transporter = nodemailer.createTransport({
+                service: "gmail", // you can switch to sendgrid/mailgun/SES later
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS,
+                },
+            });
+
+            // 4️⃣ Build assessment link
+            const assessmentLink = `https://yourapp.com/${assessmentId}/disclaimer`;
+
+            // 5️⃣ Send emails
+            const mailPromises = users.map((user) =>
+                transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: user.email,
+                    subject: `New Assessment Assigned: ${assessment.title}`,
+                    html: `
+            <div style="font-family: Arial, sans-serif; padding: 15px;">
+              <h2 style="color: #800080;">New Assessment Assigned</h2>
+              <p>Hi ${user.username || user.email},</p>
+              <p>You have been assigned a new assessment titled <b>"${assessment.title}"</b>.</p>
+              <p>
+                <a href="${assessmentLink}" 
+                   style="background-color:#800080; color:white; padding:10px 15px; 
+                          border-radius:5px; text-decoration:none;">
+                  Start Assessment
+                </a>
+              </p>
+              <p style="font-size:12px; color:gray;">If you cannot click the button, use this link: ${assessmentLink}</p>
+            </div>
+          `,
+                })
+            );
+
+            await Promise.all(mailPromises);
+            console.log(`✅ Sent assessment "${assessment.title}" to ${users.length} users`);
+
+            return { success: true, count: users.length, emails: users.map((u) => u.email) };
+        } catch (error: any) {
+            console.error("Error sending assessment emails:", error);
+            throw new Error(error.message || "Failed to send assessment emails");
+        }
+    }
 }
 
