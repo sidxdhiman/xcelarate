@@ -6,6 +6,7 @@ import { PostQuestion, PostResponse } from "../service/postService";
 import { GetAssessment, GetAssessmentById, GetResponseByAssessmentId } from "../service/getService";
 import { PatchAssessmentService } from "../service/patchService";
 import { DeleteService } from "../service/deleteService";
+import {PostSendAssessment} from "../service/postService";
 
 export class questionController {
   // -------------------- CREATE ASSESSMENT --------------------
