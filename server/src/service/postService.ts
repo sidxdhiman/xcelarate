@@ -118,6 +118,8 @@ export class PostSendAssessment {
         filterValue: string;
     }): Promise<any> {
         try {
+            console.log("Incoming sendAssessmentEmail data:", data); // 👈 ADD THIS LINE
+
             const { assessmentId, filterType, filterValue } = data;
 
             if (!assessmentId || !filterType || !filterValue) {

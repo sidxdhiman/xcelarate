@@ -10,7 +10,6 @@ import {
     Modal,
     TextInput,
     FlatList,
-    Alert,
     Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -44,6 +43,11 @@ const TestManagement = () => {
     const [filterResults, setFilterResults] = useState<string[]>([]);
     const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
     const [filterSearch, setFilterSearch] = useState('');
+
+    // loading and success modal
+    const [sending, setSending] = useState(false);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
     const deleteAssessmentById = useAssessmentStore((state) => state.deleteAssessmentById);
     const axiosInstance = useAuthStore((state) => state.axiosInstance);
@@ -87,13 +91,13 @@ const TestManagement = () => {
             const confirmed = await deleteAssessmentById(testToDelete._id);
             if (confirmed) {
                 setTests((prev) => prev.filter((t) => t._id !== testToDelete._id));
-                Alert.alert('Success', 'Assessment deleted successfully');
+                alert('Assessment deleted successfully');
             } else {
-                Alert.alert('Error', 'Failed to delete assessment');
+                alert('Failed to delete assessment');
             }
         } catch (err) {
             console.error('Delete error:', err);
-            Alert.alert('Error', 'Something went wrong while deleting');
+            alert('Something went wrong while deleting');
         } finally {
             setModalVisible(false);
             setTestToDelete(null);
@@ -102,24 +106,36 @@ const TestManagement = () => {
 
     const handleSend = async () => {
         if (!selectedFilter || !testToDelete || !filterType) {
-            Alert.alert('Please select a target before sending.');
+            alert('Please select a target before sending.');
             return;
         }
+
         try {
-            await axiosInstance.post('/assessments/send', {
+            setSending(true); // show loader
+
+            const payload = {
                 assessmentId: testToDelete._id,
-                type: filterType,
-                target: selectedFilter,
-            });
-            Alert.alert(
-                'Success',
+                filterType: filterType,
+                filterValue: selectedFilter,
+            };
+
+            console.log("Sending payload:", payload);
+            const response = await axiosInstance.post('/assessments/send', payload);
+
+            console.log("✅ Send result:", response.data);
+
+            // hide loader, show success prompt
+            setSending(false);
+            setSuccessMessage(
                 `Assessment "${testToDelete.title}" sent to all ${
                     filterType === 'organization' ? 'users in organization' : 'users with role'
                 } "${selectedFilter}".`
             );
+            setSuccessModalVisible(true);
         } catch (err) {
             console.error('Send assessment error:', err);
-            Alert.alert('Error', 'Failed to send assessment');
+            setSending(false);
+            alert('Failed to send assessment');
         } finally {
             setFilterSearchModalVisible(false);
             setSelectedFilter(null);
@@ -292,7 +308,6 @@ const TestManagement = () => {
             <Modal visible={sendModalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContainer}>
-                        {/* Cross icon (top right) */}
                         <Pressable
                             style={{ position: 'absolute', top: 10, right: 10 }}
                             onPress={() => setSendModalVisible(false)}
@@ -332,7 +347,6 @@ const TestManagement = () => {
             <Modal visible={filterSearchModalVisible} transparent animationType="slide">
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContainer, { maxHeight: '70%' }]}>
-                        {/* Cross icon (top right) */}
                         <Pressable
                             style={{ position: 'absolute', top: 10, right: 10 }}
                             onPress={() => setFilterSearchModalVisible(false)}
@@ -381,6 +395,31 @@ const TestManagement = () => {
                                 <Text style={styles.deleteButtonText}>Send</Text>
                             </TouchableOpacity>
                         </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Sending Loader */}
+            <Modal visible={sending} transparent animationType="fade">
+                <View style={styles.loaderOverlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={{ color: '#fff', marginTop: 10, fontSize: 16 }}>Sending Assessments...</Text>
+                </View>
+            </Modal>
+
+            {/* Success Modal */}
+            <Modal visible={successModalVisible} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContainer, { alignItems: 'center' }]}>
+                        <Icon name="check-circle" size={40} color="#4CAF50" />
+                        <Text style={[styles.modalTitle, { textAlign: 'center', marginTop: 10 }]}>Success!</Text>
+                        <Text style={[styles.modalMessage, { textAlign: 'center' }]}>{successMessage}</Text>
+                        <TouchableOpacity
+                            style={[styles.modalButton, { backgroundColor: '#800080', marginTop: 10 }]}
+                            onPress={() => setSuccessModalVisible(false)}
+                        >
+                            <Text style={styles.deleteButtonText}>OK</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
@@ -463,6 +502,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 20,
+    },
+    loaderOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     modalContainer: {
         backgroundColor: 'white',
