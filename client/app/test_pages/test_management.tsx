@@ -8,9 +8,10 @@ import {
     Pressable,
     TouchableOpacity,
     Modal,
-    Share,
     TextInput,
     FlatList,
+    Alert,
+    Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SearchBar } from 'react-native-elements';
@@ -36,7 +37,7 @@ const TestManagement = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [testToDelete, setTestToDelete] = useState<Assessment | null>(null);
 
-    // new states for send/share
+    // send modal
     const [sendModalVisible, setSendModalVisible] = useState(false);
     const [filterType, setFilterType] = useState<'organization' | 'role' | null>(null);
     const [filterSearchModalVisible, setFilterSearchModalVisible] = useState(false);
@@ -47,7 +48,6 @@ const TestManagement = () => {
     const deleteAssessmentById = useAssessmentStore((state) => state.deleteAssessmentById);
     const axiosInstance = useAuthStore((state) => state.axiosInstance);
 
-    // Fetch assessments
     useEffect(() => {
         const fetchTests = async () => {
             try {
@@ -64,7 +64,6 @@ const TestManagement = () => {
         fetchTests();
     }, []);
 
-    // Search filtering
     useEffect(() => {
         if (search.trim()) {
             const query = search.toLowerCase();
@@ -88,16 +87,42 @@ const TestManagement = () => {
             const confirmed = await deleteAssessmentById(testToDelete._id);
             if (confirmed) {
                 setTests((prev) => prev.filter((t) => t._id !== testToDelete._id));
-                alert('Assessment deleted successfully');
+                Alert.alert('Success', 'Assessment deleted successfully');
             } else {
-                alert('Failed to delete assessment');
+                Alert.alert('Error', 'Failed to delete assessment');
             }
         } catch (err) {
             console.error('Delete error:', err);
-            alert('Something went wrong while deleting');
+            Alert.alert('Error', 'Something went wrong while deleting');
         } finally {
             setModalVisible(false);
             setTestToDelete(null);
+        }
+    };
+
+    const handleSend = async () => {
+        if (!selectedFilter || !testToDelete || !filterType) {
+            Alert.alert('Please select a target before sending.');
+            return;
+        }
+        try {
+            await axiosInstance.post('/assessments/send', {
+                assessmentId: testToDelete._id,
+                type: filterType,
+                target: selectedFilter,
+            });
+            Alert.alert(
+                'Success',
+                `Assessment "${testToDelete.title}" sent to all ${
+                    filterType === 'organization' ? 'users in organization' : 'users with role'
+                } "${selectedFilter}".`
+            );
+        } catch (err) {
+            console.error('Send assessment error:', err);
+            Alert.alert('Error', 'Failed to send assessment');
+        } finally {
+            setFilterSearchModalVisible(false);
+            setSelectedFilter(null);
         }
     };
 
@@ -116,7 +141,7 @@ const TestManagement = () => {
                     <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
                 </View>
 
-                {/* Search + Add Assessment aligned */}
+                {/* Search + Add */}
                 <View style={styles.searchRow}>
                     <View style={styles.searchContainer}>
                         <SearchBar
@@ -136,7 +161,6 @@ const TestManagement = () => {
                         />
                     </View>
 
-                    {/* Add Assessment Button (same height as search) */}
                     <TouchableOpacity
                         onPress={() => router.push('/test_pages/addTest')}
                         style={styles.addAssessmentBtn}
@@ -146,7 +170,6 @@ const TestManagement = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Loading / Error */}
                 {loading ? (
                     <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
                 ) : error ? (
@@ -156,7 +179,7 @@ const TestManagement = () => {
                         const isExpanded = expandedTestId === test._id;
                         return (
                             <View key={test._id} style={styles.testCard}>
-                                {/* Title Row */}
+                                {/* Title */}
                                 <View style={tw`flex-row items-center justify-between w-full mb-2`}>
                                     <View style={tw`flex-row items-center`}>
                                         <Icon name="file-text-o" size={18} color="#800080" style={tw`mr-2`} />
@@ -171,7 +194,7 @@ const TestManagement = () => {
                                     </Pressable>
                                 </View>
 
-                                {/* Expanded Info */}
+                                {/* Expanded */}
                                 {isExpanded && (
                                     <View style={tw`mt-2`}>
                                         <Text style={tw`text-black mb-1`}>
@@ -185,63 +208,52 @@ const TestManagement = () => {
                                             <Text style={tw`font-bold`}>Questions:</Text> {test.questions.length}
                                         </Text>
 
-                                        {/* New Buttons */}
-                                        <Pressable
-                                            onPress={() => {
-                                                setTestToDelete(test);
-                                                setSendModalVisible(true);
-                                            }}
-                                            style={styles.actionBtn}
-                                        >
-                                            <Text style={styles.btnText}>Send To</Text>
-                                        </Pressable>
+                                        {/* Square Icon Buttons */}
+                                        <View style={styles.iconRow}>
+                                            <TouchableOpacity
+                                                style={[styles.iconButton, { backgroundColor: '#800080' }]}
+                                                onPress={() => {
+                                                    setTestToDelete(test);
+                                                    setSendModalVisible(true);
+                                                }}
+                                            >
+                                                <Icon name="paper-plane" size={26} color="#fff" />
+                                            </TouchableOpacity>
 
-                                        <Pressable
-                                            onPress={async () => {
-                                                const link = `https://yourapp.com/${test._id}/disclaimer`;
-                                                await Share.share({
-                                                    message: `You’ve been assigned an assessment!\n${link}`,
-                                                    title: 'Share Assessment',
-                                                });
-                                            }}
-                                            style={[styles.actionBtn2, { backgroundColor: '#5b5b5b' }]}
-                                        >
-                                            <Text style={styles.btnText}>Share Assessment</Text>
-                                        </Pressable>
+                                            <TouchableOpacity
+                                                style={[styles.iconButton, { backgroundColor: '#5b5b5b' }]}
+                                                onPress={() =>
+                                                    router.push({
+                                                        pathname: '/test_pages/testResponses',
+                                                        params: { id: test._id },
+                                                    })
+                                                }
+                                            >
+                                                <Icon name="eye" size={26} color="#fff" />
+                                            </TouchableOpacity>
 
-                                        <Pressable
-                                            onPress={() =>
-                                                router.push({
-                                                    pathname: '/test_pages/testResponses',
-                                                    params: { id: test._id },
-                                                })
-                                            }
-                                            style={styles.actionBtn}
-                                        >
-                                            <Text style={styles.btnText}>View Responses</Text>
-                                        </Pressable>
+                                            <TouchableOpacity
+                                                style={[styles.iconButton, { backgroundColor: '#4CAF50' }]}
+                                                onPress={() =>
+                                                    router.push({
+                                                        pathname: '/test_pages/modifyTest',
+                                                        params: { id: test._id },
+                                                    })
+                                                }
+                                            >
+                                                <Icon name="edit" size={26} color="#fff" />
+                                            </TouchableOpacity>
 
-                                        <Pressable
-                                            onPress={() =>
-                                                router.push({
-                                                    pathname: '/test_pages/modifyTest',
-                                                    params: { id: test._id },
-                                                })
-                                            }
-                                            style={styles.actionBtn}
-                                        >
-                                            <Text style={styles.btnText}>Edit</Text>
-                                        </Pressable>
-
-                                        <Pressable
-                                            onPress={() => {
-                                                setTestToDelete(test);
-                                                setModalVisible(true);
-                                            }}
-                                            style={[styles.actionBtn, { backgroundColor: '#e53935' }]}
-                                        >
-                                            <Text style={[styles.btnText, { color: 'white' }]}>Delete</Text>
-                                        </Pressable>
+                                            <TouchableOpacity
+                                                style={[styles.iconButton, { backgroundColor: '#e53935' }]}
+                                                onPress={() => {
+                                                    setTestToDelete(test);
+                                                    setModalVisible(true);
+                                                }}
+                                            >
+                                                <Icon name="trash" size={26} color="#fff" />
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
                                 )}
                             </View>
@@ -250,7 +262,7 @@ const TestManagement = () => {
                 )}
             </ScrollView>
 
-            {/* Delete Confirmation Modal */}
+            {/* Delete Modal */}
             <Modal visible={modalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContainer}>
@@ -276,12 +288,20 @@ const TestManagement = () => {
                 </View>
             </Modal>
 
-            {/* Send Assessment Modal */}
+            {/* Send Modal */}
             <Modal visible={sendModalVisible} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContainer}>
-                        <Text style={styles.modalTitle}>Send Assessment</Text>
-                        <Text style={styles.modalMessage}>Choose how you want to send this assessment:</Text>
+                        {/* Cross icon (top right) */}
+                        <Pressable
+                            style={{ position: 'absolute', top: 10, right: 10 }}
+                            onPress={() => setSendModalVisible(false)}
+                        >
+                            <Icon name="close" size={20} color="#800080" />
+                        </Pressable>
+
+                        <Text style={[styles.modalTitle, { textAlign: 'center' }]}>Send Assessment</Text>
+                        <Text style={styles.modalMessage}>Choose how to send this assessment:</Text>
 
                         <TouchableOpacity
                             style={[styles.modalButton, { backgroundColor: '#800080', marginBottom: 10 }]}
@@ -304,33 +324,27 @@ const TestManagement = () => {
                         >
                             <Text style={styles.deleteButtonText}>By Role</Text>
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.modalButton, styles.cancelButton, { marginTop: 10 }]}
-                            onPress={() => setSendModalVisible(false)}
-                        >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
-                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
 
-            {/* Filter Search Modal */}
+            {/* Filter Search */}
             <Modal visible={filterSearchModalVisible} transparent animationType="slide">
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContainer, { maxHeight: '70%' }]}>
-                        <Text style={styles.modalTitle}>
+                        {/* Cross icon (top right) */}
+                        <Pressable
+                            style={{ position: 'absolute', top: 10, right: 10 }}
+                            onPress={() => setFilterSearchModalVisible(false)}
+                        >
+                            <Icon name="close" size={20} color="#800080" />
+                        </Pressable>
+
+                        <Text style={[styles.modalTitle, { textAlign: 'center' }]}>
                             {filterType === 'organization' ? 'Select Organization' : 'Select Role'}
                         </Text>
                         <TextInput
-                            style={{
-                                borderWidth: 1,
-                                borderColor: '#aaa',
-                                borderRadius: 8,
-                                paddingHorizontal: 10,
-                                height: 45,
-                                marginBottom: 10,
-                            }}
+                            style={styles.filterInput}
                             placeholder={`Search ${filterType}...`}
                             value={filterSearch}
                             onChangeText={(text) => {
@@ -348,12 +362,10 @@ const TestManagement = () => {
                             keyExtractor={(item) => item}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
-                                    style={{
-                                        paddingVertical: 10,
-                                        borderBottomWidth: 1,
-                                        borderColor: '#eee',
-                                        backgroundColor: selectedFilter === item ? '#eee' : 'white',
-                                    }}
+                                    style={[
+                                        styles.filterOption,
+                                        selectedFilter === item && { backgroundColor: '#f0e6ff' },
+                                    ]}
                                     onPress={() => setSelectedFilter(item)}
                                 >
                                     <Text style={{ color: '#333', fontSize: 16 }}>{item}</Text>
@@ -363,24 +375,8 @@ const TestManagement = () => {
 
                         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 }}>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
-                                onPress={() => {
-                                    setFilterSearchModalVisible(false);
-                                    setSelectedFilter(null);
-                                }}
-                            >
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
                                 style={[styles.modalButton, { backgroundColor: '#800080' }]}
-                                onPress={() => {
-                                    setFilterSearchModalVisible(false);
-                                    alert(
-                                        `Assessment "${testToDelete?.title}" sent to all ${
-                                            filterType === 'organization' ? 'users in organization' : 'users with role'
-                                        } "${selectedFilter}".`
-                                    );
-                                }}
+                                onPress={handleSend}
                             >
                                 <Text style={styles.deleteButtonText}>Send</Text>
                             </TouchableOpacity>
@@ -391,6 +387,8 @@ const TestManagement = () => {
         </>
     );
 };
+
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
     headerArc: {
@@ -415,9 +413,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         gap: 10,
     },
-    searchContainer: {
-        flex: 1,
-    },
+    searchContainer: { flex: 1 },
     addAssessmentBtn: {
         height: 50,
         backgroundColor: '#800080',
@@ -448,21 +444,19 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         shadowOffset: { width: 0, height: 4 },
     },
-    actionBtn: {
-        backgroundColor: '#800080',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        marginTop: 8,
+    iconRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
     },
-    actionBtn2: {
-        backgroundColor: '#5b5b5b',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        marginTop: 8,
+    iconButton: {
+        width: (width - 100) / 4,
+        aspectRatio: 1,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 3,
     },
-    btnText: { color: 'white', fontWeight: '600' },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
@@ -485,6 +479,19 @@ const styles = StyleSheet.create({
     cancelButtonText: { color: '#333', fontWeight: '600' },
     deleteButton: { backgroundColor: '#e53935' },
     deleteButtonText: { color: 'white', fontWeight: '600' },
+    filterInput: {
+        borderWidth: 1,
+        borderColor: '#aaa',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        height: 45,
+        marginBottom: 10,
+    },
+    filterOption: {
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderColor: '#eee',
+    },
 });
 
 export default TestManagement;
