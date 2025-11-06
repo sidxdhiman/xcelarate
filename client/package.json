@@ -52,6 +52,7 @@
     "navigation": "^6.3.0",
     "pdf-lib": "^1.17.1",
     "react": "19.1.0",
+    "react-async-hook": "3.9.3",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.5.2",
     "react-native": "0.81.4",
