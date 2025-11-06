@@ -11,6 +11,7 @@ import {
     FlatList,
     Pressable,
     Dimensions,
+    Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -177,43 +178,42 @@ export default function AddAssessment() {
             <ScrollView contentContainerStyle={styles.container}>
                 {/* Header */}
                 <View style={styles.headerArc}>
-                    <View style={tw`absolute top-4 left-4`}>
-                        <TouchableOpacity onPress={() => router.back()}>
-                            <Icon name="arrow-left" size={22} color="white" />
-                        </TouchableOpacity>
-                    </View>
+                    <Pressable style={styles.backButton} onPress={() => router.back()}>
+                        <Icon name="arrow-left" size={22} color="white" />
+                    </Pressable>
                     <Text style={styles.headerText}>CREATE NEW ASSESSMENT</Text>
                 </View>
 
-                <View style={styles.content}>
+                {/* Main Centered Content */}
+                <View style={styles.centeredContent}>
                     <TextInput
-                        placeholder="Test Title"
-                        style={styles.input1}
+                        placeholder="Assessment Title"
+                        style={styles.input}
                         value={title}
                         onChangeText={setTitle}
-                        placeholderTextColor="#ccc"
+                        placeholderTextColor="#888"
                     />
 
-                    {/* Copy / Clone */}
+                    {/* Copy / Clone Buttons */}
                     <View style={styles.cloneRow}>
                         <TouchableOpacity
-                            style={[styles.cloneBtn, { backgroundColor: '#5b5b5b' }]}
+                            style={[styles.actionBtn, { backgroundColor: '#5b5b5b' }]}
                             onPress={() => setPromptVisible('copy')}
                         >
                             <Icon name="copy" size={16} color="white" />
-                            <Text style={styles.cloneBtnText}>Copy from Assessment</Text>
+                            <Text style={styles.actionBtnText}>Copy from Assessment</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.cloneBtn, { backgroundColor: '#800080' }]}
+                            style={[styles.actionBtn, { backgroundColor: '#800080' }]}
                             onPress={() => setPromptVisible('clone')}
                         >
                             <Icon name="clone" size={16} color="white" />
-                            <Text style={styles.cloneBtnText}>Clone from Assessment</Text>
+                            <Text style={styles.actionBtnText}>Clone from Assessment</Text>
                         </TouchableOpacity>
                     </View>
 
-                    {/* Roles */}
-                    <Text style={styles.label}>Applicable Roles:</Text>
+                    {/* Role Selection */}
+                    <Text style={styles.label}>Applicable Roles</Text>
                     <View style={styles.roleRow}>
                         <View style={{ flex: 1 }}>
                             <Dropdown
@@ -242,6 +242,7 @@ export default function AddAssessment() {
                                 value={newRole}
                                 onChangeText={setNewRole}
                                 style={styles.addRoleInput}
+                                placeholderTextColor="#888"
                             />
                             <TouchableOpacity style={styles.addRoleConfirm} onPress={handleAddNewRole}>
                                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Add</Text>
@@ -249,8 +250,8 @@ export default function AddAssessment() {
                         </View>
                     )}
 
-                    {/* Questions */}
-                    <Text style={styles.label}>Questions:</Text>
+                    {/* Questions Section */}
+                    <Text style={styles.label}>Questions</Text>
                     {questions.map((q, qIdx) => (
                         <View key={q.id} style={styles.questionCard}>
                             <View style={styles.questionHeader}>
@@ -269,15 +270,18 @@ export default function AddAssessment() {
                                 <TouchableOpacity
                                     onPress={() => setQuestions(questions.filter((x) => x.id !== q.id))}
                                 >
-                                    <Text style={styles.removeBtn}>Remove</Text>
+                                    <Icon name="trash" size={18} color="#e53935" />
                                 </TouchableOpacity>
                             </View>
+
                             <TextInput
                                 placeholder="Question text"
-                                style={styles.input2}
+                                style={styles.inputDark}
                                 value={q.text}
                                 onChangeText={(text) => updateQuestionText(q.id, text)}
+                                placeholderTextColor="#aaa"
                             />
+
                             {q.options.map((opt, i) => (
                                 <TextInput
                                     key={opt.id}
@@ -285,13 +289,14 @@ export default function AddAssessment() {
                                     style={styles.optionInput}
                                     value={opt.text}
                                     onChangeText={(text) => updateOptionText(q.id, opt.id, text)}
+                                    placeholderTextColor="#aaa"
                                 />
                             ))}
                         </View>
                     ))}
 
                     <TouchableOpacity style={styles.addBtn} onPress={addQuestion}>
-                        <Text style={styles.addBtnText}>Add Question</Text>
+                        <Text style={styles.addBtnText}>+ Add Question</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
@@ -302,15 +307,11 @@ export default function AddAssessment() {
                 </View>
             </ScrollView>
 
-            {/* Copy / Clone Overlay */}
+            {/* Copy / Clone Modal */}
             {promptVisible && (
                 <View style={styles.overlay}>
-                    <View style={styles.promptCard}>
-                        <Pressable style={styles.closeIcon} onPress={() => {
-                            setPromptVisible(null);
-                            setSelectedAssessment(null);
-                            setCopySelectedQuestions([]);
-                        }}>
+                    <View style={styles.modalBox}>
+                        <Pressable style={styles.closeIcon} onPress={() => setPromptVisible(null)}>
                             <Icon name="times" size={20} color="#800080" />
                         </Pressable>
 
@@ -319,15 +320,13 @@ export default function AddAssessment() {
                                 <Text style={styles.modalTitle}>
                                     {promptVisible === 'copy' ? 'Copy From Assessment' : 'Clone Assessment'}
                                 </Text>
-                                {/* Search Bar */}
                                 <TextInput
                                     style={styles.searchInput}
                                     placeholder="Search assessments..."
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor="#888"
                                     value={search}
                                     onChangeText={setSearch}
                                 />
-
                                 <FlatList
                                     data={filteredAssessments}
                                     keyExtractor={(item) => item._id}
@@ -347,7 +346,7 @@ export default function AddAssessment() {
                             </>
                         ) : (
                             <>
-                                <View style={styles.questionSelectHeader}>
+                                <View style={styles.modalHeader}>
                                     <TouchableOpacity
                                         onPress={() => {
                                             setSelectedAssessment(null);
@@ -371,7 +370,9 @@ export default function AddAssessment() {
                                                             : prev.filter((id) => id !== q.id)
                                                     )
                                                 }
-                                                color={copySelectedQuestions.includes(q.id) ? '#800080' : undefined}
+                                                color={
+                                                    copySelectedQuestions.includes(q.id) ? '#800080' : undefined
+                                                }
                                             />
                                             <Text style={styles.copyQuestionText}>{q.text}</Text>
                                         </View>
@@ -391,46 +392,52 @@ export default function AddAssessment() {
 }
 
 const styles = StyleSheet.create({
-    container: { minHeight: screenHeight, paddingTop: 50 },
+    container: { paddingBottom: 100 },
     headerArc: {
         backgroundColor: '#800080',
         width: '100%',
-        paddingVertical: 40,
-        // paddingTop: 80,
+        paddingTop: 80,
+        paddingBottom: 40,
         alignItems: 'center',
         justifyContent: 'center',
+        marginBottom: 20,
     },
-    headerText: { color: '#fff', fontSize: 26, fontWeight: 'bold', letterSpacing: 0.5 },
-    content: { paddingHorizontal: 16, paddingBottom: 80, backgroundColor: '#fff' },
-    input1: {
+    backButton: { position: 'absolute', top: 60, left: 20 },
+    headerText: { color: '#fff', fontSize: 28, fontWeight: 'bold', letterSpacing: 1 },
+    centeredContent: {
+        width: '100%',
+        maxWidth: 700,
+        alignSelf: 'center',
+        paddingHorizontal: 20,
+    },
+    input: {
         borderWidth: 1,
-        borderColor: '#888',
+        borderColor: '#ccc',
+        backgroundColor: '#fff',
         padding: 14,
-        marginTop: 20,
-        marginBottom: 16,
         borderRadius: 8,
+        marginBottom: 20,
         color: 'black',
     },
     cloneRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
-    cloneBtn: {
+    actionBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 10,
+        borderRadius: 8,
         paddingVertical: 12,
-        paddingHorizontal: 14,
-        flex: 1,
         justifyContent: 'center',
+        flex: 1,
         marginHorizontal: 6,
     },
-    cloneBtnText: { color: 'white', fontWeight: 'bold', marginLeft: 8 },
-    label: { color: 'black', fontWeight: '600', marginBottom: 10 },
+    actionBtnText: { color: 'white', fontWeight: 'bold', marginLeft: 8 },
+    label: { color: '#333', fontWeight: 'bold', fontSize: 16, marginVertical: 10 },
     roleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
     dropdown: {
         borderWidth: 1,
-        borderColor: '#aaa',
+        borderColor: '#ccc',
         borderRadius: 8,
         paddingHorizontal: 10,
-        height: 55,
+        height: 50,
     },
     addRoleIcon: {
         backgroundColor: '#800080',
@@ -443,8 +450,8 @@ const styles = StyleSheet.create({
     },
     addRoleInline: {
         flexDirection: 'row',
-        marginBottom: 20,
         alignItems: 'center',
+        marginBottom: 20,
     },
     addRoleInput: {
         flex: 1,
@@ -454,49 +461,57 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         height: 50,
         marginRight: 10,
+        color: 'black',
     },
     addRoleConfirm: {
         backgroundColor: '#800080',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: 18,
+        paddingVertical: 12,
         borderRadius: 8,
     },
     questionCard: {
-        backgroundColor: '#222',
+        backgroundColor: '#f8f6fb',
         borderRadius: 10,
-        padding: 14,
-        marginBottom: 18,
-    },
-    questionHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-    questionLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    questionTitle: { color: 'white', fontWeight: 'bold', fontSize: 15 },
-    removeBtn: { color: '#f66', fontWeight: 'bold' },
-    input2: {
+        padding: 16,
+        marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#888',
+        borderColor: '#ddd',
+    },
+    questionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    questionLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    questionTitle: { color: '#333', fontWeight: '600' },
+    inputDark: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        backgroundColor: '#fff',
+        borderRadius: 6,
         padding: 10,
-        marginVertical: 12,
-        borderRadius: 8,
-        color: 'white',
+        color: 'black',
+        marginBottom: 10,
     },
     optionInput: {
         borderWidth: 1,
-        borderColor: '#666',
-        padding: 8,
-        marginVertical: 6,
+        borderColor: '#ddd',
+        backgroundColor: '#fff',
         borderRadius: 6,
-        color: 'white',
+        padding: 10,
+        color: 'black',
+        marginVertical: 5,
     },
     addBtn: {
-        backgroundColor: '#444',
-        padding: 14,
+        backgroundColor: '#800080',
+        paddingVertical: 14,
         borderRadius: 8,
         alignItems: 'center',
-        marginBottom: 18,
+        marginTop: 5,
     },
-    addBtnText: { color: 'white', fontWeight: 'bold', fontSize: 15 },
+    addBtnText: { color: '#fff', fontWeight: 'bold' },
     submitBtn: {
-        backgroundColor: '#800080',
+        backgroundColor: '#4CAF50',
         paddingVertical: 16,
         borderRadius: 8,
         alignItems: 'center',
@@ -512,25 +527,23 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 10,
     },
-    promptCard: {
+    modalBox: {
         backgroundColor: 'white',
-        borderRadius: 14,
-        width: '92%',
-        maxHeight: '85%',
-        padding: 22,
-        elevation: 8,
+        borderRadius: 12,
+        width: '90%',
+        maxWidth: 500,
+        padding: 20,
     },
-    closeIcon: { position: 'absolute', top: 14, right: 14 },
+    closeIcon: { position: 'absolute', top: 15, right: 15 },
     modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#800080', marginBottom: 10 },
     searchInput: {
         borderWidth: 1,
-        borderColor: '#aaa',
+        borderColor: '#ccc',
         borderRadius: 8,
         paddingHorizontal: 10,
         height: 45,
-        marginBottom: 15,
+        marginBottom: 10,
     },
     assessmentItem: {
         padding: 14,
@@ -540,12 +553,8 @@ const styles = StyleSheet.create({
         marginVertical: 5,
     },
     assessmentTitle: { fontSize: 16, color: '#333', fontWeight: '500' },
-    questionSelectHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        marginBottom: 10,
-    },
-    copyRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 5 },
+    modalHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+    copyRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 6 },
     copyQuestionText: { color: '#333', flexShrink: 1 },
 });
+

@@ -7,10 +7,8 @@ import {
     ActivityIndicator,
     Pressable,
     TouchableOpacity,
-    Modal,
-    TextInput,
-    FlatList,
     Dimensions,
+    Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SearchBar } from 'react-native-elements';
@@ -26,31 +24,21 @@ type Assessment = {
     questions: { text: string; options: { text: string }[] }[];
 };
 
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
+const iconSize = isTablet ? 22 : 20;
+
 const TestManagement = () => {
     const [tests, setTests] = useState<Assessment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [filteredTests, setFilteredTests] = useState<Assessment[]>([]);
-    const [expandedTestId, setExpandedTestId] = useState<string | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [testToDelete, setTestToDelete] = useState<Assessment | null>(null);
 
-    // send modal
-    const [sendModalVisible, setSendModalVisible] = useState(false);
-    const [filterType, setFilterType] = useState<'organization' | 'role' | null>(null);
-    const [filterSearchModalVisible, setFilterSearchModalVisible] = useState(false);
-    const [filterResults, setFilterResults] = useState<string[]>([]);
-    const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-    const [filterSearch, setFilterSearch] = useState('');
-
-    // loading and success modal
-    const [sending, setSending] = useState(false);
-    const [successModalVisible, setSuccessModalVisible] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
-
-    const deleteAssessmentById = useAssessmentStore((state) => state.deleteAssessmentById);
     const axiosInstance = useAuthStore((state) => state.axiosInstance);
+    const deleteAssessmentById = useAssessmentStore((state) => state.deleteAssessmentById);
 
     useEffect(() => {
         const fetchTests = async () => {
@@ -91,74 +79,35 @@ const TestManagement = () => {
             const confirmed = await deleteAssessmentById(testToDelete._id);
             if (confirmed) {
                 setTests((prev) => prev.filter((t) => t._id !== testToDelete._id));
-                alert('Assessment deleted successfully');
+                Alert.alert('Success', 'Assessment deleted successfully');
             } else {
-                alert('Failed to delete assessment');
+                Alert.alert('Error', 'Failed to delete assessment');
             }
         } catch (err) {
             console.error('Delete error:', err);
-            alert('Something went wrong while deleting');
+            Alert.alert('Error', 'Something went wrong while deleting');
         } finally {
             setModalVisible(false);
             setTestToDelete(null);
         }
     };
 
-    const handleSend = async () => {
-        if (!selectedFilter || !testToDelete || !filterType) {
-            alert('Please select a target before sending.');
-            return;
-        }
-
-        try {
-            setSending(true); // show loader
-
-            const payload = {
-                assessmentId: testToDelete._id,
-                filterType: filterType,
-                filterValue: selectedFilter,
-            };
-
-            console.log("Sending payload:", payload);
-            const response = await axiosInstance.post('/assessments/send', payload);
-
-            console.log("✅ Send result:", response.data);
-
-            // hide loader, show success prompt
-            setSending(false);
-            setSuccessMessage(
-                `Assessment "${testToDelete.title}" sent to all ${
-                    filterType === 'organization' ? 'users in organization' : 'users with role'
-                } "${selectedFilter}".`
-            );
-            setSuccessModalVisible(true);
-        } catch (err) {
-            console.error('Send assessment error:', err);
-            setSending(false);
-            alert('Failed to send assessment');
-        } finally {
-            setFilterSearchModalVisible(false);
-            setSelectedFilter(null);
-        }
-    };
-
     return (
         <>
-            <ScrollView>
-                {/* Back Button */}
-                <View style={tw`absolute top-4 left-4 z-10`}>
-                    <Pressable onPress={() => router.back()}>
-                        <Icon style={tw`pt-10`} name="arrow-left" size={22} color="white" />
-                    </Pressable>
-                </View>
-
-                {/* Header */}
+            <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
+                {/* Header Arc */}
                 <View style={styles.headerArc}>
+                    <Pressable
+                        onPress={() => router.back()}
+                        style={{ position: 'absolute', top: 60, left: 20 }}
+                    >
+                        <Icon name="arrow-left" size={22} color="white" />
+                    </Pressable>
                     <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
                 </View>
 
                 {/* Search + Add */}
-                <View style={styles.searchRow}>
+                <View style={[styles.searchRow, { width: '100%', maxWidth: 700 }]}>
                     <View style={styles.searchContainer}>
                         <SearchBar
                             placeholder="Search Assessments..."
@@ -186,102 +135,107 @@ const TestManagement = () => {
                     </TouchableOpacity>
                 </View>
 
-                {loading ? (
-                    <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
-                ) : error ? (
-                    <Text style={tw`text-red-500 text-center mt-4`}>{error}</Text>
-                ) : (
-                    displayTests.map((test) => {
-                        const isExpanded = expandedTestId === test._id;
-                        return (
+                {/* Assessment Cards */}
+                <View style={{ width: '100%', maxWidth: 700 }}>
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
+                    ) : error ? (
+                        <Text style={tw`text-red-500 text-center mt-4`}>{error}</Text>
+                    ) : (
+                        displayTests.map((test) => (
                             <View key={test._id} style={styles.testCard}>
-                                {/* Title */}
-                                <View style={tw`flex-row items-center justify-between w-full mb-2`}>
-                                    <View style={tw`flex-row items-center`}>
-                                        <Icon name="file-text-o" size={18} color="#800080" style={tw`mr-2`} />
-                                        <Text style={tw`text-black text-base font-semibold`}>{test.title}</Text>
-                                    </View>
-                                    <Pressable onPress={() => setExpandedTestId(isExpanded ? null : test._id)}>
-                                        <Icon
-                                            name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                                            size={18}
-                                            color="#800080"
-                                        />
-                                    </Pressable>
-                                </View>
+                                {/* Responsive Row: Info + Actions (side by side or stacked) */}
+                                <View
+                                    style={[
+                                        styles.testRow,
+                                        { flexDirection: isTablet ? 'row' : 'column' },
+                                    ]}
+                                >
+                                    {/* Left Side — Info */}
+                                    <View style={[styles.testInfo, { flex: 1 }]}>
+                                        <View style={tw`flex-row items-center mb-2`}>
+                                            <Icon
+                                                name="file-text-o"
+                                                size={18}
+                                                color="#800080"
+                                                style={tw`mr-2`}
+                                            />
+                                            <Text style={tw`text-black text-base font-semibold`}>
+                                                {test.title}
+                                            </Text>
+                                        </View>
 
-                                {/* Expanded */}
-                                {isExpanded && (
-                                    <View style={tw`mt-2`}>
-                                        <Text style={tw`text-black mb-1`}>
-                                            <Text style={tw`font-bold`}>Title:</Text> {test.title}
-                                        </Text>
-                                        <Text style={tw`text-black mb-1`}>
+                                        <Text style={tw`text-black`}>
                                             <Text style={tw`font-bold`}>Roles:</Text>{' '}
                                             {test.roles?.length > 0 ? test.roles.join(', ') : 'No roles'}
                                         </Text>
-                                        <Text style={tw`text-black mb-3`}>
-                                            <Text style={tw`font-bold`}>Questions:</Text> {test.questions.length}
+                                        <Text style={tw`text-black mt-1`}>
+                                            <Text style={tw`font-bold`}>Questions:</Text>{' '}
+                                            {test.questions?.length || 0}
                                         </Text>
-
-                                        {/* Square Icon Buttons */}
-                                        <View style={styles.iconRow}>
-                                            <TouchableOpacity
-                                                style={[styles.iconButton, { backgroundColor: '#800080' }]}
-                                                onPress={() => {
-                                                    setTestToDelete(test);
-                                                    setSendModalVisible(true);
-                                                }}
-                                            >
-                                                <Icon name="paper-plane" size={26} color="#fff" />
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity
-                                                style={[styles.iconButton, { backgroundColor: '#5b5b5b' }]}
-                                                onPress={() =>
-                                                    router.push({
-                                                        pathname: '/test_pages/testResponses',
-                                                        params: { id: test._id },
-                                                    })
-                                                }
-                                            >
-                                                <Icon name="eye" size={26} color="#fff" />
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity
-                                                style={[styles.iconButton, { backgroundColor: '#4CAF50' }]}
-                                                onPress={() =>
-                                                    router.push({
-                                                        pathname: '/test_pages/modifyTest',
-                                                        params: { id: test._id },
-                                                    })
-                                                }
-                                            >
-                                                <Icon name="edit" size={26} color="#fff" />
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity
-                                                style={[styles.iconButton, { backgroundColor: '#e53935' }]}
-                                                onPress={() => {
-                                                    setTestToDelete(test);
-                                                    setModalVisible(true);
-                                                }}
-                                            >
-                                                <Icon name="trash" size={26} color="#fff" />
-                                            </TouchableOpacity>
-                                        </View>
                                     </View>
-                                )}
+
+                                    {/* Right Side — Actions */}
+                                    <View
+                                        style={[
+                                            styles.iconRow,
+                                            isTablet
+                                                ? { flexDirection: 'row', width: 200, justifyContent: 'space-between' }
+                                                : { flexDirection: 'row', justifyContent: 'space-around', marginTop: 12 },
+                                        ]}
+                                    >
+                                        <TouchableOpacity
+                                            style={[styles.iconButton, { backgroundColor: '#800080' }]}
+                                            onPress={() => Alert.alert('Send', `Send ${test.title}`)}
+                                        >
+                                            <Icon name="paper-plane" size={iconSize} color="#fff" />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.iconButton, { backgroundColor: '#5b5b5b' }]}
+                                            onPress={() =>
+                                                router.push({
+                                                    pathname: '/test_pages/testResponses',
+                                                    params: { id: test._id },
+                                                })
+                                            }
+                                        >
+                                            <Icon name="eye" size={iconSize} color="#fff" />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.iconButton, { backgroundColor: '#4CAF50' }]}
+                                            onPress={() =>
+                                                router.push({
+                                                    pathname: '/test_pages/modifyTest',
+                                                    params: { id: test._id },
+                                                })
+                                            }
+                                        >
+                                            <Icon name="edit" size={iconSize} color="#fff" />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.iconButton, { backgroundColor: '#e53935' }]}
+                                            onPress={() => {
+                                                setTestToDelete(test);
+                                                setModalVisible(true);
+                                            }}
+                                        >
+                                            <Icon name="trash" size={iconSize} color="#fff" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
-                        );
-                    })
-                )}
+                        ))
+                    )}
+                </View>
             </ScrollView>
 
-            {/* Delete Modal */}
-            <Modal visible={modalVisible} transparent animationType="fade">
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContainer}>
+            {/* Delete Confirmation Modal */}
+            {modalVisible && (
+                <View style={styles.overlay}>
+                    <View style={styles.modalBox}>
                         <Text style={styles.modalTitle}>Confirm Delete</Text>
                         <Text style={styles.modalMessage}>
                             Are you sure you want to delete "{testToDelete?.title}"?
@@ -302,140 +256,20 @@ const TestManagement = () => {
                         </View>
                     </View>
                 </View>
-            </Modal>
-
-            {/* Send Modal */}
-            <Modal visible={sendModalVisible} transparent animationType="fade">
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContainer}>
-                        <Pressable
-                            style={{ position: 'absolute', top: 10, right: 10 }}
-                            onPress={() => setSendModalVisible(false)}
-                        >
-                            <Icon name="close" size={20} color="#800080" />
-                        </Pressable>
-
-                        <Text style={[styles.modalTitle, { textAlign: 'center' }]}>Send Assessment</Text>
-                        <Text style={styles.modalMessage}>Choose how to send this assessment:</Text>
-
-                        <TouchableOpacity
-                            style={[styles.modalButton, { backgroundColor: '#800080', marginBottom: 10 }]}
-                            onPress={() => {
-                                setFilterType('organization');
-                                setSendModalVisible(false);
-                                setFilterSearchModalVisible(true);
-                            }}
-                        >
-                            <Text style={styles.deleteButtonText}>By Organization</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.modalButton, { backgroundColor: '#5b5b5b' }]}
-                            onPress={() => {
-                                setFilterType('role');
-                                setSendModalVisible(false);
-                                setFilterSearchModalVisible(true);
-                            }}
-                        >
-                            <Text style={styles.deleteButtonText}>By Role</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Filter Search */}
-            <Modal visible={filterSearchModalVisible} transparent animationType="slide">
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContainer, { maxHeight: '70%' }]}>
-                        <Pressable
-                            style={{ position: 'absolute', top: 10, right: 10 }}
-                            onPress={() => setFilterSearchModalVisible(false)}
-                        >
-                            <Icon name="close" size={20} color="#800080" />
-                        </Pressable>
-
-                        <Text style={[styles.modalTitle, { textAlign: 'center' }]}>
-                            {filterType === 'organization' ? 'Select Organization' : 'Select Role'}
-                        </Text>
-                        <TextInput
-                            style={styles.filterInput}
-                            placeholder={`Search ${filterType}...`}
-                            value={filterSearch}
-                            onChangeText={(text) => {
-                                setFilterSearch(text);
-                                const base =
-                                    filterType === 'organization'
-                                        ? ['Google', 'Meta', 'Amazon', 'Xebia', 'Adobe']
-                                        : ['Developer', 'Designer', 'QA Engineer', 'Manager'];
-                                setFilterResults(base.filter((b) => b.toLowerCase().includes(text.toLowerCase())));
-                            }}
-                        />
-
-                        <FlatList
-                            data={filterResults}
-                            keyExtractor={(item) => item}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.filterOption,
-                                        selectedFilter === item && { backgroundColor: '#f0e6ff' },
-                                    ]}
-                                    onPress={() => setSelectedFilter(item)}
-                                >
-                                    <Text style={{ color: '#333', fontSize: 16 }}>{item}</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 }}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, { backgroundColor: '#800080' }]}
-                                onPress={handleSend}
-                            >
-                                <Text style={styles.deleteButtonText}>Send</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Sending Loader */}
-            <Modal visible={sending} transparent animationType="fade">
-                <View style={styles.loaderOverlay}>
-                    <ActivityIndicator size="large" color="#fff" />
-                    <Text style={{ color: '#fff', marginTop: 10, fontSize: 16 }}>Sending Assessments...</Text>
-                </View>
-            </Modal>
-
-            {/* Success Modal */}
-            <Modal visible={successModalVisible} transparent animationType="fade">
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContainer, { alignItems: 'center' }]}>
-                        <Icon name="check-circle" size={40} color="#4CAF50" />
-                        <Text style={[styles.modalTitle, { textAlign: 'center', marginTop: 10 }]}>Success!</Text>
-                        <Text style={[styles.modalMessage, { textAlign: 'center' }]}>{successMessage}</Text>
-                        <TouchableOpacity
-                            style={[styles.modalButton, { backgroundColor: '#800080', marginTop: 10 }]}
-                            onPress={() => setSuccessModalVisible(false)}
-                        >
-                            <Text style={styles.deleteButtonText}>OK</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
+            )}
         </>
     );
 };
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
     headerArc: {
         backgroundColor: '#800080',
-        paddingVertical: 32,
-        alignItems: 'center',
-        marginBottom: 10,
+        width: '100%',
         paddingTop: 80,
+        paddingBottom: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
     },
     headerText: {
         color: '#fff',
@@ -475,45 +309,44 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 10,
         padding: 20,
+        marginVertical: 8,
         marginHorizontal: 10,
-        marginVertical: 5,
         elevation: 5,
         shadowColor: '#000',
         shadowOpacity: 0.1,
         shadowRadius: 6,
         shadowOffset: { width: 0, height: 4 },
     },
+    testRow: {
+        alignItems: 'flex-start',
+    },
+    testInfo: {
+        flexShrink: 1,
+    },
     iconRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
+        flexWrap: 'wrap',
+        alignItems: 'center',
     },
     iconButton: {
-        width: (width - 100) / 4,
-        aspectRatio: 1,
+        width: 45,
+        height: 45,
         borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 3,
+        marginHorizontal: 2,
     },
-    modalOverlay: {
-        flex: 1,
+    overlay: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 20,
     },
-    loaderOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContainer: {
+    modalBox: {
         backgroundColor: 'white',
         borderRadius: 10,
         padding: 20,
-        width: '100%',
+        width: '85%',
         maxWidth: 400,
     },
     modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 10, color: '#800080' },
@@ -524,19 +357,6 @@ const styles = StyleSheet.create({
     cancelButtonText: { color: '#333', fontWeight: '600' },
     deleteButton: { backgroundColor: '#e53935' },
     deleteButtonText: { color: 'white', fontWeight: '600' },
-    filterInput: {
-        borderWidth: 1,
-        borderColor: '#aaa',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        height: 45,
-        marginBottom: 10,
-    },
-    filterOption: {
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderColor: '#eee',
-    },
 });
 
 export default TestManagement;
