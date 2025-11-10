@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -9,6 +9,9 @@ import {
     TouchableOpacity,
     Dimensions,
     Alert,
+    SafeAreaView,
+    StatusBar,
+    Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SearchBar } from 'react-native-elements';
@@ -16,6 +19,10 @@ import tw from 'twrnc';
 import { router } from 'expo-router';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import Toast from 'react-native-toast-message';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import XLSX from 'xlsx';
 
 type Assessment = {
     _id: string;
@@ -36,9 +43,15 @@ const TestManagement = () => {
     const [filteredTests, setFilteredTests] = useState<Assessment[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [testToDelete, setTestToDelete] = useState<Assessment | null>(null);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
     const axiosInstance = useAuthStore((state) => state.axiosInstance);
     const deleteAssessmentById = useAssessmentStore((state) => state.deleteAssessmentById);
+
+    const headerPaddingTop = useMemo(() => {
+        if (Platform.OS === 'ios') return 60;
+        return (StatusBar.currentHeight || 24) + 24;
+    }, []);
 
     useEffect(() => {
         const fetchTests = async () => {
@@ -79,120 +92,225 @@ const TestManagement = () => {
             const confirmed = await deleteAssessmentById(testToDelete._id);
             if (confirmed) {
                 setTests((prev) => prev.filter((t) => t._id !== testToDelete._id));
-                Alert.alert('Success', 'Assessment deleted successfully');
+                Toast.show({ type: 'success', text1: 'Assessment deleted successfully' });
             } else {
-                Alert.alert('Error', 'Failed to delete assessment');
+                Toast.show({ type: 'error', text1: 'Failed to delete assessment' });
             }
         } catch (err) {
             console.error('Delete error:', err);
-            Alert.alert('Error', 'Something went wrong while deleting');
+            Toast.show({ type: 'error', text1: 'Something went wrong while deleting' });
         } finally {
             setModalVisible(false);
             setTestToDelete(null);
         }
     };
 
-    return (
-        <>
-            <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
-                {/* Header Arc */}
-                <View style={styles.headerArc}>
-                    <Pressable
-                        onPress={() => router.back()}
-                        style={{ position: 'absolute', top: 60, left: 20 }}
-                    >
-                        <Icon name="arrow-left" size={22} color="white" />
-                    </Pressable>
-                    <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
-                </View>
+    const sanitizeFileName = (raw: string) =>
+        raw
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '') || 'assessment';
 
-                {/* Search + Add */}
-                <View style={[styles.searchRow, { width: '100%', maxWidth: 700 }]}>
-                    <View style={styles.searchContainer}>
-                        <SearchBar
-                            placeholder="Search Assessments..."
-                            value={search}
-                            onChangeText={setSearch}
-                            round
-                            platform="default"
-                            containerStyle={{
-                                backgroundColor: 'transparent',
-                                borderTopWidth: 0,
-                                borderBottomWidth: 0,
-                                flex: 1,
-                            }}
-                            inputContainerStyle={{ backgroundColor: '#fff' }}
-                            inputStyle={{ color: '#000' }}
-                        />
+    const handleDownloadResponses = async (assessment: Assessment) => {
+        try {
+            setDownloadingId(assessment._id);
+            const { data } = await axiosInstance.get(`/assessments/${assessment._id}/responses`);
+
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                Toast.show({ type: 'info', text1: 'No responses yet for this assessment' });
+                return;
+            }
+
+            const formatted = data.map((resp: any, index: number) => {
+                const answerEntries = Object.entries(resp.answers || {}).reduce(
+                    (acc: Record<string, string>, [questionKey, answer]: [string, any]) => {
+                        const value =
+                            answer?.option ??
+                            answer?.text ??
+                            (typeof answer === 'string' ? answer : '');
+                        acc[questionKey] = value || '';
+                        return acc;
+                    },
+                    {}
+                );
+
+                return {
+                    '#': index + 1,
+                    Name: resp.user?.name || 'Anonymous',
+                    Email: resp.user?.email || '',
+                    Designation: resp.user?.designation || '',
+                    SubmittedAt: resp.submittedAt
+                        ? new Date(resp.submittedAt).toLocaleString()
+                        : '',
+                    ...answerEntries,
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(formatted);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Responses');
+
+            const fileName = `${sanitizeFileName(assessment.title)}-responses.xlsx`;
+
+            if (Platform.OS === 'web') {
+                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            } else {
+                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
+                const baseDir =
+                    (FileSystem.cacheDirectory ||
+                        FileSystem.documentDirectory ||
+                        (FileSystem as any).temporaryDirectory ||
+                        '') as string;
+
+                if (!baseDir) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Unable to access storage',
+                        text2: 'Could not determine a directory to save the file.',
+                    });
+                    return;
+                }
+
+                const fileUri = `${baseDir}${fileName}`;
+                await FileSystem.writeAsStringAsync(fileUri, wbout, {
+                    encoding: 'base64',
+                });
+
+                if (await Sharing.isAvailableAsync()) {
+                    await Sharing.shareAsync(fileUri);
+                } else {
+                    Toast.show({
+                        type: 'success',
+                        text1: `Responses saved to: ${fileUri}`,
+                    });
+                }
+            }
+
+            Toast.show({ type: 'success', text1: 'Responses exported successfully' });
+        } catch (error) {
+            console.error('Download responses error:', error);
+            Toast.show({ type: 'error', text1: 'Failed to export responses' });
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
+    return (
+        <View style={styles.screen}>
+            <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+            <SafeAreaView style={{ flex: 1 }}>
+                <ScrollView contentContainerStyle={styles.scrollContent}>
+                    {/* Header Arc */}
+                    <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
+                        <Pressable
+                            onPress={() => router.back()}
+                            style={styles.backButton}
+                        >
+                            <Icon name="arrow-left" size={20} color="#fff" />
+                        </Pressable>
+                        <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
                     </View>
 
-                    <TouchableOpacity
-                        onPress={() => router.push('/test_pages/addTest')}
-                        style={styles.addAssessmentBtn}
-                    >
-                        <Icon name="plus" size={16} color="#fff" />
-                        <Text style={styles.addAssessmentText}>Add</Text>
-                    </TouchableOpacity>
-                </View>
+                    {/* Search + Actions */}
+                    <View style={styles.searchRow}>
+                        <View style={styles.searchContainer}>
+                            <SearchBar
+                                placeholder="Search assessments..."
+                                value={search}
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore - react-native-elements SearchBar has conflicting type definitions
+                                onChangeText={setSearch}
+                                round
+                                platform="default"
+                                containerStyle={styles.searchBarContainer}
+                                inputContainerStyle={styles.searchInputContainer}
+                                inputStyle={styles.searchInput}
+                            />
+                        </View>
 
-                {/* Assessment Cards */}
-                <View style={{ width: '100%', maxWidth: 700 }}>
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
-                    ) : error ? (
-                        <Text style={tw`text-red-500 text-center mt-4`}>{error}</Text>
-                    ) : (
-                        displayTests.map((test) => (
-                            <View key={test._id} style={styles.testCard}>
-                                {/* Responsive Row: Info + Actions (side by side or stacked) */}
-                                <View
-                                    style={[
-                                        styles.testRow,
-                                        { flexDirection: isTablet ? 'row' : 'column' },
-                                    ]}
-                                >
-                                    {/* Left Side — Info */}
-                                    <View style={[styles.testInfo, { flex: 1 }]}>
-                                        <View style={tw`flex-row items-center mb-2`}>
-                                            <Icon
-                                                name="file-text-o"
-                                                size={18}
-                                                color="#800080"
-                                                style={tw`mr-2`}
-                                            />
-                                            <Text style={tw`text-black text-base font-semibold`}>
-                                                {test.title}
+                        <TouchableOpacity
+                            onPress={() => router.push('/test_pages/addTest')}
+                            style={styles.addAssessmentBtn}
+                        >
+                            <Icon name="plus" size={16} color="#fff" />
+                            <Text style={styles.addAssessmentText}>New Assessment</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Assessment Cards */}
+                    <View style={styles.listContainer}>
+                        {loading ? (
+                            <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
+                        ) : error ? (
+                            <Text style={styles.errorText}>{error}</Text>
+                        ) : displayTests.length === 0 ? (
+                            <View style={styles.emptyState}>
+                                <Icon name="inbox" size={30} color="#c2a2e2" />
+                                <Text style={styles.emptyTitle}>No Assessments yet</Text>
+                                <Text style={styles.emptySubtitle}>
+                                    Create your first assessment to start tracking responses.
+                                </Text>
+                            </View>
+                        ) : (
+                            displayTests.map((test) => (
+                                <View key={test._id} style={styles.testCard}>
+                                    <View style={styles.cardHeader}>
+                                        <View style={styles.cardTitleRow}>
+                                            <View style={styles.iconPill}>
+                                                <Icon name="file-text-o" size={16} color="#800080" />
+                                            </View>
+                                            <Text style={styles.cardTitle}>{test.title}</Text>
+                                        </View>
+                                        <View style={styles.metaPill}>
+                                            <Icon name="question-circle" size={12} color="#800080" />
+                                            <Text style={styles.metaText}>
+                                                {test.questions?.length || 0} questions
                                             </Text>
                                         </View>
-
-                                        <Text style={tw`text-black`}>
-                                            <Text style={tw`font-bold`}>Roles:</Text>{' '}
-                                            {test.roles?.length > 0 ? test.roles.join(', ') : 'No roles'}
-                                        </Text>
-                                        <Text style={tw`text-black mt-1`}>
-                                            <Text style={tw`font-bold`}>Questions:</Text>{' '}
-                                            {test.questions?.length || 0}
-                                        </Text>
                                     </View>
 
-                                    {/* Right Side — Actions */}
+                                    <View style={styles.cardBody}>
+                                        <Text style={styles.sectionLabel}>Applicable Roles</Text>
+                                        <View style={styles.rolesContainer}>
+                                            {test.roles?.length ? (
+                                                test.roles.map((role) => (
+                                                    <View key={role} style={styles.roleChip}>
+                                                        <Text style={styles.roleChipText}>{role}</Text>
+                                                    </View>
+                                                ))
+                                            ) : (
+                                                <Text style={styles.metaMuted}>No roles assigned</Text>
+                                            )}
+                                        </View>
+                                    </View>
+
                                     <View
                                         style={[
-                                            styles.iconRow,
-                                            isTablet
-                                                ? { flexDirection: 'row', width: 200, justifyContent: 'space-between' }
-                                                : { flexDirection: 'row', justifyContent: 'space-around', marginTop: 12 },
+                                            styles.actionsRow,
+                                            isTablet ? styles.actionsRowTablet : undefined,
                                         ]}
                                     >
                                         <TouchableOpacity
-                                            style={[styles.iconButton, { backgroundColor: '#800080' }]}
+                                            style={[styles.actionButton, styles.primaryAction]}
                                             onPress={() => Alert.alert('Send', `Send ${test.title}`)}
                                         >
-                                            <Icon name="paper-plane" size={iconSize} color="#fff" />
+                                            <Icon name="paper-plane" size={16} color="#fff" />
+                                            <Text style={styles.actionText}>Send</Text>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            style={[styles.iconButton, { backgroundColor: '#5b5b5b' }]}
+                                            style={[styles.actionButton, styles.secondaryAction]}
                                             onPress={() =>
                                                 router.push({
                                                     pathname: '/test_pages/testResponses',
@@ -200,11 +318,25 @@ const TestManagement = () => {
                                                 })
                                             }
                                         >
-                                            <Icon name="eye" size={iconSize} color="#fff" />
+                                            <Icon name="line-chart" size={16} color="#800080" />
+                                            <Text style={styles.secondaryText}>View Summary</Text>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            style={[styles.iconButton, { backgroundColor: '#4CAF50' }]}
+                                            style={[styles.actionButton, styles.downloadAction]}
+                                            onPress={() => handleDownloadResponses(test)}
+                                            disabled={downloadingId === test._id}
+                                        >
+                                            {downloadingId === test._id ? (
+                                                <ActivityIndicator size="small" color="#fff" />
+                                            ) : (
+                                                <Icon name="download" size={16} color="#fff" />
+                                            )}
+                                            <Text style={styles.actionText}>Download Responses</Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.actionButton, styles.editAction]}
                                             onPress={() =>
                                                 router.push({
                                                     pathname: '/test_pages/modifyTest',
@@ -212,33 +344,39 @@ const TestManagement = () => {
                                                 })
                                             }
                                         >
-                                            <Icon name="edit" size={iconSize} color="#fff" />
+                                            <Icon name="edit" size={16} color="#fff" />
+                                            <Text style={styles.actionText}>Edit</Text>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            style={[styles.iconButton, { backgroundColor: '#e53935' }]}
+                                            style={[styles.actionButton, styles.deleteAction]}
                                             onPress={() => {
                                                 setTestToDelete(test);
                                                 setModalVisible(true);
                                             }}
                                         >
-                                            <Icon name="trash" size={iconSize} color="#fff" />
+                                            <Icon name="trash" size={16} color="#fff" />
+                                            <Text style={styles.actionText}>Delete</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
-                            </View>
-                        ))
-                    )}
-                </View>
-            </ScrollView>
+                            ))
+                        )}
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
 
             {/* Delete Confirmation Modal */}
             {modalVisible && (
                 <View style={styles.overlay}>
                     <View style={styles.modalBox}>
-                        <Text style={styles.modalTitle}>Confirm Delete</Text>
+                        <View style={styles.modalIconWrapper}>
+                            <Icon name="trash" size={26} color="#e53935" />
+                        </View>
+                        <Text style={styles.modalTitle}>Delete assessment?</Text>
                         <Text style={styles.modalMessage}>
-                            Are you sure you want to delete "{testToDelete?.title}"?
+                            This will permanently remove "{testToDelete?.title}". You cannot undo this
+                            action.
                         </Text>
                         <View style={styles.modalButtonsContainer}>
                             <TouchableOpacity
@@ -257,106 +395,331 @@ const TestManagement = () => {
                     </View>
                 </View>
             )}
-        </>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: '#f9f6ff' },
+    scrollContent: {
+        alignItems: 'center',
+        paddingBottom: 40,
+    },
     headerArc: {
         backgroundColor: '#800080',
         width: '100%',
-        paddingTop: 80,
-        paddingBottom: 40,
+        paddingBottom: 36,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
     },
     headerText: {
         color: '#fff',
         fontSize: 28,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginTop: 10,
         letterSpacing: 1,
+    },
+    backButton: {
+        position: 'absolute',
+        left: 24,
+        top: 0,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
     },
     searchRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        marginBottom: 12,
-        gap: 10,
+        paddingHorizontal: 16,
+        marginBottom: 16,
+        width: '100%',
+        maxWidth: 780,
+        gap: 12,
     },
     searchContainer: { flex: 1 },
+    searchBarContainer: {
+        backgroundColor: 'transparent',
+        borderTopWidth: 0,
+        borderBottomWidth: 0,
+        padding: 0,
+    },
+    searchInputContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#e0d0ef',
+        minHeight: 48,
+    },
+    searchInput: {
+        color: '#000',
+        fontSize: 15,
+    },
     addAssessmentBtn: {
-        height: 50,
+        height: 52,
         backgroundColor: '#800080',
-        borderRadius: 8,
-        paddingHorizontal: 20,
+        borderRadius: 16,
+        paddingHorizontal: 24,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
+        gap: 8,
+        elevation: 4,
+        shadowColor: '#800080',
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 3 },
     },
     addAssessmentText: {
         color: '#fff',
         fontWeight: 'bold',
-        marginLeft: 6,
         fontSize: 15,
     },
+    listContainer: {
+        width: '100%',
+        maxWidth: 780,
+        paddingHorizontal: 16,
+    },
     testCard: {
-        backgroundColor: 'white',
-        borderRadius: 10,
+        backgroundColor: '#fff',
+        borderRadius: 20,
         padding: 20,
-        marginVertical: 8,
-        marginHorizontal: 10,
-        elevation: 5,
+        marginVertical: 10,
+        borderWidth: 1,
+        borderColor: '#efe1fa',
         shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
         shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
     },
-    testRow: {
-        alignItems: 'flex-start',
-    },
-    testInfo: {
-        flexShrink: 1,
-    },
-    iconRow: {
-        flexWrap: 'wrap',
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 12,
     },
-    iconButton: {
-        width: 45,
-        height: 45,
-        borderRadius: 10,
+    cardTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        flex: 1,
+    },
+    iconPill: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        backgroundColor: '#f4ebff',
         alignItems: 'center',
         justifyContent: 'center',
-        marginHorizontal: 2,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#32174d',
+        flexShrink: 1,
+    },
+    metaPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: '#efe1fa',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 999,
+    },
+    metaText: {
+        color: '#4b0082',
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    cardBody: {
+        marginTop: 8,
+        marginBottom: 16,
+    },
+    sectionLabel: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#6c2eb9',
+        textTransform: 'uppercase',
+        letterSpacing: 0.6,
+        marginBottom: 6,
+    },
+    rolesContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    roleChip: {
+        backgroundColor: '#f4ebff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 999,
+    },
+    roleChipText: {
+        color: '#4b0082',
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    metaMuted: {
+        color: '#666',
+        fontSize: 13,
+    },
+    actionsRow: {
+        flexDirection: 'column',
+        gap: 10,
+    },
+    actionsRowTablet: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: 12,
+        borderRadius: 12,
+        flex: 1,
+        minHeight: 48,
+    },
+    primaryAction: {
+        backgroundColor: '#6c2eb9',
+        shadowColor: '#6c2eb9',
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+    },
+    downloadAction: {
+        backgroundColor: '#4b0082',
+    },
+    editAction: {
+        backgroundColor: '#40916c',
+    },
+    deleteAction: {
+        backgroundColor: '#e53935',
+    },
+    secondaryAction: {
+        backgroundColor: '#f4ebff',
+        borderWidth: 1,
+        borderColor: '#e0d0ef',
+    },
+    actionText: {
+        color: '#fff',
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    secondaryText: {
+        color: '#4b0082',
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    errorText: {
+        textAlign: 'center',
+        color: '#e53935',
+        marginTop: 24,
+        fontWeight: '600',
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 32,
+        borderWidth: 1,
+        borderColor: '#efe1fa',
+        marginTop: 24,
+    },
+    emptyTitle: {
+        marginTop: 12,
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#32174d',
+    },
+    emptySubtitle: {
+        marginTop: 4,
+        textAlign: 'center',
+        color: '#6d6d6d',
     },
     overlay: {
         position: 'absolute',
-        top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.45)',
         justifyContent: 'center',
         alignItems: 'center',
+        padding: 24,
     },
     modalBox: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-        width: '85%',
-        maxWidth: 400,
+        width: '100%',
+        maxWidth: 420,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 24,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 6,
     },
-    modalTitle: { fontSize: 20, fontWeight: '700', marginBottom: 10, color: '#800080' },
-    modalMessage: { fontSize: 16, marginBottom: 20, color: '#333' },
-    modalButtonsContainer: { flexDirection: 'row', justifyContent: 'flex-end' },
-    modalButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 6, marginLeft: 10 },
-    cancelButton: { backgroundColor: '#ccc' },
-    cancelButtonText: { color: '#333', fontWeight: '600' },
+    modalIconWrapper: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#fdecea',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 16,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#3c1053',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 15,
+        color: '#555',
+        textAlign: 'center',
+        marginBottom: 24,
+        lineHeight: 22,
+    },
+    modalButtonsContainer: {
+        flexDirection: 'row',
+        gap: 12,
+        width: '100%',
+    },
+    modalButton: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelButton: {
+        borderWidth: 1,
+        borderColor: '#d0c2e8',
+        backgroundColor: '#f9f6ff',
+    },
+    cancelButtonText: { color: '#4b0082', fontWeight: '600' },
     deleteButton: { backgroundColor: '#e53935' },
-    deleteButtonText: { color: 'white', fontWeight: '600' },
+    deleteButtonText: { color: '#fff', fontWeight: '700' },
 });
 
 export default TestManagement;

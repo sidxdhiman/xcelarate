@@ -15,8 +15,9 @@ export class orgController {
             } else {
                 res.status(404).json({message: "Organisation not posted"});
             }
-        } catch (error) {
-            res.status(500).json({message: "Internal server error"});
+        } catch (error: any) {
+            console.error("Error in postOrg controller:", error);
+            res.status(500).json({message: error.message || "Internal server error"});
         }
     }
     public static async getOrg(req: Request, res: Response) {

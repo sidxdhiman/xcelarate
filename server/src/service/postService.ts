@@ -38,16 +38,16 @@ export class PostBeforeAssessment {
 export class PostOrganisation {
   public async postOrganisation(orgData: any): Promise<any> {
     try {
-      if (!orgData.name) {
+      if (!orgData.organisation) {
         throw new Error("Organisation name is required");
       }
 
       const organisation = await Organisation.create(orgData);
       console.log("Organisation posted successfully!");
       return organisation;
-    } catch (error) {
-      console.error("Error in creating organisation:");
-      throw new Error(`Error in creating organisation`);
+    } catch (error: any) {
+      console.error("Error in creating organisation:", error);
+      throw new Error(`Error in creating organisation: ${error.message || error}`);
     }
   }
 }

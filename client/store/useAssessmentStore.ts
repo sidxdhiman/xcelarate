@@ -13,6 +13,7 @@ interface AssessmentStore {
   assessments: Assessment[];
   currentAssessment: Assessment | null;
   assessment: any | null; // added for responses
+  assessmentResponses: any[];
   isFetching: boolean;
   isSubmitting: boolean;
   error: string | null;
@@ -32,6 +33,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
   assessments: [],
   currentAssessment: null,
   assessment: null, // initial state for responses
+  assessmentResponses: [],
   isFetching: false,
   isSubmitting: false,
   error: null,

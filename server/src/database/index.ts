@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   iv: { type: String, required: false }, // TODO: make true later
-  contact: Number,
+  contact: String,
   organisation: String,
   designation: String,
   role: String,
@@ -44,10 +44,10 @@ const organisationSchema = new mongoose.Schema({
   address: String,
   spoc: String,
   email: String,
-  contact: Number,
+  contact: String,
   location: String,
   businessUnit: String,
-  industry: String,
+  industry: String
 });
 
 const optionSchema = new mongoose.Schema({
