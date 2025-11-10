@@ -180,4 +180,29 @@ export const useAuthStore = create((set, get) => ({
       return { success: false };
     }
   },
+
+  // --- Fetch Organisations ---
+  fetchOrganisations: async () => {
+    try {
+      const res = await axiosInstance.get("/organisations/");
+      return { success: true, data: res.data };
+    } catch (error) {
+      console.error("FetchOrganisations error:", error);
+      return { success: false, data: [] };
+    }
+  },
+
+  // --- Add Organisation ---
+  addOrganisation: async (orgData) => {
+    try {
+      const res = await axiosInstance.post("/organisations/", orgData);
+      return { success: true, data: res.data };
+    } catch (error) {
+      console.error("AddOrganisation error:", error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || error.response?.data || "Failed to add organisation" 
+      };
+    }
+  },
 }));

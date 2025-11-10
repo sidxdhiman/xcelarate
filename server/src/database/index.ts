@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
   contact: Number,
   organisation: String,
   designation: String,
+  role: String,
   location: String,
   currentProject: String,
   accessLevel: { type: Number, required: true },
@@ -44,6 +45,9 @@ const organisationSchema = new mongoose.Schema({
   spoc: String,
   email: String,
   contact: Number,
+  location: String,
+  businessUnit: String,
+  industry: String,
 });
 
 const optionSchema = new mongoose.Schema({

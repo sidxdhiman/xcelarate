@@ -15,6 +15,7 @@ export class RequestValidator {
       contact: Joi.number(),
       organisation: Joi.string(),
       designation: Joi.string(),
+      role: Joi.string(),
       accessLevel: Joi.number()
     });
     const { error } = schema.validate(req.body);
@@ -33,6 +34,7 @@ export class RequestValidator {
       contact: Joi.required(),
       organisation: Joi.string().required(),
       designation: Joi.string().required(),
+      role: Joi.string(),
       location: Joi.string(), //TODO make the location required
       currentProject: Joi.string(), //TODO maybe add required maybe not - have to confirm    
       // accessLevel: Joi.required(),
@@ -57,10 +59,13 @@ export class RequestValidator {
   public static async postOrganisation(req: Request, res: Response, next: NextFunction) {
     const schema = Joi.object({
       organisation: Joi.string().required(),
-      address: Joi.string().required(),
+      address: Joi.string(),
       spoc: Joi.string().required(),
       email: Joi.string().lowercase().required(),
-      contact: Joi.string().required()
+      contact: Joi.string().required(),
+      location: Joi.string(),
+      businessUnit: Joi.string(),
+      industry: Joi.string()
     });
     const { error } = schema.validate(req.body);
     if (error) {
