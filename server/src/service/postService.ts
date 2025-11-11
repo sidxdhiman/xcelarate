@@ -134,133 +134,129 @@ export class PostResponse {
 }
 
 export class PostSendAssessment {
-  // replace only the sendAssessmentEmail method in your PostSendAssessment class with this
-public async sendAssessmentEmail(data: {
-  assessmentId: string;
-  filterType: "organization" | "role";
-  filterValue: string;
-}) {
-  try {
-    const { assessmentId, filterType, filterValue } = data || {};
-    console.log("Incoming sendAssessmentEmail data:", data);
-
-    // Input validation
-    if (!assessmentId || !filterType || !filterValue) {
-      throw new HttpError(400, "assessmentId, filterType and filterValue are required");
+  public async sendAssessmentEmail(data: {
+    assessmentId: string;
+    filterType: "organization" | "organisation" | "role" | "designation" | string;
+    filterValue: string;
+  }): Promise<any> {
+    try {
+      const { assessmentId, filterType: rawFilterType, filterValue } = data || {};
+      console.log("[SEND] incoming payload:", { assessmentId, rawFilterType, filterValue });
+  
+      if (!assessmentId || !rawFilterType || !filterValue) {
+        throw new HttpError(400, "assessmentId, filterType and filterValue are required");
+      }
+      if (!isOid(assessmentId)) throw new HttpError(400, "Invalid assessmentId");
+  
+      const ft = String(rawFilterType).toLowerCase();
+      let filterType: "organization" | "role";
+      if (ft === "organization" || ft === "organisation") filterType = "organization";
+      else if (ft === "role" || ft === "designation") filterType = "role";
+      else throw new HttpError(400, `Unsupported filterType "${rawFilterType}"`);
+  
+      const assessment = await Assessment.findById(assessmentId).lean();
+      if (!assessment) throw new HttpError(404, "Assessment not found");
+      console.log(`[SEND] Found assessment: "${(assessment as any).title}" (${(assessment as any)._id})`);
+  
+      // Build query (matches your DB fields: organisation and role)
+      const userQuery: Record<string, any> =
+        filterType === "organization" ? { organisation: filterValue } : { role: filterValue };
+  
+      console.log("[SEND] userQuery:", JSON.stringify(userQuery));
+  
+      const users = await User.find(userQuery, { email: 1, username: 1, organisation: 1, role: 1 }).lean();
+      console.log(`[SEND] users matched: ${Array.isArray(users) ? users.length : 0}`);
+  
+      if (!Array.isArray(users) || users.length === 0) {
+        throw new HttpError(400, "No users found for the selected filter");
+      }
+  
+      const recipients = users.filter((u: any) => !!u?.email);
+      console.log("[SEND] recipients with email:", recipients.length);
+      if (!recipients.length) throw new HttpError(400, "No users with a valid email");
+  
+      const { EMAIL_USER, EMAIL_PASS, APP_PUBLIC_URL } = process.env;
+      console.log("[SEND] env EMAIL_USER present?", !!EMAIL_USER, "EMAIL_PASS present?", !!EMAIL_PASS);
+  
+      if (!EMAIL_USER || !EMAIL_PASS) {
+        throw new HttpError(500, "Email credentials are not configured on the server");
+      }
+  
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+        pool: true,
+        maxConnections: 3,
+        maxMessages: 100,
+      });
+  
+      await transporter.verify().catch((err: any) => {
+        console.error("[SEND] transporter.verify() failed:", err && (err.message || err));
+        throw new HttpError(502, `Email service not available: ${(err && err.message) || "verify failed"}`);
+      });
+      console.log("[SEND] transporter verified OK");
+  
+      const base = (APP_PUBLIC_URL || "https://yourapp.com").replace(/\/+$/, "");
+      const assessmentLink = `${base}/${assessmentId}/disclaimer`;
+  
+      const chunk = <T,>(arr: T[], size: number) =>
+        Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+          arr.slice(i * size, i * size + size)
+        );
+  
+      const batches = chunk(recipients, 25);
+      let sent = 0;
+      const failed: { email: string; error: string }[] = [];
+  
+      for (const [batchIndex, batch] of batches.entries()) {
+        console.log(`[SEND] sending batch ${batchIndex + 1}/${batches.length} (size=${batch.length})`);
+        await Promise.all(
+          batch.map(async (user: any) => {
+            try {
+              await transporter.sendMail({
+                from: `"Assessments" <${EMAIL_USER}>`,
+                to: user.email as string,
+                subject: `New Assessment Assigned: ${(assessment as any).title}`,
+                html: `
+                  <div style="font-family:Arial,sans-serif;padding:15px">
+                    <h2 style="color:#800080;margin:0 0 10px">New Assessment Assigned</h2>
+                    <p>Hi ${user.username || user.email},</p>
+                    <p>You have been assigned <b>"${(assessment as any).title}"</b>.</p>
+                    <p>
+                      <a href="${assessmentLink}"
+                         style="background:#800080;color:#fff;padding:10px 15px;border-radius:6px;text-decoration:none;display:inline-block">
+                        Start Assessment
+                      </a>
+                    </p>
+                    <p style="font-size:12px;color:#666">If the button doesn’t work, paste this link:<br>${assessmentLink}</p>
+                  </div>`,
+              });
+              sent++;
+            } catch (err: any) {
+              const msg = (err && (err.message || String(err))) || "sendMail failed";
+              failed.push({ email: user.email as string, error: msg });
+              console.error("[SEND] sendMail failed for", user.email, msg);
+            }
+          })
+        );
+      }
+  
+      console.log(`[SEND] done: attempted=${recipients.length} sent=${sent} failed=${failed.length}`);
+  
+      return {
+        ok: true,
+        assessmentId,
+        filterType,
+        filterValue,
+        attempted: recipients.length,
+        sent,
+        failed,
+        link: assessmentLink,
+      };
+    } catch (e: unknown) {
+      const errAny = e as any;
+      console.error("Error sending assessment emails:", errAny && (errAny.stack || errAny.message || errAny));
+      rethrow(errAny, "Failed to send assessment emails");
     }
-    if (!isOid(assessmentId)) throw new HttpError(400, "Invalid assessmentId");
-    if (!["organization", "role"].includes(filterType)) {
-      throw new HttpError(400, `Unsupported filterType "${filterType}"`);
-    }
-
-    // Assessment
-    const assessment = await Assessment.findById(assessmentId).lean();
-    if (!assessment) throw new HttpError(404, "Assessment not found");
-
-    // helper: escape regex metachars
-    const escapeRegExp = (s: string) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-    // Users by filter
-    // IMPORTANT FIXES:
-    // - role filter should query the 'role' field in DB (not 'designation')
-    // - organization (frontend) maps to DB field 'organisation'
-    const qryVal = String(filterValue).trim();
-    let userQuery: any = {};
-
-    if (filterType === "organization") {
-      // frontend sends "organization" but DB field is 'organisation'
-      userQuery["organisation"] = { $regex: escapeRegExp(qryVal), $options: "i" };
-    } else {
-      // role filter: use DB 'role' field and do case-insensitive partial match
-      userQuery["role"] = { $regex: escapeRegExp(qryVal), $options: "i" };
-    }
-
-    const users = await User.find(userQuery, { email: 1, username: 1 }).lean();
-    if (!users || users.length === 0) throw new HttpError(400, "No users found for the selected filter");
-
-    const recipients = users.filter((u) => !!u?.email);
-    if (!recipients.length) throw new HttpError(400, "No users with a valid email");
-
-    // Transporter
-    const { EMAIL_USER, EMAIL_PASS, APP_PUBLIC_URL } = process.env;
-    if (!EMAIL_USER || !EMAIL_PASS) {
-      throw new HttpError(500, "Email credentials are not configured on the server");
-    }
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: EMAIL_USER, pass: EMAIL_PASS }, // Use a Gmail App Password
-      pool: true,
-      maxConnections: 3,
-      maxMessages: 100,
-    });
-
-    // Fail fast if creds/binding are wrong
-    await transporter.verify().catch((e: any) => {
-      throw new HttpError(502, `Email service not available: ${e?.message || "verify failed"}`);
-    });
-
-    // Link
-    const base = (APP_PUBLIC_URL || "https://yourapp.com").replace(/\/+$/, "");
-    const assessmentLink = `${base}/${assessmentId}/disclaimer`;
-
-    // Batch send (to avoid provider throttling)
-    const chunk = <T,>(arr: T[], size: number) =>
-      Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
-        arr.slice(i * size, i * size + size)
-      );
-
-    const batches = chunk(recipients, 25);
-    let sent = 0;
-    const failed: { email: string; error: string }[] = [];
-
-    for (const batch of batches) {
-      await Promise.all(
-        batch.map(async (user) => {
-          try {
-            await transporter.sendMail({
-              from: `"Assessments" <${EMAIL_USER}>`,
-              to: user.email as string,
-              subject: `New Assessment Assigned: ${assessment.title}`,
-              html: `
-                <div style="font-family:Arial,sans-serif;padding:15px">
-                  <h2 style="color:#800080;margin:0 0 10px">New Assessment Assigned</h2>
-                  <p>Hi ${user.username || user.email},</p>
-                  <p>You have been assigned <b>"${assessment.title}"</b>.</p>
-                  <p>
-                    <a href="${assessmentLink}"
-                       style="background:#800080;color:#fff;padding:10px 15px;border-radius:6px;text-decoration:none;display:inline-block">
-                      Start Assessment
-                    </a>
-                  </p>
-                  <p style="font-size:12px;color:#666">If the button doesn’t work, paste this link:<br>${assessmentLink}</p>
-                </div>`,
-            });
-            sent++;
-          } catch (e: any) {
-            failed.push({ email: user.email as string, error: e?.message || "sendMail failed" });
-          }
-        })
-      );
-    }
-
-    console.log(
-      `Send assessment "${assessment.title}" → attempted:${recipients.length} sent:${sent} failed:${failed.length}`
-    );
-
-    return {
-      ok: true,
-      assessmentId,
-      filterType,
-      filterValue,
-      attempted: recipients.length,
-      sent,
-      failed,
-      link: assessmentLink,
-    };
-  } catch (e) {
-    console.error("Error sending assessment emails:", e);
-    rethrow(e, "Failed to send assessment emails");
-  }
-}
+  }    
 }
