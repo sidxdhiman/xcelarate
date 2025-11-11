@@ -19,7 +19,7 @@ import { FontAwesome5, Feather } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SearchBar } from "react-native-elements";
 import { useAuthStore } from "@/store/useAuthStore";
-import Toast from "react-native-toast-message";
+import { SnackHost, showSnack } from "@/components/Snack";
 import tw from "twrnc";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
@@ -242,7 +242,7 @@ export default function UserManagement() {
       !accessLevel ||
       !location
     ) {
-      Toast.show({ type: "error", text1: "All fields are required!" });
+      showSnack("All fields are required");
       return;
     }
 
@@ -261,7 +261,7 @@ export default function UserManagement() {
         location,
       });
       if (response.success) {
-        Toast.show({ type: "success", text1: "User added successfully!" });
+        showSnack("User added successfully");
         setAddUserModalVisible(false);
         // Reset fields
         setUsername("");
@@ -276,10 +276,10 @@ export default function UserManagement() {
         const res = await axiosInstance.get("/users");
         setUsers(res.data.reverse());
       } else {
-        Toast.show({ type: "error", text1: "Failed to add user" });
+        showSnack("Failed to add user");
       }
     } catch (err) {
-      Toast.show({ type: "error", text1: "Error adding user" });
+      showSnack("Error adding user");
     } finally {
       setLoadingAdd(false);
     }
@@ -288,7 +288,7 @@ export default function UserManagement() {
   // === ADD ORGANIZATION ===
   const handleAddOrganisation = async () => {
     if (!orgName || !orgSpoc || !orgSpocEmail || !orgSpocContact) {
-      Toast.show({ type: "error", text1: "Please fill all required fields!" });
+      showSnack("Please fill all required fields");
       return;
     }
 
@@ -306,7 +306,7 @@ export default function UserManagement() {
         industry: orgIndustry || undefined,
       });
       if (response.success) {
-        Toast.show({ type: "success", text1: "Organization added successfully!" });
+        showSnack("Organization added successfully");
         setAddOrgModalVisible(false);
         // Reset fields
         setOrgName("");
@@ -324,13 +324,10 @@ export default function UserManagement() {
           setOrganisations(res.data || []);
         }
       } else {
-        Toast.show({
-          type: "error",
-          text1: response.message || "Failed to add organization"
-        });
+        showSnack(response.message || "Failed to add organization");
       }
     } catch (err) {
-      Toast.show({ type: "error", text1: "Error adding organization" });
+      showSnack("Error adding organization");
     } finally {
       setOrgLoading(false);
     }
@@ -373,12 +370,12 @@ export default function UserManagement() {
       setBulkLoading(true);
       const uploadResponse = await uploadBulkUsers(formData);
       if (uploadResponse.success) {
-        Toast.show({ type: "success", text1: "Users added successfully!" });
+        showSnack("Users added successfully");
       } else {
-        Toast.show({ type: "error", text1: "Failed to upload users!" });
+        showSnack("Failed to upload users");
       }
     } catch (error) {
-      Toast.show({ type: "error", text1: "Error uploading file" });
+      showSnack("Error uploading file");
     } finally {
       setBulkLoading(false);
     }
@@ -418,7 +415,7 @@ export default function UserManagement() {
       !modDesignation ||
       !modLocation
     ) {
-      Toast.show({ type: "error", text1: "All fields are required!" });
+      showSnack("All fields are required");
       return;
     }
 
@@ -435,15 +432,15 @@ export default function UserManagement() {
         accessLevel: modAccessLevel,
       });
       if (res.success) {
-        Toast.show({ type: "success", text1: "User modified successfully!" });
+        showSnack("User modified successfully");
         setModifyModalVisible(false);
         const refreshed = await axiosInstance.get("/users");
         setUsers(refreshed.data.reverse());
       } else {
-        Toast.show({ type: "error", text1: "Failed to modify user" });
+        showSnack("Failed to modify user");
       }
     } catch (err) {
-      Toast.show({ type: "error", text1: "Error updating user" });
+      showSnack("Error updating user");
     } finally {
       setModLoading(false);
     }
@@ -460,15 +457,15 @@ export default function UserManagement() {
     try {
       const res = await deleteUser(delEmail);
       if (res.success) {
-        Toast.show({ type: "success", text1: "User flagged successfully!" });
+        showSnack("User flagged successfully");
         setDeleteModalVisible(false);
         const refreshed = await axiosInstance.get("/users");
         setUsers(refreshed.data.reverse());
       } else {
-        Toast.show({ type: "error", text1: "Failed to flag user" });
+        showSnack("Failed to flag user");
       }
     } catch {
-      Toast.show({ type: "error", text1: "Error flagging user" });
+      showSnack("Error flagging user");
     } finally {
       setDelLoading(false);
     }
@@ -552,7 +549,7 @@ export default function UserManagement() {
       </ScrollView>
 
       {/* === Add User Modal === */}
-      <Modal visible={addUserModalVisible} animationType="slide" transparent>
+      <Modal visible={addUserModalVisible} animationType="slide" transparent onRequestClose={() => setAddUserModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView
@@ -814,7 +811,7 @@ export default function UserManagement() {
       </Modal>
 
       {/* === Bulk Upload Modal === */}
-      <Modal visible={bulkModalVisible} animationType="slide" transparent>
+      <Modal visible={bulkModalVisible} animationType="slide" transparent onRequestClose={() => setBulkModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <View style={styles.modalScrollContent}>
@@ -874,7 +871,7 @@ export default function UserManagement() {
       </Modal>
 
       {/* === Modify User Modal === */}
-      <Modal visible={modifyModalVisible} animationType="slide" transparent>
+      <Modal visible={modifyModalVisible} animationType="slide" transparent onRequestClose={() => setModifyModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView
@@ -1063,7 +1060,7 @@ export default function UserManagement() {
       </Modal>
 
       {/* === Delete User Modal === */}
-      <Modal visible={deleteModalVisible} animationType="fade" transparent>
+      <Modal visible={deleteModalVisible} animationType="fade" transparent onRequestClose={() => setDeleteModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Flag User</Text>
@@ -1088,7 +1085,7 @@ export default function UserManagement() {
       </Modal>
 
       {/* === Add Organization Modal === */}
-      <Modal visible={addOrgModalVisible} animationType="slide" transparent>
+      <Modal visible={addOrgModalVisible} animationType="slide" transparent onRequestClose={() => setAddOrgModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView
@@ -1284,6 +1281,7 @@ export default function UserManagement() {
           </View>
         </View>
       </Modal>
+      <SnackHost />
     </View>
   );
 }

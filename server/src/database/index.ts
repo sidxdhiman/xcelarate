@@ -16,6 +16,7 @@ export const connection = mongoose.connect(mongoDB, {
 
 // ------------------ User Interface ------------------
 export interface IUser extends Document {
+  username?: string;  
   email: string;
   password: string;
   accessLevel: number;

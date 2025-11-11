@@ -18,7 +18,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Dropdown } from 'react-native-element-dropdown';
-import Toast from 'react-native-toast-message';
+import { SnackHost, showSnack } from '@/components/Snack';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -136,14 +136,14 @@ export default function ModifyTest() {
             const result = await patchAssessmentById(id as string, { title, roles, questions });
             setLoading(false);
             if (result) {
-                Toast.show({ type: 'success', text1: 'Assessment Updated!' });
+                showSnack('Assessment updated');
                 router.back();
             } else {
-                Toast.show({ type: 'error', text1: 'Update failed!' });
+                showSnack('Update failed');
             }
         } catch (err) {
             setLoading(false);
-            Toast.show({ type: 'error', text1: 'Error saving changes' });
+            showSnack('Error saving changes');
         }
     };
 
@@ -159,9 +159,6 @@ export default function ModifyTest() {
                 <ScrollView contentContainerStyle={styles.container}>
                     {/* Header */}
                     <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
-                        <Pressable style={styles.backButton} onPress={() => router.back()}>
-                            <Icon name="arrow-left" size={20} color="white" />
-                        </Pressable>
                         <Text style={styles.headerText}>MODIFY ASSESSMENT</Text>
                     </View>
 
@@ -287,6 +284,7 @@ export default function ModifyTest() {
                     </View>
                 </ScrollView>
             </SafeAreaView>
+            <SnackHost />
         </View>
     );
 }
@@ -301,8 +299,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
-        borderBottomLeftRadius: 40,
-        borderBottomRightRadius: 40,
         elevation: 4,
         shadowColor: '#000',
         shadowOpacity: 0.15,
@@ -310,15 +306,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
     },
     backButton: {
-        position: 'absolute',
-        left: 24,
-        top: 0,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(255,255,255,0.25)',
+        display: 'none',
     },
     headerText: {
         color: '#fff',

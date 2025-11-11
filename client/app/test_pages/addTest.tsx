@@ -22,7 +22,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import Checkbox from 'expo-checkbox';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import Toast from 'react-native-toast-message';
+import { SnackHost, showSnack } from '@/components/Snack';
 
 interface Option {
     id: string;
@@ -127,20 +127,20 @@ export default function AddAssessment() {
             copySelectedQuestions.includes(q.id)
         );
         if (selectedQs.length === 0) {
-            Toast.show({ type: 'info', text1: 'No questions selected to copy!' });
+            showSnack('No questions selected to copy');
             return;
         }
         setQuestions((prev) => [...prev, ...selectedQs]);
         setPromptVisible(null);
         setCopySelectedQuestions([]);
         setSelectedAssessment(null);
-        Toast.show({ type: 'success', text1: 'Questions copied successfully!' });
+        showSnack('Questions copied successfully');
     };
 
     const handleCloneAssessment = (assessment: Assessment) => {
         setQuestions(assessment.questions);
         setPromptVisible(null);
-        Toast.show({ type: 'success', text1: 'Assessment cloned!' });
+        showSnack('Assessment cloned');
     };
 
     const handleSubmit = async () => {
@@ -155,16 +155,12 @@ export default function AddAssessment() {
                 const id = response._id;
                 const link = `http://localhost:8081/user_pages/${id}`;
                 await Clipboard.setStringAsync(link);
-                Toast.show({
-                    type: 'success',
-                    text1: 'Assessment Created!',
-                    text2: 'Link copied to clipboard',
-                });
+                showSnack('Assessment created! Link copied to clipboard');
                 router.back();
             }
         } catch (err) {
             console.error(err);
-            Toast.show({ type: 'error', text1: 'Error adding assessment' });
+            showSnack('Error adding assessment');
         }
     };
 
@@ -184,9 +180,6 @@ export default function AddAssessment() {
                 <ScrollView contentContainerStyle={styles.container}>
                     {/* Header */}
                     <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
-                        <Pressable style={styles.backButton} onPress={() => router.back()}>
-                            <Icon name="arrow-left" size={20} color="white" />
-                        </Pressable>
                         <Text style={styles.headerText}>CREATE NEW ASSESSMENT</Text>
                     </View>
 
@@ -457,6 +450,7 @@ export default function AddAssessment() {
                     </View>
                 </View>
             )}
+            <SnackHost />
         </View>
     );
 }
@@ -471,8 +465,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 20,
-        borderBottomLeftRadius: 40,
-        borderBottomRightRadius: 40,
         elevation: 4,
         shadowColor: '#000',
         shadowOpacity: 0.15,
@@ -480,15 +472,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
     },
     backButton: {
-        position: 'absolute',
-        left: 24,
-        top: 0,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(255,255,255,0.25)',
+        display: 'none',
     },
     headerText: {
         color: '#fff',
