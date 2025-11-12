@@ -71,3 +71,14 @@ export class GetResponseByAssessmentId {
   }
 }
 
+export class GetRoles {
+  public async getRoles() {
+    try {
+      const roles = await User.distinct("role");
+      return roles;
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      throw new Error("Error fetching roles");
+    }
+  }
+}

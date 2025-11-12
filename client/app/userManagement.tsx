@@ -127,6 +127,8 @@ export default function UserManagement() {
   const [orgBusinessUnit, setOrgBusinessUnit] = useState("");
   const [orgIndustry, setOrgIndustry] = useState("");
   const [orgLoading, setOrgLoading] = useState(false);
+  const [noOrgFound, setNoOrgFound] = useState(false);
+
 
   // Location Autocomplete
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
@@ -184,20 +186,22 @@ export default function UserManagement() {
   };
 
   // Organization autocomplete
-  useEffect(() => {
-    if (organisation.trim()) {
-      const filtered = organisations
-        .filter((org) =>
-          org.organisation?.toLowerCase().includes(organisation.toLowerCase())
-        )
-        .slice(0, 5);
-      setOrgSuggestions(filtered);
-      setShowOrgSuggestions(filtered.length > 0);
-    } else {
-      setOrgSuggestions([]);
-      setShowOrgSuggestions(false);
-    }
-  }, [organisation, organisations]);
+useEffect(() => {
+  if (organisation.trim()) {
+    const filtered = organisations
+      .filter((org) =>
+        org.organisation?.toLowerCase().includes(organisation.toLowerCase())
+      )
+      .slice(0, 5);
+    setOrgSuggestions(filtered);
+    setShowOrgSuggestions(filtered.length > 0);
+    setNoOrgFound(filtered.length === 0);
+  } else {
+    setOrgSuggestions([]);
+    setShowOrgSuggestions(false);
+    setNoOrgFound(false);
+  }
+}, [organisation, organisations]);
 
   // Location autocomplete
   useEffect(() => {
@@ -677,21 +681,27 @@ export default function UserManagement() {
                     </TouchableOpacity>
                   </View>
                   {showOrgSuggestions && orgSuggestions.length > 0 && (
-                    <View style={styles.suggestionsContainer}>
-                      {orgSuggestions.map((org, idx) => (
-                        <TouchableOpacity
-                          key={idx}
-                          style={styles.suggestionItem}
-                          onPress={() => {
-                            setOrganisation(org.organisation || "");
-                            setShowOrgSuggestions(false);
-                          }}
-                        >
-                          <Feather name="briefcase" size={16} color="#800080" style={{ marginRight: 8 }} />
-                          <Text style={styles.suggestionText}>{org.organisation || ""}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
+                  <View style={styles.suggestionsContainer}>
+                    {orgSuggestions.map((org, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        style={styles.suggestionItem}
+                        onPress={() => {
+                          setOrganisation(org.organisation || "");
+                          setShowOrgSuggestions(false);
+                          setNoOrgFound(false);
+                        }}
+                      >
+                        <Feather name="briefcase" size={16} color="#800080" style={{ marginRight: 8 }} />
+                        <Text style={styles.suggestionText}>{org.organisation || ""}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {noOrgFound && !showOrgSuggestions && (
+                    <Text style={{ color: "red", marginTop: 6, fontSize: 13 }}>
+                      No organisation found. Please add the organisation information.
+                    </Text>
                   )}
                 </View>
 

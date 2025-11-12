@@ -230,4 +230,27 @@ public static async postBulk(req: Request, res: Response) {
       // logger.errorLog.info("FAILED!-INTERNAL-SERVER-ERROR");
     }
   }
+
+  public static async getRoles(req: Request, res: Response) {
+    try {
+      const query = (req.query.q as string)?.toLowerCase() || "";
+  
+      // Explicitly cast the result to string[]
+      const roles = (await User.distinct("role")) as string[];
+  
+      if (!roles || roles.length === 0) {
+        return res.status(404).json({ message: "No roles found" });
+      }
+  
+      // Filter safely
+      const filtered = roles.filter((r) =>
+        typeof r === "string" && r.toLowerCase().includes(query)
+      );
+  
+      return res.status(200).json(filtered);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      return res.status(500).json({ message: "Internal Server Error - GET ROLES" });
+    }
+  }  
 }

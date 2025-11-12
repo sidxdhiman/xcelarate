@@ -794,7 +794,7 @@ export default function TestManagement() {
   const [filterQuery, setFilterQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [selectedFilterValue, setSelectedFilterValue] = useState<string | null>(null);
+  const [selectedFilterValue, setSelectedFilterValue] = useState<string[]>([]);
   const debounceRef = useRef<number | null>(null);
 
   const axiosInstance = useAuthStore((s) => s.axiosInstance);
@@ -995,9 +995,9 @@ const handleDownloadResponses = async (assessment: Assessment) => {
     setFilterType(null);
     setFilterQuery("");
     setSuggestions([]);
-    setSelectedFilterValue(null);
+    setSelectedFilterValue([]);
     setSendModalVisible(true);
-  };
+  };  
 
   const closeSendModal = () => {
     setSendModalVisible(false);
@@ -1005,7 +1005,8 @@ const handleDownloadResponses = async (assessment: Assessment) => {
     setFilterType(null);
     setFilterQuery("");
     setSuggestions([]);
-    setSelectedFilterValue(null);
+    setSelectedFilterValue([]);
+;
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
@@ -1047,14 +1048,16 @@ const handleDownloadResponses = async (assessment: Assessment) => {
           // fallback to specific endpoints
           try {
             if (filterType === "role") {
+              // ✅ use your new backend endpoint
               resp = await axiosInstance.get("/roles", { params: { q: qTrim } });
             } else {
-              // organisation spelled with s? using 'organisations' as you used earlier
+              // still use /organisations for organisation filter
               resp = await axiosInstance.get("/organisations", { params: { q: qTrim } });
             }
           } catch (e2) {
+            console.warn("Suggestion fetch fallback failed", e2);
             resp = null;
-          }
+          }          
         }
 
         let items: string[] = [];
@@ -1098,20 +1101,24 @@ const handleDownloadResponses = async (assessment: Assessment) => {
       Toast.show({ type: "info", text1: "Choose a filter type (Role or organisation)" });
       return;
     }
-    if (!selectedFilterValue) {
-      Toast.show({ type: "info", text1: "Select a role or organisation from suggestions" });
-      return;
-    }
+  
+    // ensure we send an array (multi-select)
+    // build values from selectedFilterValue which you keep as an array
+    const values = Array.isArray(selectedFilterValue) ? selectedFilterValue : selectedFilterValue ? [selectedFilterValue] : [];
 
-    // Build payload - keep filterType values as 'role' | 'organisation' (matches UI)
+    // prepare payload
     const payload = {
       assessmentId: activeAssessment._id,
-      filterType: filterType, // 'role' or 'organisation'
-      filterValue: selectedFilterValue,
+      filterType,           // 'role' or 'organisation'
+      filterValues: values, // preferred array
+      // include legacy single value (either single string or CSV) to keep backwards compatibility
+      filterValue: values.length === 1 ? values[0] : values.join(','),
     };
-
+  
+    console.log('[SEND PAYLOAD]', payload);
+    Toast.show({ type: "info", text1: "Sending assessments..." });
+  
     try {
-      Toast.show({ type: "info", text1: "Sending assessments..." });
       const res = await axiosInstance.post("/assessments/send", payload, {
         headers: { "Content-Type": "application/json" },
       });
@@ -1119,19 +1126,25 @@ const handleDownloadResponses = async (assessment: Assessment) => {
       Toast.show({ type: "success", text1: "Assessment sent" });
       closeSendModal();
     } catch (err: any) {
-      console.warn("[SEND FAIL]", err?.response?.data || err?.message || err);
+      // Improved error reporting so you can see server message / body
+      console.warn("[SEND FAIL]", err);
+  
       const status = err?.response?.status;
-      const serverMsg = err?.response?.data?.message || err?.response?.data?.error || null;
-
-      if (status === 400 && serverMsg && /no users found/i.test(serverMsg)) {
+      const serverBody = err?.response?.data;
+      console.log("Server response body:", serverBody);
+  
+      if (status === 400 && serverBody && /no users found/i.test(JSON.stringify(serverBody))) {
         Toast.show({ type: "error", text1: "No users found for selected filter" });
-      } else if (serverMsg) {
-        Toast.show({ type: "error", text1: "Send failed", text2: serverMsg });
+      } else if (serverBody && (serverBody.message || serverBody.error)) {
+        // show server provided message
+        Toast.show({ type: "error", text1: "Send failed", text2: serverBody.message || serverBody.error });
       } else {
         Toast.show({ type: "error", text1: "Send failed", text2: err?.message || String(err) });
       }
+  
+      // Optional: keep modal open so you can try another selection
     }
-  };
+  };  
 
   // ----------------------
   // Render
@@ -1287,7 +1300,8 @@ const handleDownloadResponses = async (assessment: Assessment) => {
               <TouchableOpacity
                 onPress={() => {
                   setFilterType("role");
-                  setSelectedFilterValue(null);
+                  setSelectedFilterValue([]);
+;
                   setFilterQuery("");
                 }}
                 style={[styles.pillToggle, filterType === "role" ? styles.pillToggleActive : undefined]}
@@ -1298,7 +1312,8 @@ const handleDownloadResponses = async (assessment: Assessment) => {
               <TouchableOpacity
                 onPress={() => {
                   setFilterType("organisation");
-                  setSelectedFilterValue(null);
+                  setSelectedFilterValue([]);
+;
                   setFilterQuery("");
                 }}
                 style={[styles.pillToggle, filterType === "organisation" ? styles.pillToggleActive : undefined]}
@@ -1309,22 +1324,56 @@ const handleDownloadResponses = async (assessment: Assessment) => {
 
             {filterType && (
               <>
-                <Text style={{ color: "#444", marginBottom: 6, fontWeight: "600" }}>{`Search ${filterType === "role" ? "role" : "organisation"}`}</Text>
+                {/* search + inline chips */}
+                <Text style={{ color: "#444", marginBottom: 6, fontWeight: "600" }}>
+                  {`Search ${filterType === "role" ? "role" : "organisation"}`}
+                </Text>
 
-                <View style={{ width: "100%", marginBottom: 8 }}>
-                  <TextInput
-                    placeholder={filterType === "role" ? "Type role name..." : "Type organisation name..."}
-                    value={filterQuery}
-                    onChangeText={(t) => {
-                      setFilterQuery(t);
-                      setSelectedFilterValue(null);
-                    }}
-                    style={styles.inlineSearchInput}
-                    autoCorrect={false}
-                    autoCapitalize="none"
-                  />
-                </View>
+                {/* chips + input container */}
+                  <View style={styles.chipsInputWrapper}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.chipsScrollContent}
+                    >
+                      {(selectedFilterValue ?? []).length === 0 ? (
+                        <Text style={styles.chipsPlaceholder}>
+                          {filterType === "role" ? "Add Role" : "Add Organisation"}
+                        </Text>
+                      ) : (
+                        (selectedFilterValue ?? []).map((val) => (
+                          <View key={val} style={styles.selectedChip}>
+                            <Text style={styles.selectedChipText} numberOfLines={1}>{val}</Text>
+                            <TouchableOpacity
+                              onPress={() =>
+                                setSelectedFilterValue((prev) => {
+                                  const arr = Array.isArray(prev) ? [...prev] : [];
+                                  return arr.filter((v) => v !== val);
+                                })
+                              }
+                              style={styles.removeChipButton}
+                            >
+                              <Text style={styles.removeChipText}>×</Text>
+                            </TouchableOpacity>
+                          </View>
+                        ))
+                      )}
+                    </ScrollView>
 
+                    <TextInput
+                      placeholder={(selectedFilterValue ?? []).length === 0 ? (filterType === "role" ? "Type role name..." : "Type organisation name...") : ""}
+                      value={filterQuery}
+                      onChangeText={(t) => {
+                        setFilterQuery(t);
+                        // don't wipe selectedFilterValue when typing — we want multi-select preserved
+                      }}
+                      style={styles.inlineSearchInputWithChips}
+                      autoCorrect={false}
+                      autoCapitalize="none"
+                    />
+                  </View>
+
+                {/* suggestions list */}
                 <View style={{ width: "100%", maxHeight: 180 }}>
                   {loadingSuggestions ? (
                     <ActivityIndicator style={{ marginTop: 8 }} />
@@ -1333,26 +1382,38 @@ const handleDownloadResponses = async (assessment: Assessment) => {
                       data={suggestions}
                       keyExtractor={(item) => item}
                       renderItem={({ item }) => {
-                        const isSelected = selectedFilterValue === item;
+                        const isSelected = Array.isArray(selectedFilterValue) && selectedFilterValue.includes(item);
                         return (
                           <TouchableOpacity
-                            onPress={() => {
-                              setSelectedFilterValue(item);
-                              setFilterQuery(item);
-                            }}
-                            style={[styles.suggestionRow, isSelected ? styles.suggestionRowSelected : undefined]}
+                          onPress={() => {
+                            setSelectedFilterValue((prev) => {
+                              const arr = Array.isArray(prev) ? [...prev] : [];
+                              if (arr.includes(item)) return arr.filter((v) => v !== item);
+                              return [...arr, item];
+                            });
+                          }}                          
+                            style={[
+                              styles.suggestionRow,
+                              isSelected ? styles.suggestionRowSelected : undefined,
+                            ]}
                           >
-                            <Text style={isSelected ? { color: "#fff", fontWeight: "700" } : { color: "#222" }}>{item}</Text>
+                            <Text style={isSelected ? { color: "#fff", fontWeight: "700" } : { color: "#222" }}>
+                              {isSelected ? "✓ " : ""}
+                              {item}
+                            </Text>
                           </TouchableOpacity>
                         );
                       }}
-                      ListEmptyComponent={() => <Text style={{ color: "#666", paddingVertical: 8 }}>No suggestions. Type to search or enter a value.</Text>}
+                      ListEmptyComponent={() => (
+                        <Text style={{ color: "#666", paddingVertical: 8 }}>
+                          No suggestions. Type to search or enter a value.
+                        </Text>
+                      )}
                     />
                   )}
                 </View>
               </>
             )}
-
             <View style={[styles.modalButtonsContainer, { marginTop: 16 }]}>
               <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={closeSendModal}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -1446,4 +1507,106 @@ const styles = StyleSheet.create({
   inlineSearchInput: { borderWidth: 1, borderColor: "#e6d9f2", borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12, width: "100%", backgroundColor: "#fff" },
   suggestionRow: { paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: "#f0e9fb", backgroundColor: "#fff" },
   suggestionRowSelected: { backgroundColor: "#6c2eb9" },
+
+  selectedChipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 8,
+    gap: 8,
+    justifyContent: "flex-start",
+  },
+  
+  // selectedChip: {
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  //   backgroundColor: "#f4ebff",
+  //   borderRadius: 20,
+  //   paddingVertical: 6,
+  //   paddingHorizontal: 10,
+  //   borderWidth: 1,
+  //   borderColor: "#d7c3f2",
+  // },
+  
+  // selectedChipText: {
+  //   color: "#4b0082",
+  //   fontWeight: "600",
+  //   marginRight: 6,
+  //   fontSize: 13,
+  // },
+  
+  // removeChipButton: {
+  //   width: 18,
+  //   height: 18,
+  //   borderRadius: 9,
+  //   backgroundColor: "#6c2eb9",
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
+  
+  // removeChipText: {
+  //   color: "#fff",
+  //   fontWeight: "bold",
+  //   lineHeight: 18,
+  // },  
+  
+  chipsInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e6d9f2",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    backgroundColor: "#fff",
+    width: "100%",
+    minHeight: 46,
+  },
+  chipsScrollContent: {
+    alignItems: "center",
+    paddingRight: 8,
+  },
+  chipsPlaceholder: {
+    color: "#999",
+    fontSize: 14,
+    paddingLeft: 6,
+  },
+  inlineSearchInputWithChips: {
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    fontSize: 14,
+    color: "#000",
+  },
+  selectedChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f4ebff",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#d7c3f2",
+    marginRight: 8,
+    maxWidth: 200,
+  },
+  selectedChipText: {
+    color: "#4b0082",
+    fontWeight: "600",
+    marginRight: 6,
+    fontSize: 13,
+  },
+  removeChipButton: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#6c2eb9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  removeChipText: {
+    color: "#fff",
+    fontWeight: "700",
+    lineHeight: 18,
+  },
+  
 });
