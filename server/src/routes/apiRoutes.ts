@@ -29,6 +29,7 @@ router.post("/organizations/bulkUpload", upload.single('file'), orgController.po
 //question crud
 router.post("/assessments", questionController.postQuestion);
 router.get("/assessments", questionController.getAssessmentFunction);
+router.get("/assessments/deactivated", questionController.getDeactivatedAssessments); //new route to get the "archive"
 router.get("/assessments/:id", questionController.getAssessmentByIdFunction);
 router.post("/assessments/:id/responses", questionController.submitResponse);
 router.post("/assessments/send", questionController.sendAssessment);
@@ -36,9 +37,14 @@ router.post("/assessments/send", questionController.sendAssessment);
 // router.get("/assessments/:assessmentId/responses", questionController.getResponseById);
 router.get("/assessments/:id/responses", questionController.getResponseById);
 router.patch("/assessments/:id", questionController.patchAssessmentByIdFunction);
-router.delete("/assessments/:id", questionController.deleteAssessmentByIdFunction);
+// router.delete("/assessments/:id", questionController.deleteAssessmentByIdFunction);
 
 // pdf creation route
 router.get("/assessments/:id/pdf", questionController.getAssessmentPdf);
+
+//routes for assessment deactivation and activation
+router.patch("/assessments/:id/deactivate", questionController.deactivateAssessment); //changed delete to patch for deactivation
+// router.get("/assessments/deactivated", questionController.getDeactivatedAssessments); //new route to get the "archive"
+router.patch("/assessments/:id/activate", questionController.activateAssessment);  //new route to reactivate assessment
 
 export default router;

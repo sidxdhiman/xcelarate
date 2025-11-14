@@ -2,13 +2,18 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import PDFDocument from "pdfkit";
 
+// --- ADDED IMPORT ---
+import { Assessment } from "../database"; // Import your model
+
+// (Your other service imports)
 import { PostQuestion, PostResponse } from "../service/postService";
 import { GetAssessment, GetAssessmentById, GetResponseByAssessmentId } from "../service/getService";
 import { PatchAssessmentService } from "../service/patchService";
 import { DeleteService } from "../service/deleteService";
-import {PostSendAssessment} from "../service/postService";
+import { PostSendAssessment } from "../service/postService";
 
 export class questionController {
+  
   // -------------------- CREATE ASSESSMENT --------------------
   public static async postQuestion(req: Request, res: Response) {
     try {
@@ -27,10 +32,12 @@ export class questionController {
     }
   }
 
-  // -------------------- GET ALL ASSESSMENTS --------------------
+  // -------------------- GET ALL (ACTIVE) ASSESSMENTS --------------------
   public static async getAssessmentFunction(req: Request, res: Response) {
-    try {
-      const assessmentData = await new GetAssessment().getAssessment();
+  try {
+    // This now only finds assessments that are active.
+    const assessmentData = await Assessment.find({ isActive: { $ne: false } }).sort({ _id: -1 });
+      
       if (assessmentData) {
         res.status(200).json(assessmentData);
       } else {
@@ -135,28 +142,6 @@ export class questionController {
     }
   }
 
-  // -------------------- DELETE ASSESSMENT --------------------
-  public static async deleteAssessmentByIdFunction(req: Request, res: Response) {
-    try {
-      const assessmentId = req.params.id;
-
-      if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
-        return res.status(400).json({ message: "Invalid Assessment ID" });
-      }
-
-      const deleted = await new DeleteService().deleteAssessmentById(assessmentId);
-
-      if (!deleted) {
-        return res.status(404).json({ message: "Assessment not found" });
-      }
-
-      res.status(200).json({ message: "Assessment deleted successfully", deleted });
-    } catch (error) {
-      console.error("[deleteAssessmentByIdFunction] Error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  }
-
   // -------------------- DOWNLOAD PDF --------------------
   public static async getAssessmentPdf(req: Request, res: Response) {
     try {
@@ -221,20 +206,93 @@ export class questionController {
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
-    public static async sendAssessment(req: Request, res: Response) {
-        try {
-            const { assessmentId, filterType, filterValue } = req.body;
 
-            const sender = new PostSendAssessment();
-            const result = await sender.sendAssessmentEmail({ assessmentId, filterType, filterValue });
+  // -------------------- SEND ASSESSMENT --------------------
+  // (This is your existing function - now included only once)
+  public static async sendAssessment(req: Request, res: Response) {
+      try {
+          const { assessmentId, filterType, filterValue } = req.body;
 
-            res.status(200).json({
-                message: "Assessment emails sent successfully",
-                details: result,
-            });
-        } catch (error: any) {
-            console.error("[sendAssessment] Error:", error);
-            res.status(500).json({ message: error.message || "Failed to send assessment emails" });
-        }
+          const sender = new PostSendAssessment();
+          const result = await sender.sendAssessmentEmail({ assessmentId, filterType, filterValue });
+
+          res.status(200).json({
+              message: "Assessment emails sent successfully",
+              details: result,
+          });
+      } catch (error: any) {
+          console.error("[sendAssessment] Error:", error);
+          res.status(500).json({ message: error.message || "Failed to send assessment emails" });
+      }
+  }
+
+  // --- NEW & MODIFIED FUNCTIONS ---
+
+  // -------------------- DEACTIVATE ASSESSMENT (Soft Delete) --------------------
+  public static async deactivateAssessment(req: Request, res: Response) {
+    try {
+      const assessmentId = req.params.id;
+
+      if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+        return res.status(400).json({ message: "Invalid Assessment ID" });
+      }
+
+      const deactivated = await Assessment.findByIdAndUpdate(
+        assessmentId,
+        { isActive: false },
+        { new: true }
+      );
+
+      if (!deactivated) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      res.status(200).json({ message: "Assessment deactivated successfully", deactivated });
+    } catch (error) {
+      console.error("[deactivateAssessment] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
+  }
+
+  // -------------------- GET DEACTIVATED ASSESSMENTS --------------------
+  public static async getDeactivatedAssessments(req: Request, res: Response) {
+    try {
+      const assessmentData = await Assessment.find({ isActive: false }).sort({ _id: -1 });
+      
+      if (assessmentData) {
+        res.status(200).json(assessmentData);
+      } else {
+        res.status(404).json({ message: "Error in fetching deactivated assessments" });
+      }
+    } catch (error) {
+      console.error("[getDeactivatedAssessments] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  // -------------------- ACTIVATE ASSESSMENT --------------------
+  public static async activateAssessment(req: Request, res: Response) {
+    try {
+      const assessmentId = req.params.id;
+
+      if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+        return res.status(400).json({ message: "Invalid Assessment ID" });
+      }
+
+      const activated = await Assessment.findByIdAndUpdate(
+        assessmentId,
+        { isActive: true },
+        { new: true }
+      );
+
+      if (!activated) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      res.status(200).json({ message: "Assessment activated successfully", activated });
+    } catch (error) {
+      console.error("[activateAssessment] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }

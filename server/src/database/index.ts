@@ -68,6 +68,7 @@ const assessmentSchema = new mongoose.Schema({
   title: String,
   roles: [String],
   questions: [questionSchema],
+  isActive: { type: Boolean, default: true, index: true }
 });
 
 const userStartSchema = new mongoose.Schema({

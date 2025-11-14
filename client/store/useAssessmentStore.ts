@@ -25,8 +25,15 @@ interface AssessmentStore {
   downloadAssessmentPdf: (id: string) => Promise<void>;
   setDraft: (assessmentId: string, questionKey: string, ans: AnswerPayload) => void;
   clearDraft: (assessmentId: string) => void;
-  deleteAssessmentById: (id: string) => Promise<boolean>;
+  // deleteAssessmentById: (id: string) => Promise<boolean>;
   addAssessment: (data: Partial<Assessment>) => Promise<Assessment | null>;
+
+  patchAssessmentById: (id: string, data: Partial<Assessment>) => Promise<Assessment | null>;
+
+  // --- UPDATED & NEW FUNCTIONS ---
+  deactivateAssessmentById: (id: string) => Promise<boolean>; // Renamed from delete
+  activateAssessmentById: (id: string) => Promise<boolean>; // Added new
+  fetchDeactivatedAssessments: () => Promise<{ success: boolean; data: Assessment[] }>; // Added new
 }
 
 export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
@@ -62,7 +69,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  // Fetch all assessments
+  // Fetch all (active) assessments
   fetchAssessments: async () => {
     set({ isFetching: true, error: null });
     try {
@@ -117,7 +124,7 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
 
       set((state) => ({
         assessments: state.assessments.map((a) =>
-            a.id === id ? res.data : a
+            (a as any)._id === id ? res.data : a
         ),
         currentAssessment: res.data,
       }));
@@ -189,18 +196,72 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
     }
   },
 
-  // Delete assessment
-  deleteAssessmentById: async (id: string) => {
+  // // Delete assessment
+  // deleteAssessmentById: async (id: string) => {
+  //   set({ isFetching: true, error: null });
+  //   try {
+  //     await axiosInstance.delete(`/assessments/${id}`);
+  //     Toast.show({ type: "success", text1: "Assessment deleted" });
+  //     return true;
+  //   } catch (error: any) {
+  //     console.error("Error deleting assessment:", error);
+  //     set({ error: error?.response?.data?.message || "Failed to delete assessment" });
+  //     Toast.show({ type: "error", text1: "Failed to delete assessment" });
+  //     return false;
+  //   } finally {
+  //     set({ isFetching: false });
+  //   }
+  // },
+
+  // --- MODIFIED FUNCTION ---
+  // Deactivate assessment
+  deactivateAssessmentById: async (id: string) => {
     set({ isFetching: true, error: null });
     try {
-      await axiosInstance.delete(`/assessments/${id}`);
-      Toast.show({ type: "success", text1: "Assessment deleted" });
+      // Changed from .delete to .patch and updated URL
+      await axiosInstance.patch(`/assessments/${id}/deactivate`);
+      Toast.show({ type: "success", text1: "Assessment deactivated" });
       return true;
     } catch (error: any) {
-      console.error("Error deleting assessment:", error);
-      set({ error: error?.response?.data?.message || "Failed to delete assessment" });
-      Toast.show({ type: "error", text1: "Failed to delete assessment" });
+      console.error("Error deactivating assessment:", error);
+      set({ error: error?.response?.data?.message || "Failed to deactivate" });
+      Toast.show({ type: "error", text1: "Failed to deactivate" });
       return false;
+    } finally {
+      set({ isFetching: false });
+    }
+  },
+
+  // --- NEW FUNCTION ---
+  // Activate assessment
+  activateAssessmentById: async (id: string) => {
+    set({ isFetching: true, error: null });
+    try {
+      await axiosInstance.patch(`/assessments/${id}/activate`);
+      Toast.show({ type: "success", text1: "Assessment activated" });
+      return true;
+    } catch (error: any) {
+      console.error("Error activating assessment:", error);
+      set({ error: error?.response?.data?.message || "Failed to activate" });
+      Toast.show({ type: "error", text1: "Failed to activate" });
+      return false;
+    } finally {
+      set({ isFetching: false });
+    }
+  },
+
+  // --- NEW FUNCTION ---
+  // Fetch deactivated assessments
+  fetchDeactivatedAssessments: async () => {
+    set({ isFetching: true, error: null });
+    try {
+      const res = await axiosInstance.get("/assessments/deactivated");
+      return { success: true, data: res.data as Assessment[] };
+    } catch (error: any) {
+      console.error("Error fetching deactivated assessments:", error);
+      set({ error: error?.response?.data?.message || "Failed to fetch" });
+      Toast.show({ type: "error", text1: "Failed to load archive" });
+      return { success: false, data: [] };
     } finally {
       set({ isFetching: false });
     }
