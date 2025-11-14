@@ -31,20 +31,21 @@ interface User {
   username?: string;
   email?: string;
   contact?: string | number;
-  organisation?: string;
+  organization?: string;
   designation?: string;
   role?: string;
   location?: string;
   accessLevel?: number;
 }
 
-interface Organisation {
+// The provided Organization interface
+interface Organization {
   _id?: string;
-  organisation?: string;
+  organization?: string;
   spoc?: string;
-  email?: string;
-  contact?: string | number;
-  location?: string;
+  spoc_email?: string;
+  spoc_contact?: string | number;
+  org_location?: string;
   businessUnit?: string;
   industry?: string;
 }
@@ -53,7 +54,7 @@ export default function UserManagement() {
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
-  const { addUser, uploadBulkUsers, modifyUser, deleteUser, fetchOrganisations, addOrganisation } = useAuthStore();
+  const { addUser, uploadBulkUsers, modifyUser, deleteUser, fetchOrganizations, addOrganization } = useAuthStore();
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +87,7 @@ export default function UserManagement() {
   const [email, setEmail] = useState("");
   const [countryCallingCode, setCountryCallingCode] = useState("+91");
   const [contact, setContact] = useState("");
-  const [organisation, setOrganisation] = useState("");
+  const [organization, setOrganization] = useState("");
   const [designation, setDesignation] = useState("");
   const [role, setRole] = useState("");
   const [accessLevel, setAccessLevel] = useState("");
@@ -101,7 +102,7 @@ export default function UserManagement() {
   const [modEmail, setModEmail] = useState("");
   const [modCountryCallingCode, setModCountryCallingCode] = useState("+91");
   const [modContact, setModContact] = useState("");
-  const [modOrganisation, setModOrganisation] = useState("");
+  const [modOrganization, setModOrganization] = useState("");
   const [modDesignation, setModDesignation] = useState("");
   const [modRole, setModRole] = useState("");
   const [modLocation, setModLocation] = useState("");
@@ -113,8 +114,8 @@ export default function UserManagement() {
   const [delLoading, setDelLoading] = useState(false);
 
   // Organization Fields
-  const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [orgSuggestions, setOrgSuggestions] = useState<Organisation[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [orgSuggestions, setOrgSuggestions] = useState<Organization[]>([]);
   const [showOrgSuggestions, setShowOrgSuggestions] = useState(false);
   const [orgName, setOrgName] = useState("");
   const [orgSpoc, setOrgSpoc] = useState("");
@@ -161,9 +162,9 @@ export default function UserManagement() {
 
     // Fetch organizations
     const fetchOrgs = async () => {
-      const res = await fetchOrganisations();
+      const res = await fetchOrganizations();
       if (res.success) {
-        setOrganisations(res.data || []);
+        setOrganizations(res.data || []);
       }
     };
     fetchOrgs();
@@ -187,10 +188,10 @@ export default function UserManagement() {
 
   // Organization autocomplete
 useEffect(() => {
-  if (organisation.trim()) {
-    const filtered = organisations
+  if (organization.trim()) {
+    const filtered = organizations
       .filter((org) =>
-        org.organisation?.toLowerCase().includes(organisation.toLowerCase())
+        org.organization?.toLowerCase().includes(organization.toLowerCase())
       )
       .slice(0, 5);
     setOrgSuggestions(filtered);
@@ -201,7 +202,7 @@ useEffect(() => {
     setShowOrgSuggestions(false);
     setNoOrgFound(false);
   }
-}, [organisation, organisations]);
+}, [organization, organizations]);
 
   // Location autocomplete
   useEffect(() => {
@@ -241,7 +242,7 @@ useEffect(() => {
       !username ||
       !email ||
       !contact ||
-      !organisation ||
+      !organization ||
       !designation ||
       !accessLevel ||
       !location
@@ -258,7 +259,7 @@ useEffect(() => {
         username,
         email,
         contact: fullContact,
-        organisation,
+        organization,
         designation,
         role: role || undefined,
         accessLevel,
@@ -271,7 +272,7 @@ useEffect(() => {
         setUsername("");
         setEmail("");
         setContact("");
-        setOrganisation("");
+        setOrganization("");
         setDesignation("");
         setRole("");
         setAccessLevel("");
@@ -290,7 +291,7 @@ useEffect(() => {
   };
 
   // === ADD ORGANIZATION ===
-  const handleAddOrganisation = async () => {
+  const handleAddOrganization = async () => {
     if (!orgName || !orgSpoc || !orgSpocEmail || !orgSpocContact) {
       showSnack("Please fill all required fields");
       return;
@@ -300,15 +301,19 @@ useEffect(() => {
     try {
       // Combine country code with contact
       const fullContact = orgCountryCallingCode + orgSpocContact;
-      const response = await addOrganisation({
-        organisation: orgName,
+
+      // *** UPDATED PAYLOAD to match Organization interface ***
+      const response = await addOrganization({
+        organization: orgName,
         spoc: orgSpoc,
-        email: orgSpocEmail,
-        contact: fullContact,
-        location: orgLocation || undefined,
+        spoc_email: orgSpocEmail, // Changed from email
+        spoc_contact: fullContact, // Changed from contact
+        org_location: orgLocation || undefined, // Changed from location
         businessUnit: orgBusinessUnit || undefined,
         industry: orgIndustry || undefined,
       });
+      // *** END OF UPDATE ***
+
       if (response.success) {
         showSnack("Organization added successfully");
         setAddOrgModalVisible(false);
@@ -323,9 +328,9 @@ useEffect(() => {
         setOrgBusinessUnit("");
         setOrgIndustry("");
         // Refresh organizations
-        const res = await fetchOrganisations();
+        const res = await fetchOrganizations();
         if (res.success) {
-          setOrganisations(res.data || []);
+          setOrganizations(res.data || []);
         }
       } else {
         showSnack(response.message || "Failed to add organization");
@@ -360,26 +365,54 @@ useEffect(() => {
   const handleFilePick = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type: [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+          "application/vnd.ms-excel", // .xls
+        ],
+        copyToCacheDirectory: false, // Recommended for web
       });
-      if (!result.assets || result.assets.length === 0) return;
+      if (!result.assets || result.assets.length === 0) {
+        console.log("No file selected or picker was cancelled.");
+        return;
+      }
 
       const file = result.assets[0];
       const formData = new FormData();
-      formData.append("file", {
-        uri: file.uri,
-        name: file.name,
-        type: file.mimeType || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      } as any);
+      
+      if (Platform.OS === "web") {
+        // On WEB, we need to append the 'File' object itself.
+        // DocumentPicker provides it in `file.file`.
+        if (file.file) {
+          formData.append("file", file.file);
+        } else {
+          // Fallback: If `file.file` isn't there, fetch the blob from the URI
+          const response = await fetch(file.uri);
+          const blob = await response.blob();
+          formData.append("file", blob, file.name);
+        }
+      } else {
+        // On NATIVE (iOS/Android), we append the special object
+        formData.append("file", {
+          uri: file.uri,
+          name: file.name,
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // We hard-code the type
+        } as any);
+      }
+
       setBulkLoading(true);
       const uploadResponse = await uploadBulkUsers(formData);
-      if (uploadResponse.success) {
+
+     if (uploadResponse.success) {
         showSnack("Users added successfully");
+        // We should also refresh the user list here
+        const res = await axiosInstance.get("/users");
+        setUsers(res.data.reverse());
       } else {
-        showSnack("Failed to upload users");
+        showSnack(uploadResponse.message || "Failed to upload users");
       }
-    } catch (error) {
-      showSnack("Error uploading file");
+    } catch (error: any) {
+      console.error("File pick error:", error);
+      showSnack(error.message || "Error uploading file");
     } finally {
       setBulkLoading(false);
     }
@@ -403,7 +436,7 @@ useEffect(() => {
     } else {
       setModContact(contactStr);
     }
-    setModOrganisation(user.organisation || "");
+    setModOrganization(user.organization || "");
     setModDesignation(user.designation || "");
     setModRole(user.role || "");
     setModLocation(user.location || "");
@@ -415,7 +448,7 @@ useEffect(() => {
     if (
       !modUsername ||
       !modContact ||
-      !modOrganisation ||
+      !modOrganization ||
       !modDesignation ||
       !modLocation
     ) {
@@ -429,7 +462,7 @@ useEffect(() => {
       const res = await modifyUser(modEmail, {
         username: modUsername,
         contact: fullContact,
-        organisation: modOrganisation,
+        organization: modOrganization,
         designation: modDesignation,
         role: modRole || undefined,
         location: modLocation,
@@ -542,7 +575,7 @@ useEffect(() => {
               <View style={styles.infoBox}>
                 <Text style={styles.infoText}>📧 {user.email}</Text>
                 <Text style={styles.infoText}>📞 {user.contact}</Text>
-                <Text style={styles.infoText}>🏢 {user.organisation}</Text>
+                <Text style={styles.infoText}>🏢 {user.organization}</Text>
                 <Text style={styles.infoText}>💼 {user.designation}</Text>
                 {user.role && <Text style={styles.infoText}>👤 Role: {user.role}</Text>}
                 <Text style={styles.infoText}>📍 {user.location}</Text>
@@ -659,14 +692,14 @@ useEffect(() => {
                       <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
                       <TextInput
                         style={[styles.input, styles.orgInput]}
-                        placeholder="Organisation"
-                        value={organisation}
+                        placeholder="Organization"
+                        value={organization}
                         onChangeText={(text: string) => {
-                          setOrganisation(text);
+                          setOrganization(text);
                           setLocationSearch("");
                         }}
                         onFocus={() => {
-                          if (organisation.trim()) {
+                          if (organization.trim()) {
                             setShowOrgSuggestions(true);
                           }
                         }}
@@ -687,20 +720,20 @@ useEffect(() => {
                         key={idx}
                         style={styles.suggestionItem}
                         onPress={() => {
-                          setOrganisation(org.organisation || "");
+                          setOrganization(org.organization || "");
                           setShowOrgSuggestions(false);
                           setNoOrgFound(false);
                         }}
                       >
                         <Feather name="briefcase" size={16} color="#800080" style={{ marginRight: 8 }} />
-                        <Text style={styles.suggestionText}>{org.organisation || ""}</Text>
+                        <Text style={styles.suggestionText}>{org.organization || ""}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
                 {noOrgFound && !showOrgSuggestions && (
                     <Text style={{ color: "red", marginTop: 6, fontSize: 13 }}>
-                      No organisation found. Please add the organisation information.
+                      No organization found. Please add the organization information.
                     </Text>
                   )}
                 </View>
@@ -979,9 +1012,9 @@ useEffect(() => {
                   <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Organisation"
-                    value={modOrganisation}
-                    onChangeText={setModOrganisation}
+                    placeholder="Organization"
+                    value={modOrganization}
+                    onChangeText={setModOrganization}
                     placeholderTextColor="#999"
                   />
                 </View>
@@ -1123,7 +1156,7 @@ useEffect(() => {
                   <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Organisation Name *"
+                    placeholder="Organization Name *"
                     value={orgName}
                     onChangeText={setOrgName}
                     placeholderTextColor="#999"
@@ -1274,7 +1307,7 @@ useEffect(() => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.submitBtn, styles.modalActionBtn]}
-                  onPress={handleAddOrganisation}
+                  onPress={handleAddOrganization}
                   disabled={orgLoading}
                 >
                   {orgLoading ? (

@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   password: String,
   iv: { type: String, required: false }, // TODO: make true later
   contact: String,
-  organisation: String,
+  organization: String,
   designation: String,
   role: String,
   location: String,
@@ -40,13 +40,17 @@ const userSchema = new mongoose.Schema({
   accessLevel: { type: Number, required: true },
 });
 
-const organisationSchema = new mongoose.Schema({
-  organisation: String,
-  address: String,
+const organizationSchema = new mongoose.Schema({
+  organization: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
   spoc: String,
-  email: String,
-  contact: String,
-  location: String,
+  spoc_email: String,
+  spoc_contact: String,
+  org_location: String,
   businessUnit: String,
   industry: String
 });
@@ -109,7 +113,7 @@ const responseSchema = new mongoose.Schema({
 
 // ------------------ Models ------------------
 export const User = mongoose.model<IUser>('User', userSchema);
-export const Organisation = mongoose.model('Organisations', organisationSchema);
+export const Organization = mongoose.model('organizations', organizationSchema);
 export const Assessment = mongoose.model('Assessment', assessmentSchema);
 export const Response = mongoose.model('Responses', responseSchema);
 export const beforeAssessment = mongoose.model('BeforeAssessment', userStartSchema);

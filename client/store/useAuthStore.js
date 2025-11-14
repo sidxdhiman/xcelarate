@@ -96,10 +96,17 @@ export const useAuthStore = create((set, get) => ({
   // --- Bulk Upload Users ---
   uploadBulkUsers: async (formData) => {
     try {
-      const res = await axiosInstance.post("/bulkUserUpload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      return res.data;
+      // Pass formData directly. DO NOT set any headers.
+      // Axios will now auto-generate the correct header with the boundary.
+      const res = await axiosInstance.post("/bulkUserUpload", formData);
+
+      // Your component expects { success: true }
+      if (res.status === 200) {
+        return { success: true, ...res.data };
+      } else {
+        return { success: false, message: "Upload failed." };
+      }
+
     } catch (error) {
       console.error("Bulk upload error:", error);
       return {
@@ -181,27 +188,27 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // --- Fetch Organisations ---
-  fetchOrganisations: async () => {
+  // --- Fetch Organizations ---
+  fetchOrganizations: async () => {
     try {
-      const res = await axiosInstance.get("/organisations/");
+      const res = await axiosInstance.get("/organizations/");
       return { success: true, data: res.data };
     } catch (error) {
-      console.error("FetchOrganisations error:", error);
+      console.error("FetchOrganizations error:", error);
       return { success: false, data: [] };
     }
   },
 
-  // --- Add Organisation ---
-  addOrganisation: async (orgData) => {
+  // --- Add Organization ---
+  addOrganization: async (orgData) => {
     try {
-      const res = await axiosInstance.post("/organisations/", orgData);
+      const res = await axiosInstance.post("/organizations/", orgData);
       return { success: true, data: res.data };
     } catch (error) {
-      console.error("AddOrganisation error:", error);
+      console.error("AddOrganization error:", error);
       return { 
         success: false, 
-        message: error.response?.data?.message || error.response?.data || "Failed to add organisation" 
+        message: error.response?.data?.message || error.response?.data || "Failed to add organization" 
       };
     }
   },

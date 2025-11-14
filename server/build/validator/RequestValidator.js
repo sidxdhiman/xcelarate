@@ -23,7 +23,7 @@ class RequestValidator {
             email: Joi.string(),
             location: Joi.string(),
             contact: Joi.number(),
-            organisation: Joi.string(),
+            organization: Joi.string(),
             designation: Joi.string(),
             accessLevel: Joi.number()
         });
@@ -41,7 +41,7 @@ class RequestValidator {
                 //TODO: put required in password, or make another public static for posting user differently (both signup and post user is using this)
                 email: Joi.string().lowercase().pattern(/@xebia\.com$/).required(),
                 contact: Joi.required(),
-                organisation: Joi.string().required(),
+                organization: Joi.string().required(),
                 designation: Joi.string().required(),
                 location: Joi.string(), //TODO make the location required
                 currentProject: Joi.string(), //TODO maybe add required maybe not - have to confirm    
@@ -63,10 +63,10 @@ class RequestValidator {
             next();
         });
     }
-    static postOrganisation(req, res, next) {
+    static postOrganization(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const schema = Joi.object({
-                organisation: Joi.string().required(),
+                organization: Joi.string().required(),
                 address: Joi.string().required(),
                 spoc: Joi.string().required(),
                 email: Joi.string().lowercase().required(),
@@ -77,9 +77,9 @@ class RequestValidator {
                 return res.status(400).send(error.details[0].message);
             }
             try {
-                const existingOrganisation = yield index_2.Organisation.findOne({ organisation: req.body.organisation });
-                if (existingOrganisation) {
-                    return res.status(400).send("Organisation already registered");
+                const existingOrganization = yield index_2.Organization.findOne({ organization: req.body.organization });
+                if (existingOrganization) {
+                    return res.status(400).send("Organization already registered");
                 }
             }
             catch (err) {

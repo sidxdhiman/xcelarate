@@ -11,19 +11,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.orgController = void 0;
 // import { PostService } from "../service/postService";
-const { PostOrganisation } = require("../service/postService");
-const { GetOrganisation } = require("../service/getService");
+const { PostOrganization } = require("../service/postService");
+const { GetOrganization } = require("../service/getService");
 class orgController {
     static postOrg(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const orgData = req.body;
-                const organisation = yield new PostOrganisation().postOrganisation(orgData);
-                if (organisation) {
-                    res.json(organisation);
+                const organization = yield new PostOrganization().postOrganization(orgData);
+                if (organization) {
+                    res.json(organization);
                 }
                 else {
-                    res.status(404).json({ message: "Organisation not posted" });
+                    res.status(404).json({ message: "Organization not posted" });
                 }
             }
             catch (error) {
@@ -34,12 +34,12 @@ class orgController {
     static getOrg(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const organisations = yield new GetOrganisation().getOrganisations();
-                if (organisations) {
-                    res.json(organisations);
+                const organizations = yield new GetOrganization().getOrganizations();
+                if (organizations) {
+                    res.json(organizations);
                 }
                 else {
-                    res.status(404).json({ message: "Organisations not found!" });
+                    res.status(404).json({ message: "Organizations not found!" });
                 }
             }
             catch (error) {

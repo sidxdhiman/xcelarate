@@ -111,7 +111,7 @@ export default function UserList() {
                     <View style={styles.infoBox}>
                       <Text style={styles.infoText}>📧 {user.email}</Text>
                       <Text style={styles.infoText}>📞 {user.contact}</Text>
-                      <Text style={styles.infoText}>🏢 {user.organisation}</Text>
+                      <Text style={styles.infoText}>🏢 {user.organization}</Text>
                       <Text style={styles.infoText}>💼 {user.designation}</Text>
                       <Text style={styles.infoText}>📍 {user.location}</Text>
                     </View>

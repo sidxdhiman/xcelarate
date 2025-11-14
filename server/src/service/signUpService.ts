@@ -7,7 +7,7 @@ export class AuthService {
     email: string;
     password: string;
     contact?: number;
-    organisation?: string;
+    organization?: string;
     designation?: string;
     location?: string;
     currentProject?: string;
@@ -18,7 +18,7 @@ export class AuthService {
       email,
       password,
       contact,
-      organisation,
+      organization,
       designation,
       location,
       currentProject,
@@ -38,7 +38,7 @@ export class AuthService {
       password: encrypted.content,
       iv: encrypted.iv,
       contact,
-      organisation,
+      organization,
       designation,
       location,
       currentProject,

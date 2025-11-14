@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostResponse = exports.PostQuestion = exports.PostOrganisation = exports.PostBeforeAssessment = exports.PostUser = void 0;
+exports.PostResponse = exports.PostQuestion = exports.PostOrganization = exports.PostBeforeAssessment = exports.PostUser = void 0;
 const index_1 = require("../database/index");
 const index_2 = require("../database/index");
 const index_3 = require("../database/index");
@@ -51,25 +51,25 @@ class PostBeforeAssessment {
     }
 }
 exports.PostBeforeAssessment = PostBeforeAssessment;
-class PostOrganisation {
-    postOrganisation(orgData) {
+class Postorganization {
+    postorganization(orgData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!orgData.name) {
-                    throw new Error("Organisation name is required");
+                    throw new Error("organization name is required");
                 }
-                const organisation = yield index_1.Organisation.create(orgData);
-                console.log("Organisation posted successfully!");
-                return organisation;
+                const organization = yield index_1.organization.create(orgData);
+                console.log("organization posted successfully!");
+                return organization;
             }
             catch (error) {
-                console.error("Error in creating organisation:");
-                throw new Error(`Error in creating organisation`);
+                console.error("Error in creating organization:");
+                throw new Error(`Error in creating organization`);
             }
         });
     }
 }
-exports.PostOrganisation = PostOrganisation;
+exports.Postorganization = Postorganization;
 class PostQuestion {
     postQuestion(questionData) {
         return __awaiter(this, void 0, void 0, function* () {

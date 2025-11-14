@@ -19,9 +19,12 @@ router.post("/bulkUserUpload",upload.single('file'), MainController.postBulk);
 router.post("postBefore", MainController.postBefore);
 router.get("/roles", MainController.getRoles);
 
-//organisation crud
-router.post("/organisations/", RequestValidator.postOrganisation, orgController.postOrg);
-router.get("/organisations/", orgController.getOrg);
+//organization crud
+router.post("/organizations/", RequestValidator.postOrganization, orgController.postOrg);
+router.get("/organizations/", orgController.getOrg);
+
+// --- ADD THIS LINE FOR THE BULK UPLOAD ---
+router.post("/organizations/bulkUpload", upload.single('file'), orgController.postOrgBulk);
 
 //question crud
 router.post("/assessments", questionController.postQuestion);

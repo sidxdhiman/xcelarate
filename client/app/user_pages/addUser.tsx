@@ -22,7 +22,7 @@ const AddUser = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
-  const [organisation, setOrganisation] = useState('');
+  const [organization, setorganization] = useState('');
   const [designation, setDesignation] = useState('');
   const [accessLevel, setAccessLevel] = useState('');
   const [location, setLocation] = useState('');
@@ -34,14 +34,14 @@ const AddUser = () => {
   const navigation = useNavigation();
 
   const handleAddUser = async () => {
-    if (!username || !email || !contact || !organisation || !designation || !accessLevel || !location) {
+    if (!username || !email || !contact || !organization || !designation || !accessLevel || !location) {
       Toast.show({ type: 'error', text1: 'Error', text2: 'All fields are required!' });
       return;
     }
 
     setError('');
     setLoading(true); 
-    const userData = { username, email, contact, organisation, designation, accessLevel, location };
+    const userData = { username, email, contact, organization, designation, accessLevel, location };
 
     try {
       if (typeof addUser !== 'function') throw new Error('addUser function is not available');
@@ -76,7 +76,7 @@ const AddUser = () => {
           { icon: 'user', placeholder: 'Username', value: username, setter: setUsername },
           { icon: 'envelope', placeholder: 'Email', value: email, setter: setEmail, keyboardType: 'email-address' },
           { icon: 'phone', placeholder: 'Contact', value: contact, setter: setContact, keyboardType: 'phone-pad' },
-          { icon: 'building', placeholder: 'Organisation', value: organisation, setter: setOrganisation },
+          { icon: 'building', placeholder: 'organization', value: organization, setter: setorganization },
           { icon: 'briefcase', placeholder: 'Designation', value: designation, setter: setDesignation },
           { icon: 'lock', placeholder: 'Access Level', value: accessLevel, setter: setAccessLevel },
         ].map((field, idx) => (

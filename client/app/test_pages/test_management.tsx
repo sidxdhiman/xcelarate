@@ -1,743 +1,3 @@
-// // TestManagement.responsive.tsx
-// import React, { useEffect, useMemo, useRef, useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   ScrollView,
-//   StyleSheet,
-//   ActivityIndicator,
-//   Pressable,
-//   TouchableOpacity,
-//   Dimensions,
-//   Alert,
-//   SafeAreaView,
-//   StatusBar,
-//   Platform,
-//   TextInput,
-//   FlatList,
-//   KeyboardAvoidingView,
-//   useWindowDimensions,
-//   Modal,
-// } from 'react-native';
-// import Icon from 'react-native-vector-icons/FontAwesome';
-// import { SearchBar } from 'react-native-elements';
-// import tw from 'twrnc';
-// import { router } from 'expo-router';
-// import { useAssessmentStore } from '@/store/useAssessmentStore';
-// import { useAuthStore } from '@/store/useAuthStore';
-// import { SnackHost, showSnack } from '@/components/Snack';
-// import * as FileSystem from 'expo-file-system/legacy';
-// import * as Sharing from 'expo-sharing';
-// import XLSX from 'xlsx';
-
-// type Assessment = {
-//   _id: string;
-//   title: string;
-//   roles: string[];
-//   questions: { text: string; options: { text: string }[] }[];
-// };
-
-// const TestManagement = () => {
-//   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-//   const isNarrow = windowWidth < 700; // mobile-ish threshold
-//   const cardMaxWidth = isNarrow ? '94%' : Math.min(900, windowWidth - 120);
-
-//   // --- states & logic untouched ---
-//   const [tests, setTests] = useState<Assessment[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const [search, setSearch] = useState('');
-//   const [filteredTests, setFilteredTests] = useState<Assessment[]>([]);
-//   const [expandedTestId, setExpandedTestId] = useState<string | null>(null);
-//   const [modalVisible, setModalVisible] = useState(false);
-//   const [testToDelete, setTestToDelete] = useState<Assessment | null>(null);
-
-//   // send modal
-//   const [sendModalVisible, setSendModalVisible] = useState(false);
-//   const [filterType, setFilterType] = useState<'organization' | 'role' | null>(null);
-//   const [filterSearchModalVisible, setFilterSearchModalVisible] = useState(false);
-//   const [filterResults, setFilterResults] = useState<string[]>([]);
-//   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-//   const [filterSearch, setFilterSearch] = useState('');
-
-//   // loading and success modal
-//   const [sending, setSending] = useState(false);
-//   const [successModalVisible, setSuccessModalVisible] = useState(false);
-//   const [successMessage, setSuccessMessage] = useState('');
-
-//   const deleteAssessmentById = useAssessmentStore((state) => state.deleteAssessmentById);
-//   const axiosInstance = useAuthStore((state) => state.axiosInstance);
-
-//   // Fetch tests
-//   useEffect(() => {
-//     const fetchTests = async () => {
-//       try {
-//         const res = await axiosInstance.get('/assessments');
-//         setTests(res.data.reverse());
-//         setError(null);
-//       } catch (err: any) {
-//         console.error('Error fetching tests:', err);
-//         setError('Failed to load tests. Please try again.');
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchTests();
-//   }, []);
-
-//   // Search filter
-//   useEffect(() => {
-//     if (search.trim()) {
-//       const query = search.toLowerCase();
-//       setFilteredTests(
-//         tests.filter(
-//           (t) =>
-//             t.title.toLowerCase().includes(query) ||
-//             t.roles?.some((r) => r.toLowerCase().includes(query))
-//         )
-//       );
-//     } else {
-//       setFilteredTests([]);
-//     }
-//   }, [search, tests]);
-
-//   const displayTests = search ? filteredTests : tests;
-
-//   const confirmDelete = async () => {
-//     if (!testToDelete) return;
-//     try {
-//       const confirmed = await deleteAssessmentById(testToDelete._id);
-//       if (confirmed) {
-//         setTests((prev) => prev.filter((t) => t._id !== testToDelete._id));
-//         showSnack('Assessment deleted successfully');
-//       } else {
-//         showSnack('Failed to delete assessment');
-//       }
-//     } catch (err) {
-//       console.error('Delete error:', err);
-//       showSnack('Something went wrong while deleting');
-//     } finally {
-//       setModalVisible(false);
-//       setTestToDelete(null);
-//     }
-//   };
-
-//   const sanitizeFileName = (raw: string) =>
-//     raw
-//       .toLowerCase()
-//       .replace(/[^a-z0-9]+/g, '-')
-//       .replace(/(^-|-$)/g, '') || 'assessment';
-
-//   const handleDownloadResponses = async (assessment: Assessment) => {
-//     try {
-//       setSending(true);
-//       const { data } = await axiosInstance.get(`/assessments/${assessment._id}/responses`);
-
-//       if (!data || !Array.isArray(data) || data.length === 0) {
-//         showSnack('No responses yet for this assessment');
-//         return;
-//       }
-
-//       const formatted = data.map((resp: any, index: number) => {
-//         const answerEntries = Object.entries(resp.answers || {}).reduce(
-//           (acc: Record<string, string>, [questionKey, answer]: [string, any]) => {
-//             const value =
-//               answer?.option ??
-//               answer?.text ??
-//               (typeof answer === 'string' ? answer : '');
-//             acc[questionKey] = value || '';
-//             return acc;
-//           },
-//           {}
-//         );
-
-//         return {
-//           '#': index + 1,
-//           Name: resp.user?.name || 'Anonymous',
-//           Email: resp.user?.email || '',
-//           Designation: resp.user?.designation || '',
-//           SubmittedAt: resp.submittedAt
-//             ? new Date(resp.submittedAt).toLocaleString()
-//             : '',
-//           ...answerEntries,
-//         };
-//       });
-
-//       const worksheet = XLSX.utils.json_to_sheet(formatted);
-//       const workbook = XLSX.utils.book_new();
-//       XLSX.utils.book_append_sheet(workbook, worksheet, 'Responses');
-
-//       const fileName = `${sanitizeFileName(assessment.title)}-responses.xlsx`;
-
-//       if (Platform.OS === 'web') {
-//         const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-//         const blob = new Blob([wbout], {
-//           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-//         });
-//         const url = window.URL.createObjectURL(blob);
-//         const link = document.createElement('a');
-//         link.href = url;
-//         link.download = fileName;
-//         document.body.appendChild(link);
-//         link.click();
-//         document.body.removeChild(link);
-//         window.URL.revokeObjectURL(url);
-//       } else {
-//         const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
-//         const baseDir =
-//           (FileSystem.cacheDirectory ||
-//             FileSystem.documentDirectory ||
-//             (FileSystem as any).temporaryDirectory ||
-//             '') as string;
-
-//         if (!baseDir) {
-//           showSnack('Unable to access storage. Could not determine a directory.');
-//           return;
-//         }
-
-//         const fileUri = `${baseDir}${fileName}`;
-//         await FileSystem.writeAsStringAsync(fileUri, wbout, {
-//           encoding: 'base64',
-//         });
-
-//         if (await Sharing.isAvailableAsync()) {
-//           await Sharing.shareAsync(fileUri);
-//         } else {
-//           showSnack(`Responses saved to: ${fileUri}`);
-//         }
-//       }
-
-//       showSnack('Responses exported successfully');
-//     } catch (error) {
-//       console.error('Download responses error:', error);
-//       showSnack('Failed to export responses');
-//     } finally {
-//       setSending(false);
-//     }
-//   };
-
-//   const handleSend = async () => {
-//     if (!selectedFilter || !testToDelete || !filterType) {
-//       showSnack('Please select a target before sending.');
-//       return;
-//     }
-
-//     try {
-//       setSending(true); // show loader
-
-//       const payload = {
-//         assessmentId: testToDelete._id,
-//         filterType: filterType,
-//         filterValue: selectedFilter,
-//       };
-
-//       console.log('Sending payload:', payload);
-//       const response = await axiosInstance.post('/assessments/send', payload);
-
-//       console.log('✅ Send result:', response.data);
-
-//       // hide loader, show success prompt
-//       setSending(false);
-//       setSuccessMessage(
-//         `Assessment "${testToDelete.title}" sent to all ${
-//           filterType === 'organization' ? 'users in organization' : 'users with role'
-//         } "${selectedFilter}".`
-//       );
-//       setSuccessModalVisible(true);
-//     } catch (err) {
-//       console.error('Send assessment error:', err);
-//       setSending(false);
-//       showSnack('Failed to send assessment');
-//     } finally {
-//       setFilterSearchModalVisible(false);
-//       setSelectedFilter(null);
-//     }
-//   };
-
-//   // small helper to open send modal and pre-populate testToDelete
-//   const openSendModalForTest = (t: Assessment) => {
-//     setTestToDelete(t);
-//     setSendModalVisible(true);
-//   };
-
-//   // responsive layout helpers
-//   const actionsLayoutIsRow = !isNarrow;
-
-//   return (
-//     <SafeAreaView style={styles.screen}>
-//       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-//       <KeyboardAvoidingView
-//         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-//         style={{ flex: 1 }}
-//         keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
-//       >
-//         <ScrollView contentContainerStyle={styles.scrollContent}>
-//           {/* Header */}
-//           <View style={[styles.headerArc, { paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight || 24 }]}>
-//             <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
-//           </View>
-
-//           {/* Actions row */}
-//           <View style={[styles.actionsBar, { width: cardMaxWidth }]}>
-//             <View style={{ flex: 1 }}>
-//               <SearchBar
-//                 placeholder="Search assessments..."
-//                 value={search}
-//                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//                 // @ts-ignore
-//                 onChangeText={setSearch}
-//                 round
-//                 platform="default"
-//                 containerStyle={styles.searchBarContainer}
-//                 inputContainerStyle={styles.searchInputContainer}
-//                 inputStyle={styles.searchInput}
-//               />
-//             </View>
-
-//             <TouchableOpacity
-//               style={[styles.primaryBtn, { marginLeft: isNarrow ? 0 : 12, marginTop: isNarrow ? 10 : 0 }]}
-//               onPress={() => router.push('/test_pages/addTest')}
-//             >
-//               <Icon name="plus" size={16} color="#fff" />
-//               <Text style={styles.primaryBtnText}>New Assessment</Text>
-//             </TouchableOpacity>
-//           </View>
-
-//           {/* List */}
-//           <View style={{ width: cardMaxWidth, alignSelf: 'center' }}>
-//             {loading ? (
-//               <ActivityIndicator size="large" color="#800080" style={{ marginTop: 20 }} />
-//             ) : error ? (
-//               <Text style={{ color: '#e53935', textAlign: 'center', marginTop: 20 }}>{error}</Text>
-//             ) : displayTests.length === 0 ? (
-//               <View style={styles.emptyState}>
-//                 <Icon name="inbox" size={36} color="#c2a2e2" />
-//                 <Text style={styles.emptyTitle}>No Assessments yet</Text>
-//                 <Text style={styles.emptySubtitle}>Create your first assessment to start tracking responses.</Text>
-//               </View>
-//             ) : (
-//               displayTests.map((test) => {
-//                 const isExpanded = expandedTestId === test._id;
-//                 return (
-//                   <View key={test._id} style={[styles.testCard, { width: cardMaxWidth }]}>
-//                     <View style={styles.cardHeader}>
-//                       <View style={{ flex: 1 }}>
-//                         <Text style={styles.cardTitle} numberOfLines={2}>
-//                           {test.title}
-//                         </Text>
-//                         <Text style={styles.cardSubtitle}>
-//                           {test.questions?.length || 0} questions • {test.roles?.length ? `${test.roles.length} roles` : 'No roles'}
-//                         </Text>
-//                       </View>
-
-//                       <View style={[styles.iconGroup, actionsLayoutIsRow ? undefined : { marginTop: 12 }]}>
-//                         <TouchableOpacity
-//                           style={[styles.iconAction, { backgroundColor: '#800080' }]}
-//                           onPress={() => openSendModalForTest(test)}
-//                         >
-//                           <Icon name="paper-plane" size={16} color="#fff" />
-//                         </TouchableOpacity>
-
-//                         <TouchableOpacity
-//                           style={[styles.iconAction, { backgroundColor: '#5b5b5b' }]}
-//                           onPress={() =>
-//                             router.push({
-//                               pathname: '/test_pages/testResponses',
-//                               params: { id: test._id },
-//                             })
-//                           }
-//                         >
-//                           <Icon name="eye" size={16} color="#fff" />
-//                         </TouchableOpacity>
-
-//                         <TouchableOpacity
-//                           style={[styles.iconAction, { backgroundColor: '#40916c' }]}
-//                           onPress={() =>
-//                             router.push({
-//                               pathname: '/test_pages/modifyTest',
-//                               params: { id: test._id },
-//                             })
-//                           }
-//                         >
-//                           <Icon name="edit" size={16} color="#fff" />
-//                         </TouchableOpacity>
-
-//                         <TouchableOpacity
-//                           style={[styles.iconAction, { backgroundColor: '#e53935' }]}
-//                           onPress={() => {
-//                             setTestToDelete(test);
-//                             setModalVisible(true);
-//                           }}
-//                         >
-//                           <Icon name="trash" size={16} color="#fff" />
-//                         </TouchableOpacity>
-//                       </View>
-//                     </View>
-
-//                     {/* expandable area */}
-//                     <View style={styles.cardBody}>
-//                       <Text style={styles.sectionLabel}>Applicable Roles</Text>
-//                       <View style={styles.rolesRow}>
-//                         {test.roles?.length ? (
-//                           test.roles.map((r) => (
-//                             <View key={r} style={styles.roleChip}>
-//                               <Text style={styles.roleChipText}>{r}</Text>
-//                             </View>
-//                           ))
-//                         ) : (
-//                           <Text style={styles.metaMuted}>No roles assigned</Text>
-//                         )}
-//                       </View>
-//                       {/* <View style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-//                         <Text style={styles.smallMeta}>Last updated: —</Text>
-//                         <Pressable onPress={() => setExpandedTestId(isExpanded ? null : test._id)}>
-//                           <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={18} color="#800080" />
-//                         </Pressable>
-//                       </View> */}
-//                     </View>
-//                   </View>
-//                 );
-//               })
-//             )}
-//           </View>
-//         </ScrollView>
-
-//         {/* Delete Modal (responsive) */}
-//         <Modal
-//           visible={modalVisible}
-//           transparent
-//           animationType="fade"
-//           onRequestClose={() => setModalVisible(false)}
-//         >
-//           <View style={styles.modalBackdrop}>
-//             <View style={[styles.modalBox, isNarrow ? { width: '94%', maxHeight: '78%' } : { width: 520 }]}>
-//               <Text style={styles.modalTitle}>Confirm Delete</Text>
-//               <Text style={styles.modalMessage}>
-//                 Are you sure you want to delete "{testToDelete?.title}"? This action cannot be undone.
-//               </Text>
-//               <View style={styles.modalActions}>
-//                 <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalVisible(false)}>
-//                   <Text style={styles.cancelBtnText}>Cancel</Text>
-//                 </TouchableOpacity>
-//                 <TouchableOpacity style={[styles.modalBtn, styles.deleteBtn]} onPress={confirmDelete}>
-//                   <Text style={styles.deleteBtnText}>Delete</Text>
-//                 </TouchableOpacity>
-//               </View>
-//             </View>
-//           </View>
-//         </Modal>
-
-//         {/* Send selection modal */}
-//         <Modal
-//           visible={sendModalVisible}
-//           transparent
-//           animationType="fade"
-//           onRequestClose={() => setSendModalVisible(false)}
-//         >
-//           <View style={styles.modalBackdrop}>
-//             <View style={[styles.modalBox, isNarrow ? { width: '94%', maxHeight: '78%' } : { width: 520 }]}>
-//               <Text style={styles.modalTitle}>Send Assessment</Text>
-//               <Text style={styles.modalMessage}>Choose how to send this assessment</Text>
-
-//               <View style={{ flexDirection: isNarrow ? 'column' : 'row', gap: 10, marginTop: 8 }}>
-//                 <TouchableOpacity
-//                   style={[styles.fullBtn, filterType === 'organization' ? styles.fullBtnActive : {}]}
-//                   onPress={() => {
-//                     setFilterType('organization');
-//                     setSendModalVisible(false);
-//                     setFilterSearchModalVisible(true);
-//                   }}
-//                 >
-//                   <Text style={filterType === 'organization' ? styles.fullBtnTextActive : styles.fullBtnText}>By Organization</Text>
-//                 </TouchableOpacity>
-
-//                 <TouchableOpacity
-//                   style={[styles.fullBtn, filterType === 'role' ? styles.fullBtnActive : {}]}
-//                   onPress={() => {
-//                     setFilterType('role');
-//                     setSendModalVisible(false);
-//                     setFilterSearchModalVisible(true);
-//                   }}
-//                 >
-//                   <Text style={filterType === 'role' ? styles.fullBtnTextActive : styles.fullBtnText}>By Role</Text>
-//                 </TouchableOpacity>
-//               </View>
-
-//               <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn, { marginTop: 12 }]} onPress={() => setSendModalVisible(false)}>
-//                 <Text style={styles.cancelBtnText}>Close</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </View>
-//         </Modal>
-
-//         {/* Filter search modal */}
-//         <Modal
-//           visible={filterSearchModalVisible}
-//           transparent
-//           animationType="slide"
-//           onRequestClose={() => setFilterSearchModalVisible(false)}
-//         >
-//           <View style={styles.modalBackdrop}>
-//             <View style={[styles.modalBox, isNarrow ? { width: '98%', height: '84%' } : { width: 700, maxHeight: '80%' }]}>
-//               <Text style={styles.modalTitle}>{filterType === 'organization' ? 'Select Organization' : 'Select Role'}</Text>
-
-//               <TextInput
-//                 placeholder={`Search ${filterType === 'organization' ? 'organization' : 'role'}...`}
-//                 value={filterSearch}
-//                 onChangeText={(text) => {
-//                   setFilterSearch(text);
-//                   const base =
-//                     filterType === 'organization'
-//                       ? ['Google', 'Meta', 'Amazon', 'Xebia', 'Adobe', 'IBM', 'TCS', 'Infosys']
-//                       : ['Developer', 'Designer', 'QA Engineer', 'Manager', 'Data Scientist', 'DevOps'];
-//                   setFilterResults(base.filter((b) => b.toLowerCase().includes(text.toLowerCase())));
-//                 }}
-//                 style={[styles.input, { marginTop: 12 }]}
-//                 autoCorrect={false}
-//                 autoCapitalize="none"
-//               />
-
-//               <View style={{ marginTop: 12, flex: 1 }}>
-//                 {filterResults.length === 0 ? (
-//                   <Text style={{ color: '#666', paddingVertical: 8 }}>No suggestions. Type to search or enter a value.</Text>
-//                 ) : (
-//                   <FlatList
-//                     data={filterResults}
-//                     keyExtractor={(i) => i}
-//                     renderItem={({ item }) => {
-//                       const selected = selectedFilter === item;
-//                       return (
-//                         <TouchableOpacity
-//                           onPress={() => {
-//                             setSelectedFilter(item);
-//                             setFilterSearch(item);
-//                           }}
-//                           style={[styles.filterOption, selected ? styles.filterOptionSelected : {}]}
-//                         >
-//                           <Text style={selected ? { color: '#fff', fontWeight: '700' } : { color: '#222' }}>{item}</Text>
-//                         </TouchableOpacity>
-//                       );
-//                     }}
-//                     style={{ marginBottom: 6 }}
-//                   />
-//                 )}
-//               </View>
-
-//               <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 }}>
-//                 <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setFilterSearchModalVisible(false)}>
-//                   <Text style={styles.cancelBtnText}>Cancel</Text>
-//                 </TouchableOpacity>
-
-//                 <TouchableOpacity
-//                   style={[styles.modalBtn, { backgroundColor: '#800080', marginLeft: 8 }]}
-//                   onPress={handleSend}
-//                   disabled={sending}
-//                 >
-//                   {sending ? <ActivityIndicator color="#fff" /> : <Text style={styles.deleteBtnText}>Send</Text>}
-//                 </TouchableOpacity>
-//               </View>
-//             </View>
-//           </View>
-//         </Modal>
-
-//         {/* Sending full-screen loader */}
-//         <Modal visible={sending} transparent animationType="fade">
-//           <View style={styles.loaderBackdrop}>
-//             <ActivityIndicator size="large" color="#fff" />
-//             <Text style={{ color: '#fff', marginTop: 12 }}>Working…</Text>
-//           </View>
-//         </Modal>
-
-//         {/* Success modal */}
-//         <Modal visible={successModalVisible} transparent animationType="fade">
-//           <View style={styles.modalBackdrop}>
-//             <View style={[styles.modalBox, { width: isNarrow ? '90%' : 480 }]}>
-//               <Icon name="check-circle" size={44} color="#4CAF50" />
-//               <Text style={[styles.modalTitle, { marginTop: 10 }]}>Success</Text>
-//               <Text style={[styles.modalMessage]}>{successMessage}</Text>
-//               <TouchableOpacity
-//                 style={[styles.modalBtn, { backgroundColor: '#800080', marginTop: 12 }]}
-//                 onPress={() => setSuccessModalVisible(false)}
-//               >
-//                 <Text style={[styles.deleteBtnText, { color: '#fff' }]}>OK</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </View>
-//         </Modal>
-
-//         <SnackHost />
-//       </KeyboardAvoidingView>
-//     </SafeAreaView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   screen: { flex: 1, backgroundColor: '#f9f6ff' },
-//   scrollContent: { alignItems: 'center', paddingBottom: 48, paddingTop: 8 },
-
-//   headerArc: {
-//     backgroundColor: '#800080',
-//     width: '100%',
-//     paddingBottom: 28,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     marginBottom: 12,
-//     elevation: 4,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 4 },
-//     shadowOpacity: 0.15,
-//     shadowRadius: 6,
-//   },
-//   headerText: { color: '#fff', fontSize: 20, fontWeight: '700', letterSpacing: 1, paddingTop: 8 },
-
-//   actionsBar: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     gap: 12,
-//     marginBottom: 12,
-//     alignSelf: 'center',
-//   },
-
-//   // Search
-//   searchBarContainer: {
-//     backgroundColor: 'transparent',
-//     borderTopWidth: 0,
-//     borderBottomWidth: 0,
-//     padding: 0,
-//     flex: 1,
-//   },
-//   searchInputContainer: {
-//     backgroundColor: '#fff',
-//     borderRadius: 30,
-//     borderWidth: 1,
-//     borderColor: '#e0d0ef',
-//     minHeight: 44,
-//   },
-//   searchInput: { color: '#000', fontSize: 14 },
-
-//   // Buttons
-//   primaryBtn: {
-//     backgroundColor: '#800080',
-//     borderRadius: 12,
-//     paddingVertical: 10,
-//     paddingHorizontal: 14,
-//     marginLeft: 12,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     minWidth: 140,
-//   },
-//   primaryBtnText: { color: '#fff', fontWeight: '700', marginLeft: 8 },
-
-//   // Cards
-//   testCard: {
-//     backgroundColor: '#fff',
-//     borderRadius: 12,
-//     padding: 14,
-//     marginVertical: 8,
-//     alignSelf: 'center',
-//     borderWidth: 1,
-//     borderColor: '#efe1fa',
-//     shadowColor: '#000',
-//     shadowOpacity: 0.06,
-//     shadowRadius: 6,
-//     shadowOffset: { width: 0, height: 3 },
-//   },
-//   cardHeader: {
-//     flexDirection: 'row',
-//     alignItems: 'flex-start',
-//     justifyContent: 'space-between',
-//     gap: 12,
-//   },
-//   cardTitle: { fontSize: 16, fontWeight: '700', color: '#32174d' },
-//   cardSubtitle: { color: '#666', marginTop: 6, fontSize: 13 },
-
-//   iconGroup: { flexDirection: 'row', alignItems: 'center' },
-//   iconAction: {
-//     padding: 10,
-//     borderRadius: 10,
-//     marginLeft: 8,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-
-//   cardBody: { marginTop: 12 },
-//   sectionLabel: { fontSize: 12, fontWeight: '700', color: '#6c2eb9', marginBottom: 8 },
-//   rolesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-
-//   roleChip: {
-//     backgroundColor: '#f4ebff',
-//     paddingHorizontal: 10,
-//     paddingVertical: 6,
-//     borderRadius: 999,
-//     marginRight: 6,
-//     marginTop: 6,
-//   },
-//   roleChipText: { color: '#4b0082', fontWeight: '600' },
-//   metaMuted: { color: '#666' },
-
-//   // empty state
-//   emptyState: {
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     padding: 28,
-//     backgroundColor: '#fff',
-//     borderRadius: 12,
-//     borderWidth: 1,
-//     borderColor: '#efe1fa',
-//   },
-//   emptyTitle: { marginTop: 12, fontSize: 18, fontWeight: '700', color: '#32174d' },
-//   emptySubtitle: { marginTop: 6, color: '#6d6d6d' },
-
-//   // Modals
-//   modalBackdrop: {
-//     flex: 1,
-//     backgroundColor: 'rgba(0,0,0,0.45)',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     paddingHorizontal: 16,
-//   },
-//   modalBox: {
-//     backgroundColor: '#fff',
-//     borderRadius: 12,
-//     padding: 16,
-//     maxHeight: '90%',
-//   },
-//   modalTitle: { fontSize: 18, fontWeight: '700', color: '#800080', marginBottom: 6 },
-//   modalMessage: { fontSize: 14, color: '#333', marginBottom: 8 },
-
-//   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 12 },
-//   modalBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10 },
-//   cancelBtn: { backgroundColor: '#f5f5f5', borderWidth: 1, borderColor: '#e0e0e0' },
-//   cancelBtnText: { color: '#666', fontWeight: '600' },
-//   deleteBtn: { backgroundColor: '#e53935' },
-//   deleteBtnText: { color: '#fff', fontWeight: '700' },
-
-//   fullBtn: {
-//     flex: 1,
-//     paddingVertical: 12,
-//     borderRadius: 10,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     backgroundColor: '#f3f0fa',
-//   },
-//   fullBtnActive: { backgroundColor: '#6c2eb9' },
-//   fullBtnText: { color: '#4b0082', fontWeight: '700' },
-//   fullBtnTextActive: { color: '#fff', fontWeight: '700' },
-
-//   loaderBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
-
-//   input: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#fff' },
-
-//   filterOption: { paddingVertical: 12, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-//   filterOptionSelected: { backgroundColor: '#6c2eb9' },
-
-//   smallMeta: { color: '#888', fontSize: 12 },
-// });
-
-// export default TestManagement;
-
-
 // TestManagement.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -790,7 +50,7 @@ export default function TestManagement() {
   // send modal state
   const [sendModalVisible, setSendModalVisible] = useState(false);
   const [activeAssessment, setActiveAssessment] = useState<Assessment | null>(null);
-  const [filterType, setFilterType] = useState<"role" | "organisation" | null>(null);
+  const [filterType, setFilterType] = useState<"role" | "organization" | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -1051,8 +311,8 @@ const handleDownloadResponses = async (assessment: Assessment) => {
               // ✅ use your new backend endpoint
               resp = await axiosInstance.get("/roles", { params: { q: qTrim } });
             } else {
-              // still use /organisations for organisation filter
-              resp = await axiosInstance.get("/organisations", { params: { q: qTrim } });
+              // still use /organizations for organization filter
+              resp = await axiosInstance.get("/organizations", { params: { q: qTrim } });
             }
           } catch (e2) {
             console.warn("Suggestion fetch fallback failed", e2);
@@ -1063,7 +323,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
         let items: string[] = [];
         if (resp && resp.data) {
           if (Array.isArray(resp.data)) {
-            items = resp.data.map((it: any) => (typeof it === "string" ? it : it.name || it.title || it.organisation || it.value)).filter(Boolean);
+            items = resp.data.map((it: any) => (typeof it === "string" ? it : it.name || it.title || it.organization || it.value)).filter(Boolean);
           } else if (Array.isArray(resp.data.items)) {
             items = resp.data.items.map((it: any) => it.name || it.title || it.value).filter(Boolean);
           }
@@ -1098,7 +358,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
   const confirmSendFromModal = async () => {
     if (!activeAssessment) return;
     if (!filterType) {
-      Toast.show({ type: "info", text1: "Choose a filter type (Role or organisation)" });
+      Toast.show({ type: "info", text1: "Choose a filter type (Role or organization)" });
       return;
     }
   
@@ -1109,7 +369,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
     // prepare payload
     const payload = {
       assessmentId: activeAssessment._id,
-      filterType,           // 'role' or 'organisation'
+      filterType,           // 'role' or 'organization'
       filterValues: values, // preferred array
       // include legacy single value (either single string or CSV) to keep backwards compatibility
       filterValue: values.length === 1 ? values[0] : values.join(','),
@@ -1311,14 +571,14 @@ const handleDownloadResponses = async (assessment: Assessment) => {
 
               <TouchableOpacity
                 onPress={() => {
-                  setFilterType("organisation");
+                  setFilterType("organization");
                   setSelectedFilterValue([]);
 ;
                   setFilterQuery("");
                 }}
-                style={[styles.pillToggle, filterType === "organisation" ? styles.pillToggleActive : undefined]}
+                style={[styles.pillToggle, filterType === "organization" ? styles.pillToggleActive : undefined]}
               >
-                <Text style={filterType === "organisation" ? styles.pillToggleTextActive : styles.pillToggleText}>By organisation</Text>
+                <Text style={filterType === "organization" ? styles.pillToggleTextActive : styles.pillToggleText}>By organization</Text>
               </TouchableOpacity>
             </View>
 
@@ -1326,7 +586,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
               <>
                 {/* search + inline chips */}
                 <Text style={{ color: "#444", marginBottom: 6, fontWeight: "600" }}>
-                  {`Search ${filterType === "role" ? "role" : "organisation"}`}
+                  {`Search ${filterType === "role" ? "role" : "organization"}`}
                 </Text>
 
                 {/* chips + input container */}
@@ -1338,7 +598,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
                     >
                       {(selectedFilterValue ?? []).length === 0 ? (
                         <Text style={styles.chipsPlaceholder}>
-                          {filterType === "role" ? "Add Role" : "Add Organisation"}
+                          {filterType === "role" ? "Add Role" : "Add organization"}
                         </Text>
                       ) : (
                         (selectedFilterValue ?? []).map((val) => (
@@ -1361,7 +621,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
                     </ScrollView>
 
                     <TextInput
-                      placeholder={(selectedFilterValue ?? []).length === 0 ? (filterType === "role" ? "Type role name..." : "Type organisation name...") : ""}
+                      placeholder={(selectedFilterValue ?? []).length === 0 ? (filterType === "role" ? "Type role name..." : "Type organization name...") : ""}
                       value={filterQuery}
                       onChangeText={(t) => {
                         setFilterQuery(t);

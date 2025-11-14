@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.beforeAssessment = exports.Response = exports.Assessment = exports.Organisation = exports.User = exports.connection = void 0;
+exports.beforeAssessment = exports.Response = exports.Assessment = exports.organization = exports.User = exports.connection = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config(); // Load environment variables from .env
@@ -23,14 +23,14 @@ const userSchema = new mongoose_1.default.Schema({
     password: String,
     iv: { type: String, required: false }, // TODO: make true later
     contact: Number,
-    organisation: String,
+    organization: String,
     designation: String,
     location: String,
     currentProject: String,
     accessLevel: { type: Number, required: true },
 });
-const organisationSchema = new mongoose_1.default.Schema({
-    organisation: String,
+const organizationSchema = new mongoose_1.default.Schema({
+    organization: String,
     address: String,
     spoc: String,
     email: String,
@@ -89,7 +89,7 @@ const responseSchema = new mongoose_1.default.Schema({
 });
 // ------------------ Models ------------------
 exports.User = mongoose_1.default.model('User', userSchema);
-exports.Organisation = mongoose_1.default.model('Organisations', organisationSchema);
+exports.organization = mongoose_1.default.model('organizations', organizationSchema);
 exports.Assessment = mongoose_1.default.model('Assessment', assessmentSchema);
 exports.Response = mongoose_1.default.model('Responses', responseSchema);
 exports.beforeAssessment = mongoose_1.default.model('BeforeAssessment', userStartSchema);

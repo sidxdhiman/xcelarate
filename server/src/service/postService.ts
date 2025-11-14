@@ -1,7 +1,7 @@
 // postService.ts
 import mongoose from "mongoose";
 import nodemailer from "nodemailer";
-import { User, Organisation, Assessment, Response, beforeAssessment } from "../database/index";
+import { User, Organization, Assessment, Response, beforeAssessment } from "../database/index";
 
 class HttpError extends Error {
   status: number;
@@ -53,15 +53,15 @@ export class PostBeforeAssessment {
   }
 }
 
-export class PostOrganisation {
-  public async postOrganisation(orgData: any) {
+export class PostOrganization {
+  public async postOrganization(orgData: any) {
     try {
-      if (!orgData?.organisation) throw new HttpError(400, "organisation is required");
-      const organisation = await Organisation.create(orgData);
-      return organisation;
+      if (!orgData?.organization) throw new HttpError(400, "organization is required");
+      const organization = await Organization.create(orgData);
+      return organization;
     } catch (e) {
-      console.error("Error creating organisation:", e);
-      rethrow(e, "Error creating organisation");
+      console.error("Error creating organization:", e);
+      rethrow(e, "Error creating organization");
     }
   }
 }
@@ -158,16 +158,16 @@ export class PostSendAssessment {
       const userQuery: any = { flagged: { $ne: true } }; // keep any existing filters you had
       if (filterType === 'role') {
         userQuery.role = { $in: values };
-      } else if (filterType === 'organisation' || filterType === 'organization') {
-        // choose the DB field name used in your models; you used "organisation" earlier
-        userQuery.organisation = { $in: values };
+      } else if (filterType === 'organization' || filterType === 'organization') {
+        // choose the DB field name used in your models; you used "organization" earlier
+        userQuery.organization = { $in: values };
       } else {
         const err: any = new Error('Unknown filterType');
         err.status = 400;
         throw err;
       }
 
-      // Fetch users matching ANY of the roles/organisations
+      // Fetch users matching ANY of the roles/organizations
       const users = await User.find(userQuery).lean().exec();
 
       if (!users || users.length === 0) {

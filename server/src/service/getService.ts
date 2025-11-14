@@ -1,5 +1,5 @@
 import { IntegerType } from "mongodb";
-import { Organisation, User, Assessment, Response } from "../database";
+import { Organization, User, Assessment, Response } from "../database";
 import mongoose from "mongoose";
 
 export class GetService {
@@ -24,11 +24,11 @@ export class GetByIdService {
     }
   }
 }
-export class GetOrganisation {
-  public async getOrganisations() {
+export class GetOrganization {
+  public async getOrganizations() {
     try {
-      const organisations = await Organisation.find({}); 
-      return organisations; 
+      const organizations = await Organization.find({}); 
+      return organizations; 
     } catch (error) {
       console.error("Error fetching data from database:", error); 
       throw new Error('Error fetching data');

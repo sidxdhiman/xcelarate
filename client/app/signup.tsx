@@ -13,7 +13,7 @@ const SignUpScreen = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [contact, setContact] = useState('');
-    const [organisation, setOrganisation] = useState('');
+    const [organization, setOrganization] = useState('');
     const [designation, setDesignation] = useState('');
     const [location, setLocation] = useState('');
     const [password, setPassword] = useState('');
@@ -23,7 +23,7 @@ const SignUpScreen = () => {
     const locations = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Kolkata'];
 
     const handleSignup = async () => {
-        if (!username || !email || !contact || !organisation || !designation || !password) {
+        if (!username || !email || !contact || !organization || !designation || !password) {
             Toast.show({ type: 'error', text1: 'Missing Fields', text2: 'Please fill in all required fields.' });
             return;
         }
@@ -31,7 +31,7 @@ const SignUpScreen = () => {
             Toast.show({ type: 'error', text1: 'Signup Error', text2: 'Passwords do not match!' });
             return;
         }
-        await signup({ username, email, contact, organisation, designation, location, password });
+        await signup({ username, email, contact, organization, designation, location, password });
         router.push('/userLanding');
     };
 
@@ -49,7 +49,7 @@ const SignUpScreen = () => {
                 <TextInput style={styles.input} placeholder="Username" placeholderTextColor="#999" value={username} onChangeText={setUsername} />
                 <TextInput style={styles.input} placeholder="Email ID" placeholderTextColor="#999" keyboardType="email-address" value={email} onChangeText={setEmail} />
                 <TextInput style={styles.input} placeholder="Contact Details" placeholderTextColor="#999" keyboardType="phone-pad" value={contact} onChangeText={setContact} />
-                <TextInput style={styles.input} placeholder="Organisation" placeholderTextColor="#999" value={organisation} onChangeText={setOrganisation} />
+                <TextInput style={styles.input} placeholder="Organization" placeholderTextColor="#999" value={organization} onChangeText={setOrganization} />
                 <TextInput style={styles.input} placeholder="Designation" placeholderTextColor="#999" value={designation} onChangeText={setDesignation} />
 
                 <View style={styles.pickerWrapper}>

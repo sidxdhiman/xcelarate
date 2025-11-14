@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetResponseByAssessmentId = exports.GetAssessmentById = exports.GetAssessment = exports.GetOrganisation = exports.GetByIdService = exports.GetService = void 0;
+exports.GetResponseByAssessmentId = exports.GetAssessmentById = exports.GetAssessment = exports.GetOrganization = exports.GetByIdService = exports.GetService = void 0;
 const database_1 = require("../database");
 class GetService {
     getUsers() {
@@ -41,12 +41,12 @@ class GetByIdService {
     }
 }
 exports.GetByIdService = GetByIdService;
-class GetOrganisation {
-    getOrganisations() {
+class GetOrganization {
+    getOrganizations() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const organisations = yield database_1.Organisation.find({});
-                return organisations;
+                const organizations = yield database_1.Organization.find({});
+                return organizations;
             }
             catch (error) {
                 console.error("Error fetching data from database:", error);
@@ -55,7 +55,7 @@ class GetOrganisation {
         });
     }
 }
-exports.GetOrganisation = GetOrganisation;
+exports.GetOrganization = GetOrganization;
 class GetAssessment {
     getAssessment() {
         return __awaiter(this, void 0, void 0, function* () {

@@ -14,8 +14,7 @@ const { DeleteService } = require("../service/deleteService");
 const { PatchService } = require("../service/patchService");
 const { GetByIdService } = require("../service/getService");
 const {PostBulk} = require("../service/postBulkService");
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+import path from "path";
 
 export class MainController {
   public static async getFunction(req: Request, res: Response) {
@@ -119,20 +118,37 @@ export class MainController {
   
 public static async postBulk(req: Request, res: Response) {
   try {
-    // Check if a file is included in the request
     const file = req.file;
-    console.log('Incoming File:', file);
+    // console.log('Incoming File:', file);
+    console.log('--- INSIDE POSTBULK CONTROLLER ---');
+      if (!file) {
+        console.log('CONTROLLER ERROR: req.file is UNDEFINED.');
+        return res.status(400).json({ error: "No file received by controller." });
+      }
+      console.log('CONTROLLER SUCCESS: req.file is DEFINED.');
+      console.log('file.mimetype received:', file.mimetype);
+      console.log('file.originalname received:', file.originalname);
 
     // Check for missing file
-    if (!file) {
-      return res.status(400).json({ error: "No file uploaded or incorrect field name" });
-    }
+    // if (!file) {
+    //   return res.status(400).json({ error: "No file uploaded or incorrect field name" });
+    // }
+
+      // --- ADD THIS VALIDATION BLOCK ---
+      // We check the file extension, which is more reliable than MIME type
+      const fileExt = path.extname(file.originalname).toLowerCase();
+      if (fileExt !== ".xlsx" && fileExt !== ".xls") {
+        console.log('CONTROLLER ERROR: Invalid file extension:', fileExt);
+        fs.unlinkSync(file.path); // Delete the invalid file
+        return res.status(400).json({ error: `Invalid file type. Only .xlsx or .xls files are allowed. Got ${fileExt}` });
+      }
+      console.log('File extension check PASSED.');
 
     // Ensure the file type is Excel
-    const allowedMimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    if (file.mimetype !== allowedMimeType) {
-      return res.status(400).json({ error: `Invalid file type. Only Excel files (.xlsx) are allowed. Got ${file.mimetype}` });
-    }
+    // const allowedMimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    // if (file.mimetype !== allowedMimeType) {
+    //   return res.status(400).json({ error: `Invalid file type. Only Excel files (.xlsx) are allowed. Got ${file.mimetype}` });
+    // }
 
     // Path to the uploaded file
     const filePath = file.path;

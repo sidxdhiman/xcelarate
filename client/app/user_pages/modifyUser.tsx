@@ -16,7 +16,7 @@ const ModifyUser = () => {
 
     const [username, setUsername] = useState('');
     const [contact, setContact] = useState('');
-    const [organisation, setOrganisation] = useState('');
+    const [organization, setorganization] = useState('');
     const [designation, setDesignation] = useState('');
     const [location, setLocation] = useState('');
     const [accessLevel, setAccessLevel] = useState(1);
@@ -36,7 +36,7 @@ const ModifyUser = () => {
                 }
                 setUsername(user.username || '');
                 setContact(user.contact || '');
-                setOrganisation(user.organisation || '');
+                setorganization(user.organization || '');
                 setDesignation(user.designation || '');
                 setLocation(user.location || '');
                 setAccessLevel(user.accessLevel || 1);
@@ -49,14 +49,14 @@ const ModifyUser = () => {
     }, [email]);
 
     const handleModifyUser = async () => {
-        if (!username || !contact || !organisation || !designation || !location || !accessLevel) {
+        if (!username || !contact || !organization || !designation || !location || !accessLevel) {
             Toast.show({ type: 'error', text1: 'All fields are required!' });
             return;
         }
         setLoading(true);
         try {
             const res = await modifyUser(email as string, {
-                username, email, contact, organisation, designation, location, accessLevel,
+                username, email, contact, organization, designation, location, accessLevel,
             });
             setLoading(false);
             if (res.success) {
@@ -88,7 +88,7 @@ const ModifyUser = () => {
                     { placeholder: 'Username', value: username, setter: setUsername },
                     { placeholder: 'Email', value: email, setter: () => {}, disabled: true },
                     { placeholder: 'Contact', value: contact, setter: setContact },
-                    { placeholder: 'Organisation', value: organisation, setter: setOrganisation },
+                    { placeholder: 'organization', value: organization, setter: setorganization },
                     { placeholder: 'Designation', value: designation, setter: setDesignation },
                 ].map((field, idx) => (
                     <TextInput

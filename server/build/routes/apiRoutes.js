@@ -20,9 +20,9 @@ router.delete("/users/:email", mainController_1.MainController.deleteFunction);
 router.patch("/users/:email", RequestValidator_1.RequestValidator.patchUser, mainController_1.MainController.patchFunction);
 router.post("/bulkUserUpload", upload_1.upload.single('file'), mainController_1.MainController.postBulk);
 router.post("postBefore", mainController_1.MainController.postBefore);
-//organisation crud
-router.post("/organisations/", RequestValidator_1.RequestValidator.postOrganisation, orgController_1.orgController.postOrg);
-router.get("/organisations/", orgController_1.orgController.getOrg);
+//organization crud
+router.post("/organizations/", RequestValidator_1.RequestValidator.postorganization, orgController_1.orgController.postOrg);
+router.get("/organizations/", orgController_1.orgController.getOrg);
 //question crud
 router.post("/postAssessment", questionController_1.questionController.postQuestion);
 router.get("/assessments", questionController_1.questionController.getAssessmentFunction);

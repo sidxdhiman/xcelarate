@@ -15,7 +15,7 @@ const encrypt_decrypt_1 = require("../security/encrypt&decrypt");
 class AuthService {
     static signup(userData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { name, email, password, contact, organisation, designation, location, currentProject, accessLevel } = userData;
+            const { name, email, password, contact, organization, designation, location, currentProject, accessLevel } = userData;
             const existingUser = yield index_1.User.findOne({ email });
             if (existingUser) {
                 throw new Error("User already exists");
@@ -27,7 +27,7 @@ class AuthService {
                 password: encrypted.content,
                 iv: encrypted.iv,
                 contact,
-                organisation,
+                organization,
                 designation,
                 location,
                 currentProject,

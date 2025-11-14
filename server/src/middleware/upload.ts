@@ -22,23 +22,23 @@ const storage = multer.diskStorage({
 });
 
 // File filter to accept only Excel files
-const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-  const allowedMimeTypes = [
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-    "application/vnd.ms-excel", // .xls
-  ];
+// const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+//   const allowedMimeTypes = [
+//     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+//     "application/vnd.ms-excel", // .xls
+//   ];
 
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Invalid file type. Only Excel files are allowed."));
-  }
-};
+//   if (allowedMimeTypes.includes(file.mimetype)) {
+//     cb(null, true);
+//   } else {
+//     cb(new Error("Invalid file type. Only Excel files are allowed."));
+//   }
+// };
 
 // Final multer upload instance
 export const upload = multer({
   storage,
-  fileFilter,
+  // fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB max file size
   },

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 const Joi = require("@hapi/joi");
 import { User } from "../database/index";
-import { Organisation } from "../database/index";
+import { Organization } from "../database/index";
 
 export class RequestValidator {
   public static patchUser(req: Request, res: Response, next: NextFunction) {
@@ -13,7 +13,7 @@ export class RequestValidator {
       email: Joi.string(),
       location: Joi.string(),
       contact: Joi.number(),
-      organisation: Joi.string(),
+      organization: Joi.string(),
       designation: Joi.string(),
       role: Joi.string(),
       accessLevel: Joi.number()
@@ -32,7 +32,7 @@ export class RequestValidator {
       //TODO: put required in password, or make another public static for posting user differently (both signup and post user is using this)
       email: Joi.string().lowercase().pattern(/@xebia\.com$/).required(),
       contact: Joi.required(),
-      organisation: Joi.string().required(),
+      organization: Joi.string().required(),
       designation: Joi.string().required(),
       role: Joi.string(),
       location: Joi.string(), //TODO make the location required
@@ -56,14 +56,14 @@ export class RequestValidator {
 
     next();
   }
-  public static async postOrganisation(req: Request, res: Response, next: NextFunction) {
+  public static async postOrganization(req: Request, res: Response, next: NextFunction) {
     const schema = Joi.object({
-      organisation: Joi.string().required(),
+      organization: Joi.string().required(),
       address: Joi.string(),
       spoc: Joi.string().required(),
-      email: Joi.string().lowercase().required(),
-      contact: Joi.string().required(),
-      location: Joi.string(),
+      spoc_email: Joi.string().lowercase().required(),
+      spoc_contact: Joi.string().required(),
+      org_location: Joi.string(),
       businessUnit: Joi.string(),
       industry: Joi.string()
     });
@@ -73,9 +73,9 @@ export class RequestValidator {
     }
 
     try {
-      const existingOrganisation = await Organisation.findOne({ organisation: req.body.organisation });
-      if (existingOrganisation) {
-        return res.status(400).send("Organisation already registered");
+      const existingOrganization = await Organization.findOne({ organization: req.body.organization });
+      if (existingOrganization) {
+        return res.status(400).send("Organization already registered");
       }
     } catch (err) {
       return res.status(500).send("Database error while checking email");
