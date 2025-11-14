@@ -186,7 +186,7 @@ export default function AddAssessment() {
                     {/* Main Centered Content */}
                     <View style={styles.centeredContent}>
                         <View style={styles.sectionCard}>
-                            <Text style={styles.sectionTitle}>Assessment details</Text>
+                            <Text style={styles.sectionTitle}>Assessment Details</Text>
                             <Text style={styles.sectionSubtitle}>
                                 Set up the foundation of your assessment with a title and target roles.
                             </Text>
@@ -206,19 +206,19 @@ export default function AddAssessment() {
                                     onPress={() => setPromptVisible('copy')}
                                 >
                                     <Icon name="copy" size={16} color="#800080" />
-                                    <Text style={styles.secondaryActionText}>Copy from assessment</Text>
+                                    <Text style={styles.secondaryActionText}>Copy Existing</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.actionBtn, styles.primaryAction]}
                                     onPress={() => setPromptVisible('clone')}
                                 >
                                     <Icon name="clone" size={16} color="white" />
-                                    <Text style={styles.primaryActionText}>Clone existing</Text>
+                                    <Text style={styles.primaryActionText}>Clone Existing</Text>
                                 </TouchableOpacity>
                             </View>
 
                             {/* Role Selection */}
-                            <Text style={styles.label}>Applicable roles</Text>
+                            <Text style={styles.label}>Applicable Roles</Text>
                             <View style={styles.roleRow}>
                                 <View style={{ flex: 1 }}>
                                     <Dropdown
@@ -250,7 +250,7 @@ export default function AddAssessment() {
                                         placeholderTextColor="#8b7ca5"
                                     />
                                     <TouchableOpacity style={styles.addRoleConfirm} onPress={handleAddNewRole}>
-                                        <Text style={styles.addRoleConfirmText}>Add role</Text>
+                                        <Text style={styles.addRoleConfirmText}>Add Role</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
@@ -266,7 +266,7 @@ export default function AddAssessment() {
                             {questions.length === 0 && (
                                 <View style={styles.emptyQuestions}>
                                     <Icon name="question-circle-o" size={32} color="#c2a2e2" />
-                                    <Text style={styles.emptyTitle}>No questions yet</Text>
+                                    <Text style={styles.emptyTitle}>No Questions Yet</Text>
                                     <Text style={styles.emptyDescription}>
                                         Add your first question to start building the assessment experience.
                                     </Text>
@@ -307,7 +307,7 @@ export default function AddAssessment() {
                                         placeholderTextColor="#8b7ca5"
                                     />
 
-                                    <Text style={styles.optionsLabel}>Answer options</Text>
+                                    <Text style={styles.optionsLabel}>Answer Options</Text>
                                     <View style={styles.optionsBox}>
                                         {q.options.map((opt, i) => (
                                             <TextInput
@@ -327,7 +327,7 @@ export default function AddAssessment() {
                                 style={[styles.fullButton, styles.secondaryAction]}
                                 onPress={addQuestion}
                             >
-                                <Text style={styles.secondaryActionText}>+ Add question</Text>
+                                <Text style={styles.secondaryActionText}>+ Add Question</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -336,7 +336,7 @@ export default function AddAssessment() {
                             onPress={handleSubmit}
                         >
                             <Text style={styles.primaryActionText}>
-                                {isAddingAssessment ? 'Submitting...' : 'Create assessment'}
+                                {isAddingAssessment ? 'Submitting...' : 'Create Assessment'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -391,7 +391,7 @@ export default function AddAssessment() {
                                     )}
                                     ListEmptyComponent={
                                         <View style={styles.emptyAssessments}>
-                                            <Text style={styles.emptyTitle}>No matching assessments</Text>
+                                            <Text style={styles.emptyTitle}>No Matching Assessments</Text>
                                             <Text style={styles.emptyDescription}>
                                                 Try a different keyword or build questions manually.
                                             </Text>
@@ -443,7 +443,7 @@ export default function AddAssessment() {
                                     style={[styles.fullButton, styles.primaryAction]}
                                     onPress={handleCopyQuestions}
                                 >
-                                    <Text style={styles.primaryActionText}>Copy selected</Text>
+                                    <Text style={styles.primaryActionText}>Copy Selected</Text>
                                 </TouchableOpacity>
                             </>
                         )}

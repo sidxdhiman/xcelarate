@@ -210,7 +210,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      Toast.show({ type: 'success', text1: 'Downloaded responses' });
+      Toast.show({ type: 'success', text1: 'Downloaded Responses' });
       return;
     }
 
@@ -452,7 +452,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
             ) : displayTests.length === 0 ? (
               <View style={styles.emptyState}>
                 <Icon name="inbox" size={30} color="#c2a2e2" />
-                <Text style={styles.emptyTitle}>No Assessments yet</Text>
+                <Text style={styles.emptyTitle}>No Assessments Yet</Text>
                 <Text style={styles.emptySubtitle}>Create your first assessment to start tracking responses.</Text>
               </View>
             ) : (
@@ -481,7 +481,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
                           </View>
                         ))
                       ) : (
-                        <Text style={styles.metaMuted}>No roles assigned</Text>
+                        <Text style={styles.metaMuted}>No Roles Assigned</Text>
                       )}
                     </View>
                   </View>
@@ -534,7 +534,7 @@ const handleDownloadResponses = async (assessment: Assessment) => {
             <View style={styles.modalIconWrapper}>
               <Icon name="trash" size={26} color="#e53935" />
             </View>
-            <Text style={styles.modalTitle}>Delete assessment?</Text>
+            <Text style={styles.modalTitle}>Delete Assessment?</Text>
             <Text style={styles.modalMessage}>This will permanently remove "{testToDelete?.title}". You cannot undo this action.</Text>
             <View style={styles.modalButtonsContainer}>
               <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
   metaPill: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#efe1fa", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
   metaText: { color: "#4b0082", fontWeight: "600", fontSize: 12 },
   cardBody: { marginTop: 8, marginBottom: 16 },
-  sectionLabel: { fontSize: 13, fontWeight: "700", color: "#6c2eb9", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6 },
+  sectionLabel: { fontSize: 13, fontWeight: "700", color: "#6c2eb9", textTransform: "capitalize", letterSpacing: 0.6, marginBottom: 6 },
   rolesContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   roleChip: { backgroundColor: "#f4ebff", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
   roleChipText: { color: "#4b0082", fontWeight: "600", fontSize: 12 },
