@@ -56,6 +56,7 @@ export default function AddAssessment() {
     const [copySelectedQuestions, setCopySelectedQuestions] = useState<string[]>([]);
     const [addingRole, setAddingRole] = useState(false);
     const [newRole, setNewRole] = useState('');
+    const [deadline, setDeadline] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -150,7 +151,13 @@ export default function AddAssessment() {
             return;
         }
         try {
-            const response = await addAssessment({ title, roles, questions: finalQuestions });
+            const response = await addAssessment({
+                title,
+                roles,
+                questions: finalQuestions,
+                deadline: deadline || null, // This is correct!
+            });
+
             if (response?._id) {
                 const id = response._id;
                 const link = `http://localhost:8081/user_pages/${id}`;
@@ -196,6 +203,17 @@ export default function AddAssessment() {
                                 style={styles.input}
                                 value={title}
                                 onChangeText={setTitle}
+                                placeholderTextColor="#8b7ca5"
+                            />
+
+                            <Text style={styles.label}>Deadline (Optional)</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="YYYY-MM-DD"
+                                value={deadline}
+                                onChangeText={setDeadline}
+                                // This makes it a date picker on web
+                                {...(Platform.OS === 'web' && { type: 'date' })}
                                 placeholderTextColor="#8b7ca5"
                             />
 

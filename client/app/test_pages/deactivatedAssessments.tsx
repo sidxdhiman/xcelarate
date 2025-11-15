@@ -26,6 +26,8 @@ interface Assessment {
   title: string;
   roles: string[];
   questions: any[];
+  createdAt: string; // This comes from timestamps
+  deadline?: string; // This is the new field
 }
 
 // Get tablet dimensions
@@ -198,6 +200,7 @@ const DeactivatedAssessmentsScreen: React.FC = () => {
   // (renderItem is unchanged)
   const renderItem = ({ item }: { item: Assessment }) => (
       <View style={styles.testCard}>
+        {/* Card Header */}
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleRow}>
             <View style={styles.iconPill}>
@@ -210,6 +213,8 @@ const DeactivatedAssessmentsScreen: React.FC = () => {
             <Text style={styles.metaText}>{item.questions?.length || 0} questions</Text>
           </View>
         </View>
+
+        {/* --- THIS IS THE UPDATED cardBody --- */}
         <View style={styles.cardBody}>
           <Text style={styles.sectionLabel}>Applicable Roles</Text>
           <View style={styles.rolesContainer}>
@@ -223,7 +228,26 @@ const DeactivatedAssessmentsScreen: React.FC = () => {
                 <Text style={styles.metaMuted}>No Roles Assigned</Text>
             )}
           </View>
+
+          {/* --- THIS IS THE NEW PART --- */}
+          <View style={styles.datesContainer}>
+            <View style={styles.dateItem}>
+              <Text style={styles.sectionLabel}>Created On</Text>
+              <Text style={styles.dateText}>
+                {new Date(item.createdAt).toLocaleDateString()}
+              </Text>
+            </View>
+            <View style={styles.dateItem}>
+              <Text style={styles.sectionLabel}>Deadline</Text>
+              <Text style={styles.dateText}>
+                {item.deadline ? new Date(item.deadline).toLocaleDateString() : 'No deadline'}
+              </Text>
+            </View>
+          </View>
+          {/* --- END OF NEW PART --- */}
         </View>
+        {/* --- END OF UPDATED cardBody --- */}
+
         <View style={[styles.actionsRow, isTablet ? styles.actionsRowTablet : undefined]}>
           <TouchableOpacity
               style={[styles.actionButton, styles.downloadAction]}
@@ -410,6 +434,23 @@ const styles = StyleSheet.create({
   cardBody: {
     marginTop: 8,
     marginBottom: 16
+  },
+  datesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f4ebff',
+    paddingTop: 16,
+  },
+  dateItem: {
+    flex: 1,
+  },
+  dateText: {
+    fontSize: 14,
+    color: '#32174d',
+    fontWeight: '600',
+    marginTop: 4,
   },
   sectionLabel: {
     fontSize: 13,
