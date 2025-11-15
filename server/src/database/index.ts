@@ -68,8 +68,11 @@ const assessmentSchema = new mongoose.Schema({
   title: String,
   roles: [String],
   questions: [questionSchema],
-  isActive: { type: Boolean, default: true, index: true }
-});
+  isActive: { type: Boolean, default: true, index: true },
+  deadline: { type: Date, required: false },
+  }, {
+  timestamps: true,
+  });
 
 const userStartSchema = new mongoose.Schema({
   name: String,
