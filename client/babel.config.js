@@ -13,7 +13,7 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
-      "babel-plugin-react-native-reanimated",
+      // "babel-plugin-react-native-reanimated",
       "react-native-reanimated/plugin",
     ],
   };
