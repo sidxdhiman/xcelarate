@@ -57,7 +57,7 @@ app.use(
       "http://192.168.1.6:8081",
       "http://192.168.1.6:8082",
       "https://nonwoven-adan-drivingly.ngrok-free.dev",
-      "https://xcelarate-client.onrender.com/",
+      "https://xcelarate-client.onrender.com",
     ],
     credentials: true,
   }),
