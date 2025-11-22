@@ -141,44 +141,65 @@ export default function AssessmentProgress() {
   };
 
   // --- Render User Card ---
-  const renderUserItem = ({ item }: { item: User }) => (
-    <View style={styles.userCard}>
-      <View style={styles.userAvatar}>
-        <Text style={styles.userAvatarText}>{item.name.charAt(0)}</Text>
-      </View>
+  // --- Render User Card ---
+  const renderUserItem = ({ item }: { item: User }) => {
+    // Use safe fallbacks for potentially missing data fields from the server
+    const userName = item.name || "Unknown User";
+    const userDesignation = item.designation || "N/A Designation";
+    const userEmail = item.email || "No Email";
+    const avatarLetter = userName.charAt(0) || "?";
+    const isCompleted = !!item.submittedAt;
 
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.userMeta}>
-          {item.designation} | {item.email}
-        </Text>
-      </View>
+    return (
+      <View
+        style={[
+          styles.userCard,
+          // Dynamic border color based on status
+          { borderLeftColor: isCompleted ? "#40916c" : "#e53935" },
+        ]}
+      >
+        <View style={styles.userAvatar}>
+          {/* Use the safe avatar letter */}
+          <Text style={styles.userAvatarText}>{avatarLetter}</Text>
+        </View>
 
-      {item.submittedAt ? (
-        <View style={styles.statusPill}>
-          <Icon
-            name="check-circle"
-            size={14}
-            color="#40916c"
-            style={{ marginRight: 4 }}
-          />
-          <Text style={styles.statusText}>
-            Completed on {new Date(item.submittedAt).toLocaleDateString()}
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          {/* Use the safe userName */}
+          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userMeta}>
+            {/* Use safe designation and email */}
+            {userDesignation} | {userEmail}
           </Text>
         </View>
-      ) : (
-        <View style={[styles.statusPill, { backgroundColor: "#ffe8e6" }]}>
-          <Icon
-            name="clock-o"
-            size={14}
-            color="#e53935"
-            style={{ marginRight: 4 }}
-          />
-          <Text style={[styles.statusText, { color: "#e53935" }]}>Pending</Text>
-        </View>
-      )}
-    </View>
-  );
+
+        {isCompleted ? (
+          <View style={styles.statusPill}>
+            <Icon
+              name="check-circle"
+              size={14}
+              color="#40916c"
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.statusText}>
+              Completed on {new Date(item.submittedAt!).toLocaleDateString()}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.statusPill, { backgroundColor: "#ffe8e6" }]}>
+            <Icon
+              name="clock-o"
+              size={14}
+              color="#e53935"
+              style={{ marginRight: 4 }}
+            />
+            <Text style={[styles.statusText, { color: "#e53935" }]}>
+              Pending
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   // --- Loading State ---
   if (loading) {
@@ -191,7 +212,6 @@ export default function AssessmentProgress() {
       </View>
     );
   }
-
   // --- Error State ---
   if (error || !assessment) {
     return (

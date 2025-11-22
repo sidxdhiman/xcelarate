@@ -41,7 +41,7 @@ const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 
 const copyAssessmentLink = (id: string) => {
-  const link = `http://localhost:8081/assessment/${id}`;
+  const link = `http://localhost:8082/assessment/${id}`;
   Clipboard.setStringAsync(link);
   Toast.show({ type: "success", text1: "Link Copied!" });
 };
@@ -646,7 +646,7 @@ export default function TestManagement() {
                       }}
                     >
                       <Icon name="bar-chart" size={16} color="#fff" />
-                      <Text style={styles.actionText}>Details</Text>
+                      <Text style={styles.actionText}>Progress</Text>
                     </TouchableOpacity>
                     {/* --- END NEW ACTION BUTTON --- */}
 
