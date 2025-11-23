@@ -44,21 +44,24 @@ import cors from "cors";
 const app = express();
 
 connection
-    .then(() => console.log("✅ Connected to MongoDB"))
-    .catch((error: Error) =>
-        console.error("❌ Error connecting to MongoDB", error)
-    );
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((error: Error) =>
+    console.error("❌ Error connecting to MongoDB", error),
+  );
 
 // ✅ CORS setup
-app.use(cors({
-  origin: [
-    "http://localhost:8081",
-    "http://192.168.1.6:8081",
-    "http://192.168.1.6:8082",
-    "https://nonwoven-adan-drivingly.ngrok-free.dev"
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:8081",
+      "http://192.168.1.6:8081",
+      "http://192.168.1.6:8082",
+      "https://nonwoven-adan-drivingly.ngrok-free.dev",
+      "https://xcelarate-client.onrender.com",
+    ],
+    credentials: true,
+  }),
+);
 
 // ✅ JSON parsing (critical)
 app.use(express.json());
@@ -73,4 +76,3 @@ app.get("/", (req, res) => {
 });
 
 export default app;
-

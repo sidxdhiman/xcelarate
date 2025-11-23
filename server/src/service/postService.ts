@@ -407,7 +407,7 @@ export class PostSendAssessment {
             const userName = (u as any).name || (u as any).fullName || (u as any).username || "User";
             <p>You have been assigned a new assessment.</p>
             <p>Please complete it using the link below:</p>
-            <a href="http://localhost:8081/assessment/${assessmentId}">
+            <a href="https://xcelarate-client.onrender.com/assessment/${assessmentId}">
               Start Assessment
             </a>
           `,
