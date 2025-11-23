@@ -40,8 +40,11 @@ type Assessment = {
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 
+const DEPLOYED_FRONTEND_URL = "https://xcelarate-client.onrender.com";
+
 const copyAssessmentLink = (id: string) => {
-  const link = `http://localhost:8082/assessment/${id}`;
+  // const link = `http://localhost:8082/assessment/${id}`;
+  const link = `${DEPLOYED_FRONTEND_URL}/assessment/${id}`;
   Clipboard.setStringAsync(link);
   Toast.show({ type: "success", text1: "Link Copied!" });
 };
