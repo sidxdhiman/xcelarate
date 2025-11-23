@@ -2,18 +2,18 @@ import nodemailer from "nodemailer";
 
 export async function sendMail(to: string, subject: string, html: string) {
   try {
-    console.log(`📨 Using SMTP Provider: Brevo`);
+    console.log(`📨 Connecting to Brevo on Port 2525...`);
 
     const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com", // Brevo's SMTP Server
-      port: 587,                    // Standard Port
-      secure: false,                // Use STARTTLS
+      host: "smtp-relay.brevo.com",
+      port: 2525,             // <--- THIS IS THE FIX. Port 2525 bypasses firewalls.
+      secure: false,          // Must be false for 2525
       auth: {
         user: process.env.EMAIL_USER, // Your Brevo Login Email
-        pass: process.env.EMAIL_PASS, // Your Brevo SMTP Key
+        pass: process.env.EMAIL_PASS, // Your Brevo Master Password or SMTP Key
       },
       tls: {
-        rejectUnauthorized: false // Fix for cloud certificate issues
+        rejectUnauthorized: false // Helps with handshake issues
       }
     });
 
@@ -27,7 +27,7 @@ export async function sendMail(to: string, subject: string, html: string) {
     console.log(`✅ Email sent successfully! Message ID: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error(`❌ Failed to send email:`, error);
+    console.error(`❌ Failed to send email via Brevo:`, error);
     return false;
   }
 }
