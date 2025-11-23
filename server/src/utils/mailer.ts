@@ -2,23 +2,22 @@ import nodemailer from "nodemailer";
 
 export async function sendMail(to: string, subject: string, html: string) {
   try {
-    // Log credentials presence to debug (never log the full password!)
-    console.log(`📨 Configuring Mailer... User: ${process.env.EMAIL_USER}, Pass Length: ${process.env.EMAIL_PASS?.length}`);
+    console.log(`📨 Configuring Mailer (Service Mode)...`);
+    console.log(`   User: ${process.env.EMAIL_USER}`);
 
+    // USE THE "SERVICE" SHORTCUT
+    // This automatically handles host, port, and secure settings for Gmail
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,      // Use Port 587 for STARTTLS (Best for Render/Cloud)
-      secure: false,  // secure: false means "use STARTTLS" upgrade, NOT "no security"
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Verify connection configuration before sending
-    // This helps catch authentication errors immediately
+    // Verify connection
     await transporter.verify();
-    console.log("✅ SMTP Connection Verified. Sending email...");
+    console.log("✅ SMTP Connection Verified via 'gmail' service.");
 
     const info = await transporter.sendMail({
       from: `"Xcelarate Admin" <${process.env.EMAIL_USER}>`,
