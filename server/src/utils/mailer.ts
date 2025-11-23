@@ -2,22 +2,34 @@ import nodemailer from "nodemailer";
 
 export async function sendMail(to: string, subject: string, html: string) {
   try {
-    console.log(`📨 Configuring Mailer (Service Mode)...`);
-    console.log(`   User: ${process.env.EMAIL_USER}`);
+    console.log(`📨 Configuring Mailer (Robust Mode)...`);
 
-    // USE THE "SERVICE" SHORTCUT
-    // This automatically handles host, port, and secure settings for Gmail
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // Use STARTTLS
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      // --- FIXES FOR RENDER TIMEOUTS ---
+      tls: {
+        // Do not fail on invalid certs (Common fix for cloud servers)
+        rejectUnauthorized: false,
+      },
+      // Increase timeouts to prevent ETIMEDOUT
+      connectionTimeout: 20000, // 20 seconds
+      greetingTimeout: 20000,   // 20 seconds
+      socketTimeout: 20000,     // 20 seconds
+      // Enable detailed logs
+      logger: true,
+      debug: true,
     });
 
-    // Verify connection
+    // Test connection before sending
+    console.log("🔄 Verifying SMTP connection...");
     await transporter.verify();
-    console.log("✅ SMTP Connection Verified via 'gmail' service.");
+    console.log("✅ SMTP Connection Verified!");
 
     const info = await transporter.sendMail({
       from: `"Xcelarate Admin" <${process.env.EMAIL_USER}>`,
