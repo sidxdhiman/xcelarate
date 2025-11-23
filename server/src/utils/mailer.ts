@@ -18,7 +18,7 @@ export async function sendMail(to: string, subject: string, html: string) {
     });
 
     const info = await transporter.sendMail({
-      from: `"Xcelarate Admin" <${process.env.EMAIL_USER}>`,
+      from: `"Xcelarate Assessment" <no-reply@brevo.com>`,
       to: to,
       subject: subject,
       html: html,
