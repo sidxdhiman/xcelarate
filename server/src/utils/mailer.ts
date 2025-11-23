@@ -2,19 +2,24 @@ import nodemailer from "nodemailer";
 
 export async function sendMail(to: string, subject: string, html: string) {
   try {
-    // Create the transporter with Gmail settings
-    // Port 465 (SSL) is less likely to be blocked by cloud firewalls than port 587
+    // Log credentials presence to debug (never log the full password!)
+    console.log(`📨 Configuring Mailer... User: ${process.env.EMAIL_USER}, Pass Length: ${process.env.EMAIL_PASS?.length}`);
+
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // Use SSL
+      port: 587,      // Use Port 587 for STARTTLS (Best for Render/Cloud)
+      secure: false,  // secure: false means "use STARTTLS" upgrade, NOT "no security"
       auth: {
-        user: process.env.EMAIL_USER, // Your Gmail address from Render Env
-        pass: process.env.EMAIL_PASS, // Your 16-char App Password from Render Env
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Send the email
+    // Verify connection configuration before sending
+    // This helps catch authentication errors immediately
+    await transporter.verify();
+    console.log("✅ SMTP Connection Verified. Sending email...");
+
     const info = await transporter.sendMail({
       from: `"Xcelarate Admin" <${process.env.EMAIL_USER}>`,
       to: to,
