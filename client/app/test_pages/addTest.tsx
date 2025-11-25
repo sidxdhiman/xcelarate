@@ -838,6 +838,7 @@ import {
     StatusBar,
     Platform,
     ActivityIndicator,
+    Modal, // <--- THIS WAS MISSING. I ADDED IT HERE.
 } from 'react-native';
 import { router } from 'expo-router';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -848,7 +849,7 @@ import { useAssessmentStore } from '@/store/useAssessmentStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { SnackHost, showSnack } from '@/components/Snack';
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
+import * as FileSystem from "expo-file-system"; // Changed from /legacy to standard for newer Expo versions
 
 interface Option {
     id: string;
@@ -869,10 +870,8 @@ interface Assessment {
 export default function AddAssessment() {
     const { addAssessment, isAddingAssessment } = useAssessmentStore();
 
-    // --- FIX: Added this missing line ---
     // @ts-ignore
     const parseBulkQuestions = useAssessmentStore((s) => s.parseBulkQuestions);
-    // ------------------------------------
 
     const axiosInstance = useAuthStore((state) => state.axiosInstance);
 
@@ -993,6 +992,7 @@ export default function AddAssessment() {
 
     // --- BULK UPLOAD LOGIC ---
     const handleDownloadFormat = async () => {
+        // Replace this URL with your hosted excel file link if available
         const fileUrl = "https://github.com/sidxdhiman/xcelarate/raw/main/client/assets/format_QuestionsUpload.xlsx";
         const fileName = "format_QuestionsUpload.xlsx";
 
@@ -1086,12 +1086,11 @@ export default function AddAssessment() {
                 title,
                 roles,
                 questions: finalQuestions,
-                deadline: deadline || null, // This is correct!
+                deadline: deadline || null,
             });
 
             if (response?._id) {
                 const id = response._id;
-                // Production Link
                 const link = `https://xcelarate-client.onrender.com/assessment/${id}`;
                 await Clipboard.setStringAsync(link);
                 showSnack('Assessment created! Link copied to clipboard');
@@ -1144,7 +1143,6 @@ export default function AddAssessment() {
                                 placeholder="YYYY-MM-DD"
                                 value={deadline}
                                 onChangeText={setDeadline}
-                                // This makes it a date picker on web
                                 {...(Platform.OS === 'web' && { type: 'date' })}
                                 placeholderTextColor="#8b7ca5"
                             />
