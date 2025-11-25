@@ -34,6 +34,7 @@ interface AssessmentStore {
   deactivateAssessmentById: (id: string) => Promise<boolean>; // Renamed from delete
   activateAssessmentById: (id: string) => Promise<boolean>; // Added new
   fetchDeactivatedAssessments: () => Promise<{ success: boolean; data: Assessment[] }>; // Added new
+  parseBulkQuestions: (formData: FormData) => Promise<{ success: boolean; data?: Question[]; message?: string }>;
 }
 
 export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
@@ -66,6 +67,25 @@ export const useAssessmentStore = create<AssessmentStore>((set, get) => ({
       return null;
     } finally {
       set({ isSubmitting: false });
+    }
+  },
+
+  // --- NEW: Parse Bulk Questions ---
+  parseBulkQuestions: async (formData: FormData) => {
+    set({ isFetching: true });
+    try {
+      const res = await axiosInstance.post("/assessments/bulk-parse", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return { success: true, data: res.data.data };
+    } catch (error: any) {
+      console.error("Parse bulk error:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to parse file"
+      };
+    } finally {
+      set({ isFetching: false });
     }
   },
 
