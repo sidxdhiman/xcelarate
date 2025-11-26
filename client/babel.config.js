@@ -1,20 +1,11 @@
-// module.exports = function (api) {
-//   api.cache(true);
-
-//   return {
-//     presets: ["babel-preset-expo"],
-//     plugins: [["babel-plugin-react-native-reanimated", {}]],
-//   };
-// };
-
 module.exports = function (api) {
   api.cache(true);
-
   return {
-    presets: ["babel-preset-expo"],
+    presets: ['babel-preset-expo'],
     plugins: [
-      // "babel-plugin-react-native-reanimated",
-      "react-native-reanimated/plugin",
+      // If you have other plugins, list them here FIRST.
+      // 'react-native-reanimated/plugin' MUST be the LAST plugin.
+      'react-native-reanimated/plugin',
     ],
   };
 };
