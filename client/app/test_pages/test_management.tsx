@@ -25,6 +25,9 @@ import Toast from "react-native-toast-message";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import * as Clipboard from "expo-clipboard";
+import AdminTabs from "@/components/AdminTabs";
+import { Animated } from "react-native";
+import { Image } from "react-native";
 
 // Note: XLSX is imported dynamically in the download function
 
@@ -40,11 +43,8 @@ type Assessment = {
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 
-const DEPLOYED_FRONTEND_URL = "https://xcelarate-client.onrender.com";
-
 const copyAssessmentLink = (id: string) => {
-  // const link = `http://localhost:8082/assessment/${id}`;
-  const link = `${DEPLOYED_FRONTEND_URL}/assessment/${id}`;
+  const link = `https://xcelarate-client.onrender.com/assessment/${id}`;
   Clipboard.setStringAsync(link);
   Toast.show({ type: "success", text1: "Link Copied!" });
 };
@@ -74,6 +74,40 @@ export default function TestManagement() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [selectedFilterValue, setSelectedFilterValue] = useState<string[]>([]);
   const debounceRef = useRef<number | null>(null);
+
+  const [showFabLabel, setShowFabLabel] = useState(true);
+  const fabScale = useRef(new Animated.Value(1)).current;
+  const [showTabs, setShowTabs] = useState(true);
+
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+
+    if (offsetY > 50) {
+      // HIDE ADMIN TABS
+      setShowTabs(false);
+
+      // HIDE FAB LABEL + SHRINK
+      if (showFabLabel) {
+        setShowFabLabel(false);
+        Animated.spring(fabScale, {
+          toValue: 0.75,
+          useNativeDriver: true,
+        }).start();
+      }
+    } else {
+      // SHOW ADMIN TABS
+      setShowTabs(true);
+
+      // SHOW FAB LABEL + EXPAND
+      if (!showFabLabel) {
+        setShowFabLabel(true);
+        Animated.spring(fabScale, {
+          toValue: 1,
+          useNativeDriver: true,
+        }).start();
+      }
+    }
+  };
 
   const axiosInstance = useAuthStore((s) => s.axiosInstance);
   const deactivateAssessmentById = useAssessmentStore(
@@ -482,6 +516,9 @@ export default function TestManagement() {
   // ----------------------
   // Render
   // ----------------------
+
+  const fabBottom = showTabs ? 100 : 30;
+
   return (
     <View style={styles.screen}>
       <StatusBar
@@ -490,10 +527,17 @@ export default function TestManagement() {
         barStyle="light-content"
       />
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
           {/* Header Arc */}
           <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
-            <Text style={styles.headerText}>ASSESSMENT MANAGEMENT</Text>
+            <Image
+              source={require("../../assets/images/title-logos/title.png")}
+              style={styles.titleLogo}
+            />
           </View>
 
           {/* Search + Actions */}
@@ -932,8 +976,27 @@ export default function TestManagement() {
           </View>
         </View>
       )}
-
+      <AdminTabs visible={showTabs} />
       <Toast />
+      <Animated.View
+        style={[
+          styles.fabContainer,
+          { bottom: fabBottom, transform: [{ scale: fabScale }] },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.fabButton}
+          onPress={() => router.push("/test_pages/addTest")}
+        >
+          <Icon
+            name="pencil"
+            size={20}
+            color="#fff"
+            style={{ marginRight: showFabLabel ? 8 : 0 }}
+          />
+          {showFabLabel && <Text style={styles.fabLabel}>New Assessment</Text>}
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
@@ -1335,5 +1398,33 @@ const styles = StyleSheet.create({
     backgroundColor: "#f4ebff",
     borderRadius: 8,
     marginLeft: 10,
+  },
+  titleLogo: {
+    width: 280,
+    height: 25,
+    marginTop: 0,
+  },
+  fabButton: {
+    backgroundColor: "#800080",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 30,
+    elevation: 6,
+    shadowColor: "#800080",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  fabLabel: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  fabContainer: {
+    position: "absolute",
+    right: 10,
+    zIndex: 999,
   },
 });

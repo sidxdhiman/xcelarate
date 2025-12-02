@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -25,6 +25,8 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { Picker } from "@react-native-picker/picker";
 import MobileDropdown from "@/app/MobileDropdown";
+import AdminTabs from "@/components/AdminTabs";
+import { Image } from "react-native";
 
 interface User {
   id?: string;
@@ -50,11 +52,23 @@ interface Organization {
   industry?: string;
 }
 
+const headerPaddingTop = useMemo(() => {
+  if (Platform.OS === "ios") return 60;
+  return (StatusBar.currentHeight || 24) + 24;
+}, []);
+
 export default function UserManagement() {
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
   const axiosInstance = useAuthStore((state) => state.axiosInstance);
-  const { addUser, uploadBulkUsers, modifyUser, deleteUser, fetchOrganizations, addOrganization } = useAuthStore();
+  const {
+    addUser,
+    uploadBulkUsers,
+    modifyUser,
+    deleteUser,
+    fetchOrganizations,
+    addOrganization,
+  } = useAuthStore();
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,12 +138,12 @@ export default function UserManagement() {
   const [orgSpocContact, setOrgSpocContact] = useState("");
   const [orgLocation, setOrgLocation] = useState("");
   const [orgLocationSearch, setOrgLocationSearch] = useState("");
-  const [showOrgLocationSuggestions, setShowOrgLocationSuggestions] = useState(false);
+  const [showOrgLocationSuggestions, setShowOrgLocationSuggestions] =
+    useState(false);
   const [orgBusinessUnit, setOrgBusinessUnit] = useState("");
   const [orgIndustry, setOrgIndustry] = useState("");
   const [orgLoading, setOrgLoading] = useState(false);
   const [noOrgFound, setNoOrgFound] = useState(false);
-
 
   // Location Autocomplete
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
@@ -137,14 +151,36 @@ export default function UserManagement() {
   const [locationSearch, setLocationSearch] = useState("");
 
   // Organization Location Autocomplete
-  const [orgLocationSuggestions, setOrgLocationSuggestions] = useState<string[]>([]);
+  const [orgLocationSuggestions, setOrgLocationSuggestions] = useState<
+    string[]
+  >([]);
 
   // Popular locations for autocomplete (you can replace this with an API)
   const popularLocations = [
-    "Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad",
-    "Pune", "Ahmedabad", "Jaipur", "Surat", "Lucknow", "Kanpur",
-    "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna",
-    "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad"
+    "Delhi",
+    "Mumbai",
+    "Bangalore",
+    "Chennai",
+    "Kolkata",
+    "Hyderabad",
+    "Pune",
+    "Ahmedabad",
+    "Jaipur",
+    "Surat",
+    "Lucknow",
+    "Kanpur",
+    "Nagpur",
+    "Indore",
+    "Thane",
+    "Bhopal",
+    "Visakhapatnam",
+    "Patna",
+    "Vadodara",
+    "Ghaziabad",
+    "Ludhiana",
+    "Agra",
+    "Nashik",
+    "Faridabad",
   ];
 
   useEffect(() => {
@@ -174,8 +210,8 @@ export default function UserManagement() {
     if (search.trim()) {
       setFilteredUsers(
         users.filter((u) =>
-          u.username?.toLowerCase().includes(search.toLowerCase())
-        )
+          u.username?.toLowerCase().includes(search.toLowerCase()),
+        ),
       );
     } else {
       setFilteredUsers([]);
@@ -187,29 +223,29 @@ export default function UserManagement() {
   };
 
   // Organization autocomplete
-useEffect(() => {
-  if (organization.trim()) {
-    const filtered = organizations
-      .filter((org) =>
-        org.organization?.toLowerCase().includes(organization.toLowerCase())
-      )
-      .slice(0, 5);
-    setOrgSuggestions(filtered);
-    setShowOrgSuggestions(filtered.length > 0);
-    setNoOrgFound(filtered.length === 0);
-  } else {
-    setOrgSuggestions([]);
-    setShowOrgSuggestions(false);
-    setNoOrgFound(false);
-  }
-}, [organization, organizations]);
+  useEffect(() => {
+    if (organization.trim()) {
+      const filtered = organizations
+        .filter((org) =>
+          org.organization?.toLowerCase().includes(organization.toLowerCase()),
+        )
+        .slice(0, 5);
+      setOrgSuggestions(filtered);
+      setShowOrgSuggestions(filtered.length > 0);
+      setNoOrgFound(filtered.length === 0);
+    } else {
+      setOrgSuggestions([]);
+      setShowOrgSuggestions(false);
+      setNoOrgFound(false);
+    }
+  }, [organization, organizations]);
 
   // Location autocomplete
   useEffect(() => {
     if (locationSearch.trim()) {
       const filtered = popularLocations
         .filter((loc) =>
-          loc.toLowerCase().includes(locationSearch.toLowerCase())
+          loc.toLowerCase().includes(locationSearch.toLowerCase()),
         )
         .slice(0, 5);
       setLocationSuggestions(filtered);
@@ -225,7 +261,7 @@ useEffect(() => {
     if (orgLocationSearch.trim()) {
       const filtered = popularLocations
         .filter((loc) =>
-          loc.toLowerCase().includes(orgLocationSearch.toLowerCase())
+          loc.toLowerCase().includes(orgLocationSearch.toLowerCase()),
         )
         .slice(0, 5);
       setOrgLocationSuggestions(filtered);
@@ -378,7 +414,7 @@ useEffect(() => {
 
       const file = result.assets[0];
       const formData = new FormData();
-      
+
       if (Platform.OS === "web") {
         // On WEB, we need to append the 'File' object itself.
         // DocumentPicker provides it in `file.file`.
@@ -402,7 +438,7 @@ useEffect(() => {
       setBulkLoading(true);
       const uploadResponse = await uploadBulkUsers(formData);
 
-     if (uploadResponse.success) {
+      if (uploadResponse.success) {
         showSnack("Users added successfully");
         // We should also refresh the user list here
         const res = await axiosInstance.get("/users");
@@ -510,18 +546,24 @@ useEffect(() => {
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <View
-        style={[
-          styles.headerArc,
-          { paddingTop: Platform.OS === "ios" ? 60 : StatusBar.currentHeight || 24 },
-        ]}
-      >
-        <Text style={styles.headerText}>USER MANAGEMENT</Text>
+      <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
+        <Image
+          source={require("../assets/images/title-logos/title.png")}
+          style={styles.titleLogo}
+          resizeMode="contain"
+        />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.inlineButtonsContainer, !isMobile && styles.inlineButtonsContainerWeb]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View
+          style={[
+            styles.inlineButtonsContainer,
+            !isMobile && styles.inlineButtonsContainerWeb,
+          ]}
+        >
           <TouchableOpacity
             style={[styles.inlineButton, { backgroundColor: "#800080" }]}
             onPress={() => setAddUserModalVisible(true)}
@@ -560,11 +602,17 @@ useEffect(() => {
           <Text style={styles.noUsersText}>No users found.</Text>
         ) : (
           (filteredUsers.length ? filteredUsers : users).map((user) => (
-            <View key={user.id} style={[styles.card, !isMobile && styles.cardWeb]}>
+            <View
+              key={user.id}
+              style={[styles.card, !isMobile && styles.cardWeb]}
+            >
               <View style={tw`flex-row justify-between items-center mb-2`}>
                 <Text style={styles.userName}>{user.username}</Text>
                 <View style={tw`flex-row`}>
-                  <Pressable onPress={() => openModifyModal(user)} style={tw`mr-4`}>
+                  <Pressable
+                    onPress={() => openModifyModal(user)}
+                    style={tw`mr-4`}
+                  >
                     <Feather name="edit" size={20} color="#800080" />
                   </Pressable>
                   <Pressable onPress={() => openDeleteModal(user)}>
@@ -577,7 +625,9 @@ useEffect(() => {
                 <Text style={styles.infoText}>📞 {user.contact}</Text>
                 <Text style={styles.infoText}>🏢 {user.organization}</Text>
                 <Text style={styles.infoText}>💼 {user.designation}</Text>
-                {user.role && <Text style={styles.infoText}>👤 Role: {user.role}</Text>}
+                {user.role && (
+                  <Text style={styles.infoText}>👤 Role: {user.role}</Text>
+                )}
                 <Text style={styles.infoText}>📍 {user.location}</Text>
               </View>
             </View>
@@ -586,7 +636,12 @@ useEffect(() => {
       </ScrollView>
 
       {/* === Add User Modal === */}
-      <Modal visible={addUserModalVisible} animationType="slide" transparent onRequestClose={() => setAddUserModalVisible(false)}>
+      <Modal
+        visible={addUserModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setAddUserModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView
@@ -612,7 +667,12 @@ useEffect(() => {
                 <Text style={styles.sectionLabel}>Personal Information</Text>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="user" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="user"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Username"
@@ -623,7 +683,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="mail" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="mail"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Email"
@@ -662,15 +727,22 @@ useEffect(() => {
                         initValue={countryCallingCode}
                         onChange={(option) => {
                           const selected = countryCodes.find(
-                            (c) => `${c.flag} ${c.code}` === option.label
+                            (c) => `${c.flag} ${c.code}` === option.label,
                           );
                           if (selected) setCountryCallingCode(selected.code);
                         }}
                       />
                     </View>
                   )}
-                  <View style={[styles.inputWrapper, styles.contactInputWrapper]}>
-                    <Feather name="phone" size={18} color="#800080" style={styles.inputIcon} />
+                  <View
+                    style={[styles.inputWrapper, styles.contactInputWrapper]}
+                  >
+                    <Feather
+                      name="phone"
+                      size={18}
+                      color="#800080"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="Contact Number"
@@ -689,7 +761,12 @@ useEffect(() => {
                 <View style={styles.orgContainer}>
                   <View style={styles.orgInputRow}>
                     <View style={[styles.inputWrapper, styles.orgInputWrapper]}>
-                      <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
+                      <Feather
+                        name="briefcase"
+                        size={18}
+                        color="#800080"
+                        style={styles.inputIcon}
+                      />
                       <TextInput
                         style={[styles.input, styles.orgInput]}
                         placeholder="Organization"
@@ -714,32 +791,45 @@ useEffect(() => {
                     </TouchableOpacity>
                   </View>
                   {showOrgSuggestions && orgSuggestions.length > 0 && (
-                  <View style={styles.suggestionsContainer}>
-                    {orgSuggestions.map((org, idx) => (
-                      <TouchableOpacity
-                        key={idx}
-                        style={styles.suggestionItem}
-                        onPress={() => {
-                          setOrganization(org.organization || "");
-                          setShowOrgSuggestions(false);
-                          setNoOrgFound(false);
-                        }}
-                      >
-                        <Feather name="briefcase" size={16} color="#800080" style={{ marginRight: 8 }} />
-                        <Text style={styles.suggestionText}>{org.organization || ""}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-                {noOrgFound && !showOrgSuggestions && (
+                    <View style={styles.suggestionsContainer}>
+                      {orgSuggestions.map((org, idx) => (
+                        <TouchableOpacity
+                          key={idx}
+                          style={styles.suggestionItem}
+                          onPress={() => {
+                            setOrganization(org.organization || "");
+                            setShowOrgSuggestions(false);
+                            setNoOrgFound(false);
+                          }}
+                        >
+                          <Feather
+                            name="briefcase"
+                            size={16}
+                            color="#800080"
+                            style={{ marginRight: 8 }}
+                          />
+                          <Text style={styles.suggestionText}>
+                            {org.organization || ""}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                  {noOrgFound && !showOrgSuggestions && (
                     <Text style={{ color: "red", marginTop: 6, fontSize: 13 }}>
-                      No organization found. Please add the organization information.
+                      No organization found. Please add the organization
+                      information.
                     </Text>
                   )}
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="briefcase"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Designation"
@@ -750,7 +840,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="user" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="user"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Role"
@@ -765,7 +860,12 @@ useEffect(() => {
                 <Text style={styles.sectionLabel}>Access & Location</Text>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="shield" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="shield"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Access Level (1-5)"
@@ -776,7 +876,12 @@ useEffect(() => {
                   />
                 </View>
                 <View style={styles.helpTextContainer}>
-                  <Feather name="info" size={14} color="#666" style={{ marginRight: 6 }} />
+                  <Feather
+                    name="info"
+                    size={14}
+                    color="#666"
+                    style={{ marginRight: 6 }}
+                  />
                   <Text style={styles.helpText}>
                     Access Level 1 = Admin, 5 = User
                   </Text>
@@ -784,7 +889,12 @@ useEffect(() => {
 
                 <View style={styles.locationContainer}>
                   <View style={styles.inputWrapper}>
-                    <Feather name="map-pin" size={18} color="#800080" style={styles.inputIcon} />
+                    <Feather
+                      name="map-pin"
+                      size={18}
+                      color="#800080"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="Location"
@@ -801,24 +911,30 @@ useEffect(() => {
                       placeholderTextColor="#999"
                     />
                   </View>
-                  {showLocationSuggestions && locationSuggestions.length > 0 && (
-                    <View style={styles.suggestionsContainer}>
-                      {locationSuggestions.map((loc, idx) => (
-                        <TouchableOpacity
-                          key={idx}
-                          style={styles.suggestionItem}
-                          onPress={() => {
-                            setLocation(loc);
-                            setLocationSearch("");
-                            setShowLocationSuggestions(false);
-                          }}
-                        >
-                          <Feather name="map-pin" size={16} color="#800080" style={{ marginRight: 8 }} />
-                          <Text style={styles.suggestionText}>{loc}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
+                  {showLocationSuggestions &&
+                    locationSuggestions.length > 0 && (
+                      <View style={styles.suggestionsContainer}>
+                        {locationSuggestions.map((loc, idx) => (
+                          <TouchableOpacity
+                            key={idx}
+                            style={styles.suggestionItem}
+                            onPress={() => {
+                              setLocation(loc);
+                              setLocationSearch("");
+                              setShowLocationSuggestions(false);
+                            }}
+                          >
+                            <Feather
+                              name="map-pin"
+                              size={16}
+                              color="#800080"
+                              style={{ marginRight: 8 }}
+                            />
+                            <Text style={styles.suggestionText}>{loc}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
                 </View>
               </View>
 
@@ -842,7 +958,12 @@ useEffect(() => {
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <>
-                      <Feather name="user-plus" size={18} color="#fff" style={{ marginRight: 8 }} />
+                      <Feather
+                        name="user-plus"
+                        size={18}
+                        color="#fff"
+                        style={{ marginRight: 8 }}
+                      />
                       <Text style={styles.submitBtnText}>Add User</Text>
                     </>
                   )}
@@ -854,7 +975,12 @@ useEffect(() => {
       </Modal>
 
       {/* === Bulk Upload Modal === */}
-      <Modal visible={bulkModalVisible} animationType="slide" transparent onRequestClose={() => setBulkModalVisible(false)}>
+      <Modal
+        visible={bulkModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setBulkModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <View style={styles.modalScrollContent}>
@@ -870,9 +996,15 @@ useEffect(() => {
 
               <View style={styles.bulkUploadContent}>
                 <View style={styles.bulkUploadInfo}>
-                  <Feather name="info" size={20} color="#800080" style={{ marginRight: 8 }} />
+                  <Feather
+                    name="info"
+                    size={20}
+                    color="#800080"
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.bulkUploadInfoText}>
-                    Download the format file, fill in user details, and upload it here.
+                    Download the format file, fill in user details, and upload
+                    it here.
                   </Text>
                 </View>
 
@@ -880,7 +1012,12 @@ useEffect(() => {
                   style={[styles.bulkActionBtn, styles.downloadBtn]}
                   onPress={handleDownload}
                 >
-                  <Feather name="download" size={20} color="#fff" style={{ marginRight: 8 }} />
+                  <Feather
+                    name="download"
+                    size={20}
+                    color="#fff"
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.bulkActionBtnText}>Download Format</Text>
                 </TouchableOpacity>
 
@@ -893,7 +1030,12 @@ useEffect(() => {
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <>
-                      <Feather name="upload" size={20} color="#fff" style={{ marginRight: 8 }} />
+                      <Feather
+                        name="upload"
+                        size={20}
+                        color="#fff"
+                        style={{ marginRight: 8 }}
+                      />
                       <Text style={styles.bulkActionBtnText}>Upload File</Text>
                     </>
                   )}
@@ -914,7 +1056,12 @@ useEffect(() => {
       </Modal>
 
       {/* === Modify User Modal === */}
-      <Modal visible={modifyModalVisible} animationType="slide" transparent onRequestClose={() => setModifyModalVisible(false)}>
+      <Modal
+        visible={modifyModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModifyModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView
@@ -936,7 +1083,12 @@ useEffect(() => {
                 <Text style={styles.sectionLabel}>Personal Information</Text>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="user" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="user"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Username"
@@ -947,7 +1099,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="mail" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="mail"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={[styles.input, styles.disabledInput]}
                     placeholder="Email"
@@ -984,15 +1141,22 @@ useEffect(() => {
                         initValue={modCountryCallingCode}
                         onChange={(option) => {
                           const selected = countryCodes.find(
-                            (c) => `${c.flag} ${c.code}` === option.label
+                            (c) => `${c.flag} ${c.code}` === option.label,
                           );
                           if (selected) setModCountryCallingCode(selected.code);
                         }}
                       />
                     </View>
                   )}
-                  <View style={[styles.inputWrapper, styles.contactInputWrapper]}>
-                    <Feather name="phone" size={18} color="#800080" style={styles.inputIcon} />
+                  <View
+                    style={[styles.inputWrapper, styles.contactInputWrapper]}
+                  >
+                    <Feather
+                      name="phone"
+                      size={18}
+                      color="#800080"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="Contact Number"
@@ -1009,7 +1173,12 @@ useEffect(() => {
                 <Text style={styles.sectionLabel}>Professional Details</Text>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="briefcase"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Organization"
@@ -1020,7 +1189,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="briefcase"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Designation"
@@ -1031,7 +1205,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="user" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="user"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Role"
@@ -1046,7 +1225,12 @@ useEffect(() => {
                 <Text style={styles.sectionLabel}>Access & Location</Text>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="shield" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="shield"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Access Level (1-5)"
@@ -1057,14 +1241,24 @@ useEffect(() => {
                   />
                 </View>
                 <View style={styles.helpTextContainer}>
-                  <Feather name="info" size={14} color="#666" style={{ marginRight: 6 }} />
+                  <Feather
+                    name="info"
+                    size={14}
+                    color="#666"
+                    style={{ marginRight: 6 }}
+                  />
                   <Text style={styles.helpText}>
                     Access Level 1 = Admin, 5 = User
                   </Text>
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="map-pin" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="map-pin"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Location"
@@ -1091,7 +1285,12 @@ useEffect(() => {
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <>
-                      <Feather name="save" size={18} color="#fff" style={{ marginRight: 8 }} />
+                      <Feather
+                        name="save"
+                        size={18}
+                        color="#fff"
+                        style={{ marginRight: 8 }}
+                      />
                       <Text style={styles.submitBtnText}>Save Changes</Text>
                     </>
                   )}
@@ -1103,13 +1302,19 @@ useEffect(() => {
       </Modal>
 
       {/* === Delete User Modal === */}
-      <Modal visible={deleteModalVisible} animationType="fade" transparent onRequestClose={() => setDeleteModalVisible(false)}>
+      <Modal
+        visible={deleteModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Flag User</Text>
             <TextInput value={delEmail} editable={false} style={styles.input} />
             <Text style={styles.warningText}>
-              Are you sure you want to flag this user? This action cannot be undone.
+              Are you sure you want to flag this user? This action cannot be
+              undone.
             </Text>
             <TouchableOpacity
               style={[styles.submitBtn, { backgroundColor: "red" }]}
@@ -1120,7 +1325,10 @@ useEffect(() => {
                 {delLoading ? "Flagging..." : "Flag User"}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => setDeleteModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => setDeleteModalVisible(false)}
+            >
               <Text style={styles.cancelBtnText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -1128,7 +1336,12 @@ useEffect(() => {
       </Modal>
 
       {/* === Add Organization Modal === */}
-      <Modal visible={addOrgModalVisible} animationType="slide" transparent onRequestClose={() => setAddOrgModalVisible(false)}>
+      <Modal
+        visible={addOrgModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setAddOrgModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView
@@ -1153,7 +1366,12 @@ useEffect(() => {
                 <Text style={styles.sectionLabel}>Organization Details</Text>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="briefcase"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Organization Name *"
@@ -1164,7 +1382,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="user" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="user"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="SPOC Name *"
@@ -1175,7 +1398,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="mail" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="mail"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="SPOC Email *"
@@ -1210,15 +1438,22 @@ useEffect(() => {
                         initValue={orgCountryCallingCode}
                         onChange={(option) => {
                           const selected = countryCodes.find(
-                            (c) => `${c.flag} ${c.code}` === option.label
+                            (c) => `${c.flag} ${c.code}` === option.label,
                           );
                           if (selected) setOrgCountryCallingCode(selected.code);
                         }}
                       />
                     </View>
                   )}
-                  <View style={[styles.inputWrapper, styles.contactInputWrapper]}>
-                    <Feather name="phone" size={18} color="#800080" style={styles.inputIcon} />
+                  <View
+                    style={[styles.inputWrapper, styles.contactInputWrapper]}
+                  >
+                    <Feather
+                      name="phone"
+                      size={18}
+                      color="#800080"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="SPOC Contact *"
@@ -1236,7 +1471,12 @@ useEffect(() => {
 
                 <View style={styles.locationContainer}>
                   <View style={styles.inputWrapper}>
-                    <Feather name="map-pin" size={18} color="#800080" style={styles.inputIcon} />
+                    <Feather
+                      name="map-pin"
+                      size={18}
+                      color="#800080"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="Location"
@@ -1253,28 +1493,39 @@ useEffect(() => {
                       placeholderTextColor="#999"
                     />
                   </View>
-                  {showOrgLocationSuggestions && orgLocationSuggestions.length > 0 && (
-                    <View style={styles.suggestionsContainer}>
-                      {orgLocationSuggestions.map((loc, idx) => (
-                        <TouchableOpacity
-                          key={idx}
-                          style={styles.suggestionItem}
-                          onPress={() => {
-                            setOrgLocation(loc);
-                            setOrgLocationSearch("");
-                            setShowOrgLocationSuggestions(false);
-                          }}
-                        >
-                          <Feather name="map-pin" size={16} color="#800080" style={{ marginRight: 8 }} />
-                          <Text style={styles.suggestionText}>{loc}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
+                  {showOrgLocationSuggestions &&
+                    orgLocationSuggestions.length > 0 && (
+                      <View style={styles.suggestionsContainer}>
+                        {orgLocationSuggestions.map((loc, idx) => (
+                          <TouchableOpacity
+                            key={idx}
+                            style={styles.suggestionItem}
+                            onPress={() => {
+                              setOrgLocation(loc);
+                              setOrgLocationSearch("");
+                              setShowOrgLocationSuggestions(false);
+                            }}
+                          >
+                            <Feather
+                              name="map-pin"
+                              size={16}
+                              color="#800080"
+                              style={{ marginRight: 8 }}
+                            />
+                            <Text style={styles.suggestionText}>{loc}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="layers" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="layers"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Business Unit"
@@ -1285,7 +1536,12 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                  <Feather name="briefcase" size={18} color="#800080" style={styles.inputIcon} />
+                  <Feather
+                    name="briefcase"
+                    size={18}
+                    color="#800080"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Industry"
@@ -1314,7 +1570,12 @@ useEffect(() => {
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <>
-                      <Feather name="plus" size={18} color="#fff" style={{ marginRight: 8 }} />
+                      <Feather
+                        name="plus"
+                        size={18}
+                        color="#fff"
+                        style={{ marginRight: 8 }}
+                      />
                       <Text style={styles.submitBtnText}>Add Organization</Text>
                     </>
                   )}
@@ -1324,6 +1585,7 @@ useEffect(() => {
           </View>
         </View>
       </Modal>
+      <AdminTabs />
       <SnackHost />
     </View>
   );
@@ -1333,41 +1595,82 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f6ff" },
   headerArc: {
     backgroundColor: "#800080",
-    paddingVertical: 36,
+    width: "100%",
+    paddingBottom: 36,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
-  headerText: { color: "#fff", fontSize: 26, fontWeight: "bold", letterSpacing: 1, paddingTop: 15 },
+  headerText: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "bold",
+    letterSpacing: 1,
+    paddingTop: 15,
+  },
   scrollContent: { paddingBottom: 40 },
   inlineButtonsContainer: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    width: "90%", alignSelf: "center", marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "90%",
+    alignSelf: "center",
+    marginBottom: 10,
   },
   inlineButtonsContainerWeb: { width: 700, justifyContent: "space-between" },
   inlineButton: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
-    paddingVertical: 14, borderRadius: 10, marginHorizontal: 5, gap: 8,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    gap: 8,
   },
   inlineButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   searchContainer: { marginVertical: 10, marginHorizontal: 12 },
   searchWeb: { alignSelf: "center", width: 700 },
-  searchBarContainer: { backgroundColor: "transparent", borderTopWidth: 0, borderBottomWidth: 0 },
+  searchBarContainer: {
+    backgroundColor: "transparent",
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+  },
   searchInputContainer: {
-    backgroundColor: "#fff", borderRadius: 30, borderWidth: 1, borderColor: "#e0d0ef",
+    backgroundColor: "#fff",
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: "#e0d0ef",
   },
   searchInput: { color: "#000" },
-  noUsersText: { textAlign: "center", color: "#888", marginTop: 30, fontSize: 16 },
+  noUsersText: {
+    textAlign: "center",
+    color: "#888",
+    marginTop: 30,
+    fontSize: 16,
+  },
   card: {
-    backgroundColor: "#fff", padding: 16, margin: 10, borderRadius: 16,
-    borderWidth: 1, borderColor: "#f0e6fa",
+    backgroundColor: "#fff",
+    padding: 16,
+    margin: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f0e6fa",
   },
   cardWeb: { width: 700, alignSelf: "center" },
   userName: { fontSize: 18, fontWeight: "700", color: "#4b0082" },
   infoBox: { marginTop: 6 },
   infoText: { color: "#333", fontSize: 14, marginBottom: 3 },
   modalContainer: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "center", alignItems: "center",
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalBox: {
     backgroundColor: "#fff",
@@ -1440,7 +1743,11 @@ const styles = StyleSheet.create({
     color: "#999",
   },
   warningText: {
-    color: "red", fontSize: 14, marginTop: 8, marginBottom: 10, textAlign: "center",
+    color: "red",
+    fontSize: 14,
+    marginTop: 8,
+    marginBottom: 10,
+    textAlign: "center",
   },
   input: {
     flex: 1,
@@ -1623,5 +1930,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  titleLogo: {
+    width: 280,
+    height: 25,
+    marginTop: 0,
   },
 });
