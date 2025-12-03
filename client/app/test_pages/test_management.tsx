@@ -27,7 +27,7 @@ import * as Sharing from "expo-sharing";
 import * as Clipboard from "expo-clipboard";
 import AdminTabs from "@/components/AdminTabs";
 import { Animated } from "react-native";
-import { Image } from "react-native";
+import AppHeader from "@/components/AppHeader"; // <-- IMPORT NEW COMPONENT
 
 // Note: XLSX is imported dynamically in the download function
 
@@ -114,10 +114,7 @@ export default function TestManagement() {
     (s) => s.deactivateAssessmentById,
   );
 
-  const headerPaddingTop = useMemo(() => {
-    if (Platform.OS === "ios") return 60;
-    return (StatusBar.currentHeight || 24) + 24;
-  }, []);
+  // REMOVED: headerPaddingTop calculation as it is now inside AppHeader
 
   // --- FIX 2: Show recently created assessment on top ---
   useEffect(() => {
@@ -526,20 +523,20 @@ export default function TestManagement() {
         backgroundColor="transparent"
         barStyle="light-content"
       />
-      <SafeAreaView style={{ flex: 1 }}>
+
+      {/* FIXED HEADER */}
+      <AppHeader
+        logoSource={require("../../assets/images/title-logos/title.png")}
+      />
+
+      <SafeAreaView style={{ flex: 1, marginTop: 105 }}>
+        {" "}
+        {/* ADD MARGIN-TOP TO OFFSET FIXED HEADER */}
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           onScroll={handleScroll}
           scrollEventThrottle={16}
         >
-          {/* Header Arc */}
-          <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
-            <Image
-              source={require("../../assets/images/title-logos/title.png")}
-              style={styles.titleLogo}
-            />
-          </View>
-
           {/* Search + Actions */}
           <View style={styles.searchRow}>
             <View style={styles.searchContainer}>
@@ -560,14 +557,6 @@ export default function TestManagement() {
               style={[styles.addAssessmentBtn, styles.archiveButton]}
             >
               <Icon name="archive" size={16} color="#fff" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push("/test_pages/addTest")}
-              style={styles.addAssessmentBtn}
-            >
-              <Icon name="plus" size={16} color="#fff" />
-              <Text style={styles.addAssessmentText}>New Assessment</Text>
             </TouchableOpacity>
           </View>
 
@@ -1006,17 +995,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#f9f6ff" },
   scrollContent: { alignItems: "center", paddingBottom: 40 },
   headerArc: {
-    backgroundColor: "#800080",
-    width: "100%",
-    paddingBottom: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    // REMOVED most of the styles, as they are now in AppHeader
+    // Keep minimum styles if you prefer the old structure, but better to remove duplication.
+    // However, I'll remove it entirely and rely on AppHeader.
   },
   headerText: {
     color: "#fff",
