@@ -27,7 +27,7 @@ import * as Sharing from "expo-sharing";
 import * as Clipboard from "expo-clipboard";
 import AdminTabs from "@/components/AdminTabs";
 import { Animated } from "react-native";
-import AppHeader from "@/components/AppHeader"; // <-- IMPORT NEW COMPONENT
+import { Image } from "react-native";
 
 // Note: XLSX is imported dynamically in the download function
 
@@ -523,6 +523,19 @@ export default function TestManagement() {
         backgroundColor="transparent"
         barStyle="light-content"
       />
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
+          {/* Header Arc */}
+          <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
+            <Image
+              source={require("../../assets/images/title-logos/title.png")}
+              style={styles.titleLogo}
+            />
+          </View>
 
       {/* FIXED HEADER */}
       <AppHeader

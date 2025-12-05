@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -25,7 +25,6 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import MobileDropdown from "@/app/MobileDropdown";
 import AdminTabs from "@/components/AdminTabs";
-import AppHeader from "@/components/AppHeader"; // <-- IMPORT NEW COMPONENT
 import { Image } from "react-native";
 
 interface User {
@@ -52,130 +51,10 @@ interface Organization {
   industry?: string;
 }
 
-// --- FLOATING ACTION BUTTON COMPONENT (Unchanged, copied from previous step for completeness) ---
-interface FabActionProps {
-  iconName: keyof typeof Feather.glyphMap;
-  label: string;
-  onPress: () => void;
-  style?: any;
-}
-
-const FabAction: React.FC<FabActionProps> = ({
-  iconName,
-  label,
-  onPress,
-  style,
-}) => (
-  <TouchableOpacity onPress={onPress} style={[styles.fabAction, style]}>
-    <Text style={styles.fabActionLabel}>{label}</Text>
-    <Feather name={iconName} size={20} color="#800080" />
-  </TouchableOpacity>
-);
-
-interface FabProps {
-  showFabLabel: boolean;
-  fabScale: Animated.Value;
-  fabBottom: number;
-  onAddUser: () => void;
-  onAddBulkUser: () => void;
-}
-
-const PlusFab: React.FC<FabProps> = ({
-  showFabLabel,
-  fabScale,
-  fabBottom,
-  onAddUser,
-  onAddBulkUser,
-}) => {
-  const [actionsOpen, setActionsOpen] = useState(false);
-  const actionAnim = useRef(new Animated.Value(0)).current;
-
-  const toggleActions = () => {
-    setActionsOpen((prev) => !prev);
-    Animated.timing(actionAnim, {
-      toValue: actionsOpen ? 0 : 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handleActionPress = (callback: () => void) => {
-    toggleActions(); // Close actions after selection
-    callback();
-  };
-
-  const actionTranslateY1 = actionAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -60],
-  });
-
-  const actionTranslateY2 = actionAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -120],
-  });
-
-  return (
-    <Animated.View
-      style={[
-        styles.fabContainer,
-        { bottom: fabBottom, transform: [{ scale: fabScale }] },
-      ]}
-    >
-      {/* Action 2: Add Bulk User */}
-      <Animated.View
-        style={[
-          styles.fabActionWrapper,
-          {
-            transform: [{ translateY: actionTranslateY2 }],
-            opacity: actionAnim,
-          },
-        ]}
-        pointerEvents={actionsOpen ? "auto" : "none"}
-      >
-        <FabAction
-          iconName="users"
-          label="Add Bulk User"
-          onPress={() => handleActionPress(onAddBulkUser)}
-        />
-      </Animated.View>
-
-      {/* Action 1: Add User */}
-      <Animated.View
-        style={[
-          styles.fabActionWrapper,
-          {
-            transform: [{ translateY: actionTranslateY1 }],
-            opacity: actionAnim,
-          },
-        ]}
-        pointerEvents={actionsOpen ? "auto" : "none"}
-      >
-        <FabAction
-          iconName="user-plus"
-          label="Add User"
-          onPress={() => handleActionPress(onAddUser)}
-        />
-      </Animated.View>
-
-      {/* Main FAB Button */}
-      <TouchableOpacity
-        style={styles.fabButton}
-        onPress={toggleActions} // Toggle the action menu on press
-      >
-        <Feather
-          name={actionsOpen ? "x" : "plus"} // Change icon to 'x' when actions are open
-          size={20}
-          color="#fff"
-          style={{ marginRight: showFabLabel && !actionsOpen ? 8 : 0 }}
-        />
-        {showFabLabel && !actionsOpen && (
-          <Text style={styles.fabLabel}>Add User</Text>
-        )}
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-// --- END OF NEW FLOATING ACTION BUTTON COMPONENT ---
+const headerPaddingTop = useMemo(() => {
+  if (Platform.OS === "ios") return 60;
+  return (StatusBar.currentHeight || 24) + 24;
+}, []);
 
 export default function UserManagement() {
   const { width } = useWindowDimensions();
@@ -189,8 +68,6 @@ export default function UserManagement() {
     fetchOrganizations,
     addOrganization,
   } = useAuthStore();
-
-  // REMOVED: headerPaddingTop calculation as it is now inside AppHeader
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -701,27 +578,41 @@ export default function UserManagement() {
 
   return (
     <View style={styles.container}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
-
-      {/* FIXED HEADER */}
-      <AppHeader
-        logoSource={require("../assets/images/title-logos/title.png")}
-      />
+      <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
+        <Image
+          source={require("../assets/images/title-logos/title.png")}
+          style={styles.titleLogo}
+          resizeMode="contain"
+        />
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { marginTop: 105 }]} // ADD MARGIN-TOP TO OFFSET FIXED HEADER
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/*
-          **IMPORTANT:** REMOVED the old inline buttons as they are now
-          replaced by the Floating Action Button's two options.
-        */}
+        <View
+          style={[
+            styles.inlineButtonsContainer,
+            !isMobile && styles.inlineButtonsContainerWeb,
+          ]}
+        >
+          <TouchableOpacity
+            style={[styles.inlineButton, { backgroundColor: "#800080" }]}
+            onPress={() => setAddUserModalVisible(true)}
+          >
+            <FontAwesome5 name="user-plus" size={18} color="#fff" />
+            <Text style={styles.inlineButtonText}>Add User</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.inlineButton, { backgroundColor: "#9b59b6" }]}
+            onPress={() => setBulkModalVisible(true)}
+          >
+            <FontAwesome5 name="users" size={18} color="#fff" />
+            <Text style={styles.inlineButtonText}>Add Bulk Users</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={[styles.searchContainer, !isMobile && styles.searchWeb]}>
           <SearchBar
             placeholder="Search users..."
@@ -776,7 +667,7 @@ export default function UserManagement() {
         )}
       </ScrollView>
 
-      {/* === Add User Modal === (Modal content remains unchanged) */}
+      {/* === Add User Modal === */}
       <Modal
         visible={addUserModalVisible}
         animationType="slide"
@@ -1115,7 +1006,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Bulk Upload Modal === (Modal content remains unchanged) */}
+      {/* === Bulk Upload Modal === */}
       <Modal
         visible={bulkModalVisible}
         animationType="slide"
@@ -1196,7 +1087,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Modify User Modal === (Modal content remains unchanged) */}
+      {/* === Modify User Modal === */}
       <Modal
         visible={modifyModalVisible}
         animationType="slide"
@@ -1442,7 +1333,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Delete User Modal === (Modal content remains unchanged) */}
+      {/* === Delete User Modal === */}
       <Modal
         visible={deleteModalVisible}
         animationType="fade"
@@ -1476,7 +1367,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Add Organization Modal === (Modal content remains unchanged) */}
+      {/* === Add Organization Modal === */}
       <Modal
         visible={addOrgModalVisible}
         animationType="slide"
@@ -1726,18 +1617,7 @@ export default function UserManagement() {
           </View>
         </View>
       </Modal>
-
-      <AdminTabs visible={showTabs} />
-
-      {/* RENDER THE NEW FAB COMPONENT */}
-      <PlusFab
-        showFabLabel={showFabLabel}
-        fabScale={fabScale}
-        fabBottom={fabBottom}
-        onAddUser={() => setAddUserModalVisible(true)}
-        onAddBulkUser={() => setBulkModalVisible(true)}
-      />
-
+      <AdminTabs />
       <SnackHost />
     </View>
   );
@@ -1745,13 +1625,45 @@ export default function UserManagement() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f6ff" },
-  // REMOVED: headerArc and related styles
+  headerArc: {
+    backgroundColor: "#800080",
+    width: "100%",
+    paddingBottom: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
   headerText: {
     color: "#fff",
     fontSize: 26,
     fontWeight: "bold",
     letterSpacing: 1,
     paddingTop: 15,
+  },
+  scrollContent: { paddingBottom: 40 },
+  inlineButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "90%",
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+  inlineButtonsContainerWeb: { width: 700, justifyContent: "space-between" },
+  inlineButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    gap: 8,
   },
   scrollContent: { paddingBottom: 40, paddingHorizontal: 10 }, // Adjusted padding for main content
   // REMOVED: inlineButtonsContainer and inlineButtonsContainerWeb styles
@@ -1779,8 +1691,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     padding: 16,
-    marginVertical: 5,
-    marginHorizontal: 10,
+    margin: 10,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#f0e6fa",
@@ -2058,59 +1969,5 @@ const styles = StyleSheet.create({
     width: 280,
     height: 25,
     marginTop: 0,
-  },
-  // NEW FAB STYLES
-  fabContainer: {
-    position: "absolute",
-    right: 10,
-    alignItems: "flex-end", // Align actions to the right
-    zIndex: 999,
-  },
-  fabActionWrapper: {
-    position: "absolute",
-    right: 0,
-    marginBottom: 10,
-  },
-  fabAction: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end", // Push label to the right
-    backgroundColor: "#f9f6ff",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#800080",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-    elevation: 2,
-    minWidth: 150,
-  },
-  fabActionLabel: {
-    color: "#800080",
-    fontWeight: "600",
-    fontSize: 14,
-    marginRight: 8,
-  },
-  fabButton: {
-    backgroundColor: "#800080",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 30,
-    elevation: 6,
-    shadowColor: "#800080",
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  fabLabel: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
   },
 });
