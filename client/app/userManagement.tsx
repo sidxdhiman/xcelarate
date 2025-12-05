@@ -14,16 +14,15 @@ import {
   Alert,
   StatusBar,
   FlatList,
+  Animated,
 } from "react-native";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
-import Icon from "react-native-vector-icons/FontAwesome";
 import { SearchBar } from "react-native-elements";
 import { useAuthStore } from "@/store/useAuthStore";
 import { SnackHost, showSnack } from "@/components/Snack";
 import tw from "twrnc";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
-import { Picker } from "@react-native-picker/picker";
 import MobileDropdown from "@/app/MobileDropdown";
 import AdminTabs from "@/components/AdminTabs";
 import { Image } from "react-native";
@@ -105,7 +104,6 @@ export default function UserManagement() {
   const [designation, setDesignation] = useState("");
   const [role, setRole] = useState("");
   const [accessLevel, setAccessLevel] = useState("");
-  const [location, setLocation] = useState("");
   const [error, setError] = useState("");
   const [loadingAdd, setLoadingAdd] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -419,7 +417,7 @@ export default function UserManagement() {
         // On WEB, we need to append the 'File' object itself.
         // DocumentPicker provides it in `file.file`.
         if (file.file) {
-          formData.append("file", file.file);
+          formData.append("file", file.file as any);
         } else {
           // Fallback: If `file.file` isn't there, fetch the blob from the URI
           const response = await fetch(file.uri);
@@ -543,6 +541,40 @@ export default function UserManagement() {
       setDelLoading(false);
     }
   };
+
+  // --- FAB SCROLL LOGIC ---
+  const [showTabs, setShowTabs] = useState(true);
+  const [showFabLabel, setShowFabLabel] = useState(true);
+  const fabScale = useRef(new Animated.Value(1)).current;
+
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+
+    if (offsetY > 50) {
+      setShowTabs(false);
+
+      if (showFabLabel) {
+        setShowFabLabel(false);
+        Animated.spring(fabScale, {
+          toValue: 0.75, // Scale down the FAB button
+          useNativeDriver: true,
+        }).start();
+      }
+    } else {
+      setShowTabs(true);
+
+      if (!showFabLabel) {
+        setShowFabLabel(true);
+        Animated.spring(fabScale, {
+          toValue: 1, // Scale up the FAB button
+          useNativeDriver: true,
+        }).start();
+      }
+    }
+  };
+
+  // Adjust bottom position based on AdminTabs visibility
+  const fabBottom = showTabs ? 100 : 30;
 
   return (
     <View style={styles.container}>
@@ -1633,8 +1665,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     gap: 8,
   },
-  inlineButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  searchContainer: { marginVertical: 10, marginHorizontal: 12 },
+  scrollContent: { paddingBottom: 40, paddingHorizontal: 10 }, // Adjusted padding for main content
+  // REMOVED: inlineButtonsContainer and inlineButtonsContainerWeb styles
+  // REMOVED: inlineButton and inlineButtonText styles
+  searchContainer: { marginVertical: 10, marginHorizontal: 2 }, // Adjusted margin
   searchWeb: { alignSelf: "center", width: 700 },
   searchBarContainer: {
     backgroundColor: "transparent",
