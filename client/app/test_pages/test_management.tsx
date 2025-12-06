@@ -43,8 +43,10 @@ type Assessment = {
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 
-const copyAssessmentLink = (id: string) => {
-  const link = `https://xcelarate-client.onrender.com/assessment/${id}`;
+const copyAssessmentLink = (test) => {
+  const encoded = encodeURIComponent(JSON.stringify(test));
+  const link = `http://localhost:8081/${test._id}/disclaimer?data=${encoded}`;
+
   Clipboard.setStringAsync(link);
   Toast.show({ type: "success", text1: "Link Copied!" });
 };
@@ -657,7 +659,7 @@ export default function TestManagement() {
                           </Text>
                         </View>
                         <TouchableOpacity
-                          onPress={() => copyAssessmentLink(test._id)}
+                          onPress={() => copyAssessmentLink(test)}
                           style={styles.copyBtn}
                         >
                           <Icon name="copy" size={16} color="#6c2eb9" />
