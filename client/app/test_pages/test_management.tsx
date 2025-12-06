@@ -5,10 +5,8 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  Pressable,
   TouchableOpacity,
   Dimensions,
-  Alert,
   SafeAreaView,
   StatusBar,
   Platform,
@@ -28,25 +26,28 @@ import * as Clipboard from "expo-clipboard";
 import AdminTabs from "@/components/AdminTabs";
 import { Animated } from "react-native";
 import { Image } from "react-native";
+import AppHeader from "@/components/AppHeader";
 
 // Note: XLSX is imported dynamically in the download function
 
+// TYPES
 type Assessment = {
   _id: string;
   title: string;
   roles: string[];
   questions: { text: string; options: { text: string }[] }[];
-  createdAt: string; // This comes from timestamps
-  deadline?: string; // This is the new field
+  createdAt: string;
+  deadline?: string;
 };
 
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 
-const copyAssessmentLink = (test) => {
+const copyAssessmentLink = (test: Assessment) => {
+  // NOTE: In a production environment, you should use the deployed host URL,
+  // not localhost:8081. This is kept for local development context.
   const encoded = encodeURIComponent(JSON.stringify(test));
   const link = `http://localhost:8081/${test._id}/disclaimer?data=${encoded}`;
-
   Clipboard.setStringAsync(link);
   Toast.show({ type: "success", text1: "Link Copied!" });
 };
@@ -116,20 +117,16 @@ export default function TestManagement() {
     (s) => s.deactivateAssessmentById,
   );
 
-  // REMOVED: headerPaddingTop calculation as it is now inside AppHeader
-
-  // --- FIX 2: Show recently created assessment on top ---
+  // --- FETCH & SORT TESTS ---
   useEffect(() => {
     const fetchTests = async () => {
       try {
         const res = await axiosInstance.get("/assessments");
 
-        // Sorting logic: Assuming 'createdAt' is a string/date that can be compared.
-        // Sort descending (b - a) to put the newest assessment (largest timestamp) first.
+        // Sort descending (b - a) to put the newest assessment first.
         const sortedTests = res.data.sort((a: Assessment, b: Assessment) => {
           const dateA = new Date(a.createdAt).getTime();
           const dateB = new Date(b.createdAt).getTime();
-          // Compare timestamps: b - a results in descending order (newest first)
           return dateB - dateA;
         });
 
@@ -145,6 +142,7 @@ export default function TestManagement() {
     fetchTests();
   }, [axiosInstance]);
 
+  // --- SEARCH FILTER ---
   useEffect(() => {
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -162,6 +160,7 @@ export default function TestManagement() {
 
   const displayTests = search ? filteredTests : tests;
 
+  // --- DEACTIVATE LOGIC ---
   const confirmDeactivate = async () => {
     if (!testToDeactivate) return;
     try {
@@ -181,6 +180,7 @@ export default function TestManagement() {
     }
   };
 
+  // --- DOWNLOAD LOGIC (UNCHANGED) ---
   const sanitizeFileName = (raw: string) =>
     raw
       .toLowerCase()
@@ -205,6 +205,7 @@ export default function TestManagement() {
 
       let mod: any;
       try {
+        // Dynamically import xlsx
         mod = await import("xlsx");
       } catch (impErr) {
         console.error("Failed to import xlsx dynamically:", impErr);
@@ -217,7 +218,6 @@ export default function TestManagement() {
       }
       const XLSXLib = mod?.default || mod;
       if (!XLSXLib || !XLSXLib.utils) {
-        console.error("XLSX loaded but utils missing", mod);
         Toast.show({ type: "error", text1: "xlsx module loaded incorrectly" });
         return;
       }
@@ -268,12 +268,7 @@ export default function TestManagement() {
       const workbook = XLSXLib.utils.book_new();
       XLSXLib.utils.book_append_sheet(workbook, worksheet, "Responses");
 
-      const safe = (s: string) =>
-        s
-          ?.toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "") || "assessment";
-      const fileName = `${safe(assessment.title)}-responses.xlsx`;
+      const fileName = `${sanitizeFileName(assessment.title)}-responses.xlsx`;
 
       if (Platform.OS === "web") {
         const wbout = XLSXLib.write(workbook, {
@@ -343,6 +338,7 @@ export default function TestManagement() {
     }
   };
 
+  // --- SEND MODAL LOGIC (UNCHANGED) ---
   const openSendModal = (assessment: Assessment) => {
     setActiveAssessment(assessment);
     setFilterType(null);
@@ -363,6 +359,8 @@ export default function TestManagement() {
       debounceRef.current = null;
     }
   };
+
+  // Debounced search for suggestions in Send Modal (UNCHANGED)
   useEffect(() => {
     if (!filterType) {
       setSuggestions([]);
@@ -370,6 +368,7 @@ export default function TestManagement() {
     }
     if (!filterQuery || filterQuery.trim().length === 0) {
       if (filterType === "role" && activeAssessment?.roles?.length) {
+        // Show existing roles from the assessment as default suggestions
         setSuggestions(activeAssessment.roles.slice(0, 8));
       } else {
         setSuggestions([]);
@@ -382,28 +381,24 @@ export default function TestManagement() {
     }
     debounceRef.current = setTimeout(async () => {
       try {
-        let resp = null;
         const qTrim = filterQuery.trim();
+        let resp = null;
         try {
+          // Try the /search/filters endpoint first (preferred)
           resp = await axiosInstance.get("/search/filters", {
             params: { type: filterType, q: qTrim },
           });
         } catch (e1) {
+          // Fallback to older /roles or /organizations endpoints
           try {
-            if (filterType === "role") {
-              resp = await axiosInstance.get("/roles", {
-                params: { q: qTrim },
-              });
-            } else {
-              resp = await axiosInstance.get("/organizations", {
-                params: { q: qTrim },
-              });
-            }
+            const path = filterType === "role" ? "/roles" : "/organizations";
+            resp = await axiosInstance.get(path, { params: { q: qTrim } });
           } catch (e2) {
             console.warn("Suggestion fetch fallback failed", e2);
             resp = null;
           }
         }
+
         let items: string[] = [];
         if (resp && resp.data) {
           if (Array.isArray(resp.data)) {
@@ -420,6 +415,8 @@ export default function TestManagement() {
               .filter(Boolean);
           }
         }
+
+        // Secondary local fallback for roles if API fails or returns empty
         if ((!items || items.length === 0) && filterType === "role") {
           const pool = new Set<string>();
           activeAssessment?.roles?.forEach((r) => pool.add(r));
@@ -428,6 +425,7 @@ export default function TestManagement() {
             r.toLowerCase().includes(qTrim.toLowerCase()),
           );
         }
+
         setSuggestions(items.slice(0, 25));
       } catch (err) {
         console.warn("Suggestion fetch failed", err);
@@ -446,7 +444,7 @@ export default function TestManagement() {
     };
   }, [filterQuery, filterType, activeAssessment, axiosInstance, tests]);
 
-  // --- FIX 1: Add detailed logging for email sending failure ---
+  // --- CONFIRM SEND EMAIL (UNCHANGED) ---
   const confirmSendFromModal = async () => {
     if (!activeAssessment) return;
     if (!filterType) {
@@ -461,36 +459,33 @@ export default function TestManagement() {
       : selectedFilterValue
         ? [selectedFilterValue]
         : [];
+
+    if (values.length === 0) {
+      Toast.show({
+        type: "info",
+        text1: `Please select one or more ${filterType}s`,
+      });
+      return;
+    }
+
     const payload = {
       assessmentId: activeAssessment._id,
       filterType,
       filterValues: values,
+      // Keeping filterValue for legacy/simplicity if only one is selected
       filterValue: values.length === 1 ? values[0] : values.join(","),
     };
-
-    console.log("--- START SEND PAYLOAD ---");
-    console.log("Assessment ID:", payload.assessmentId);
-    console.log("Filter Type:", payload.filterType);
-    console.log("Filter Values (Array):", payload.filterValues);
-    console.log("Filter Value (String for legacy API):", payload.filterValue);
-    console.log("--- END SEND PAYLOAD ---");
 
     Toast.show({ type: "info", text1: "Sending assessments..." });
     try {
       const res = await axiosInstance.post("/assessments/send", payload, {
         headers: { "Content-Type": "application/json" },
       });
-      console.log("[SEND OK] Status:", res.status, "Response Data:", res.data);
       Toast.show({ type: "success", text1: "Assessment sent successfully!" });
       closeSendModal();
     } catch (err: any) {
-      console.error("[SEND FAIL] Error Object:", err);
-
       const status = err?.response?.status;
       const serverBody = err?.response?.data;
-
-      console.log("Server Response Status:", status);
-      console.log("Server Response Body:", serverBody);
 
       let text1 = "Send failed";
       let text2 = err?.message || String(err);
@@ -525,19 +520,6 @@ export default function TestManagement() {
         backgroundColor="transparent"
         barStyle="light-content"
       />
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-        >
-          {/* Header Arc */}
-          <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
-            <Image
-              source={require("../../assets/images/title-logos/title.png")}
-              style={styles.titleLogo}
-            />
-          </View>
 
       {/* FIXED HEADER */}
       <AppHeader
@@ -545,14 +527,12 @@ export default function TestManagement() {
       />
 
       <SafeAreaView style={{ flex: 1, marginTop: 105 }}>
-        {" "}
-        {/* ADD MARGIN-TOP TO OFFSET FIXED HEADER */}
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           onScroll={handleScroll}
           scrollEventThrottle={16}
         >
-          {/* Search + Actions */}
+          {/* Search + Archive Action */}
           <View style={styles.searchRow}>
             <View style={styles.searchContainer}>
               <SearchBar
@@ -594,7 +574,6 @@ export default function TestManagement() {
                 </Text>
               </View>
             ) : (
-              // --- ASSESSMENT CARD MAP FUNCTION ---
               displayTests.map((test) => (
                 <View key={test._id} style={styles.testCard}>
                   {/* Card Header */}
@@ -628,78 +607,59 @@ export default function TestManagement() {
                       )}
                     </View>
 
+                    {/* Date and Copy Link - 🔥 FIX APPLIED HERE 🔥 */}
                     <View style={styles.datesContainer}>
-                      <View
-                        style={[
-                          styles.dateItem,
-                          { flexDirection: "row", alignItems: "center" },
-                        ]}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.sectionLabel}>Created On</Text>
-                          <Text style={styles.dateText}>
-                            {test.createdAt
-                              ? new Date(test.createdAt).toLocaleDateString()
-                              : "N/A"}
-                          </Text>
-                        </View>
+                      <View style={styles.dateItem}>
+                        <Text style={styles.sectionLabel}>Created On</Text>
+                        <Text style={styles.dateText}>
+                          {test.createdAt
+                            ? new Date(test.createdAt).toLocaleDateString()
+                            : "N/A"}
+                        </Text>
                       </View>
                       <View
-                        style={[
-                          styles.dateItem,
-                          { flexDirection: "row", alignItems: "center" },
-                        ]}
+                        style={[styles.dateItem, { alignItems: "flex-end" }]}
                       >
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.sectionLabel}>Deadline</Text>
+                        <Text style={styles.sectionLabel}>Deadline</Text>
+                        <View
+                          style={{ flexDirection: "row", alignItems: "center" }}
+                        >
                           <Text style={styles.dateText}>
                             {test.deadline
                               ? new Date(test.deadline).toLocaleDateString()
                               : "No deadline"}
                           </Text>
+                          <TouchableOpacity
+                            onPress={() => copyAssessmentLink(test)}
+                            style={styles.copyBtn}
+                          >
+                            <Icon name="copy" size={16} color="#6c2eb9" />
+                          </TouchableOpacity>
                         </View>
-                        <TouchableOpacity
-                          onPress={() => copyAssessmentLink(test)}
-                          style={styles.copyBtn}
-                        >
-                          <Icon name="copy" size={16} color="#6c2eb9" />
-                        </TouchableOpacity>
                       </View>
                     </View>
+                    {/* End of Card Body */}
                   </View>
-                  {/* End of Card Body */}
 
+                  {/* Actions */}
                   <View
                     style={[
                       styles.actionsRow,
                       isTablet ? styles.actionsRowTablet : undefined,
                     ]}
                   >
-                    {/* --- NEW ACTION BUTTON: Details/Progress --- */}
                     <TouchableOpacity
                       style={[styles.actionButton, styles.detailsAction]}
                       onPress={() => {
-                        const targetPath = "/test_pages/assessmentProgress";
-                        const params = { id: test._id };
-
-                        // 🚨 ADD THIS LOG LINE
-                        console.log(
-                          "CLIENT NAVIGATING: Path:",
-                          targetPath,
-                          " | ID:",
-                          test._id,
-                        );
-
                         router.push({
-                          pathname: targetPath,
-                          params: params,
+                          pathname: "/test_pages/assessmentProgress",
+                          params: { id: test._id },
                         });
                       }}
                     >
                       <Icon name="bar-chart" size={16} color="#fff" />
                       <Text style={styles.actionText}>Progress</Text>
                     </TouchableOpacity>
-                    {/* --- END NEW ACTION BUTTON --- */}
 
                     <TouchableOpacity
                       style={[styles.actionButton, styles.primaryAction]}
@@ -748,7 +708,6 @@ export default function TestManagement() {
                   </View>
                 </View>
               ))
-              // --- END OF ASSESSMENT CARD MAP FUNCTION ---
             )}
           </View>
         </ScrollView>
@@ -980,6 +939,7 @@ export default function TestManagement() {
           </View>
         </View>
       )}
+
       <AdminTabs visible={showTabs} />
       <Toast />
       <Animated.View
@@ -1005,33 +965,14 @@ export default function TestManagement() {
   );
 }
 
-/* Styles */
+// --------------------------
+// Styles
+// --------------------------
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#f9f6ff" },
   scrollContent: { alignItems: "center", paddingBottom: 40 },
-  headerArc: {
-    // REMOVED most of the styles, as they are now in AppHeader
-    // Keep minimum styles if you prefer the old structure, but better to remove duplication.
-    // However, I'll remove it entirely and rely on AppHeader.
-  },
-  headerText: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    letterSpacing: 1,
-  },
-  backButton: {
-    position: "absolute",
-    left: 24,
-    top: 0,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.2)",
-  },
+
+  // --- Header and Search Styles ---
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1064,18 +1005,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    elevation: 4,
   },
   archiveButton: {
     backgroundColor: "#6c2eb9",
     paddingHorizontal: 16,
   },
-  addAssessmentText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
+
+  // --- List and Card Styles ---
   listContainer: { width: "100%", maxWidth: 780, paddingHorizontal: 16 },
   testCard: {
     backgroundColor: "#fff",
@@ -1126,27 +1062,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   metaText: { color: "#4b0082", fontWeight: "600", fontSize: 12 },
-  cardBody: { marginTop: 8, marginBottom: 16 },
 
-  // --- STYLES FOR DATES (Already added from your last paste) ---
-  datesContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#f4ebff",
-    paddingTop: 16,
-  },
-  dateItem: {
-    flex: 1,
-  },
-  dateText: {
-    fontSize: 14,
-    color: "#32174d",
-    fontWeight: "600",
-    marginTop: 4,
-  },
-  // ---
+  cardBody: { marginTop: 8, marginBottom: 16 },
 
   sectionLabel: {
     fontSize: 13,
@@ -1165,6 +1082,35 @@ const styles = StyleSheet.create({
   },
   roleChipText: { color: "#4b0082", fontWeight: "600", fontSize: 12 },
   metaMuted: { color: "#666", fontSize: 13 },
+
+  // --- Date/Copy Link Styles ---
+  datesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f4ebff",
+    paddingTop: 16,
+  },
+  dateItem: {
+    flex: 1,
+  },
+  dateText: {
+    fontSize: 14,
+    color: "#32174d",
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  copyBtn: {
+    padding: 8,
+    backgroundColor: "#f4ebff",
+    borderRadius: 8,
+    // The original code had marginLeft: 10 in the style definition, but needed to be contained.
+    marginLeft: 8, // Adjusted spacing slightly
+  },
+  // --- End Date/Copy Link Styles ---
+
+  // --- Action Button Styles ---
   actionsRow: { flexDirection: "column", gap: 10 },
   actionsRowTablet: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   actionButton: {
@@ -1188,7 +1134,6 @@ const styles = StyleSheet.create({
   downloadAction: { backgroundColor: "#4b0082" },
   editAction: { backgroundColor: "#40916c" },
   deleteAction: { backgroundColor: "#e53935" },
-  // --- NEW STYLE FOR DETAILS BUTTON ---
   detailsAction: {
     backgroundColor: "#007bff",
     shadowColor: "#007bff",
@@ -1197,20 +1142,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
-  // ---
-  secondaryAction: {
-    backgroundColor: "#f4ebff",
-    borderWidth: 1,
-    borderColor: "#e0d0ef",
-  },
   actionText: { color: "#fff", fontWeight: "600", fontSize: 14 },
-  secondaryText: { color: "#4b0082", fontWeight: "600", fontSize: 14 },
   errorText: {
     textAlign: "center",
     color: "#e53935",
     marginTop: 24,
     fontWeight: "600",
   },
+
+  // --- Empty State Styles ---
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
@@ -1228,6 +1168,8 @@ const styles = StyleSheet.create({
     color: "#32174d",
   },
   emptySubtitle: { marginTop: 4, textAlign: "center", color: "#6d6d6d" },
+
+  // --- Modal Styles (Deactivate) ---
   overlay: {
     position: "absolute",
     top: 0,
@@ -1238,6 +1180,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
+    zIndex: 1000,
   },
   modalBox: {
     width: "100%",
@@ -1304,32 +1247,6 @@ const styles = StyleSheet.create({
   pillToggleActive: { backgroundColor: "#6c2eb9", borderColor: "#6c2eb9" },
   pillToggleText: { color: "#4b0082", fontWeight: "700" },
   pillToggleTextActive: { color: "#fff", fontWeight: "700" },
-  inlineSearchInput: {
-    borderWidth: 1,
-    borderColor: "#e6d9f2",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    width: "100%",
-    backgroundColor: "#fff",
-  },
-  suggestionRow: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0e9fb",
-    backgroundColor: "#fff",
-  },
-  suggestionRowSelected: { backgroundColor: "#6c2eb9" },
-
-  selectedChipsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 8,
-    gap: 8,
-    justifyContent: "flex-start",
-  },
-
   chipsInputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -1389,17 +1306,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 18,
   },
-  copyBtn: {
-    padding: 8,
-    backgroundColor: "#f4ebff",
-    borderRadius: 8,
-    marginLeft: 10,
+  suggestionRow: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0e9fb",
+    backgroundColor: "#fff",
   },
-  titleLogo: {
-    width: 280,
-    height: 25,
-    marginTop: 0,
-  },
+  suggestionRowSelected: { backgroundColor: "#6c2eb9" },
+
+  // --- FAB Styles ---
   fabButton: {
     backgroundColor: "#800080",
     flexDirection: "row",

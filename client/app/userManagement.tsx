@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -13,8 +13,8 @@ import {
   Platform,
   Alert,
   StatusBar,
-  FlatList,
   Animated,
+  SafeAreaView, // Added for correct mobile safe area handling
 } from "react-native";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
 import { SearchBar } from "react-native-elements";
@@ -26,6 +26,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import MobileDropdown from "@/app/MobileDropdown";
 import AdminTabs from "@/components/AdminTabs";
 import { Image } from "react-native";
+import AppHeader from "@/components/AppHeader"; // ✅ ADDED UNIFIED HEADER IMPORT
 
 interface User {
   id?: string;
@@ -39,7 +40,6 @@ interface User {
   accessLevel?: number;
 }
 
-// The provided Organization interface
 interface Organization {
   _id?: string;
   organization?: string;
@@ -51,10 +51,8 @@ interface Organization {
   industry?: string;
 }
 
-const headerPaddingTop = useMemo(() => {
-  if (Platform.OS === "ios") return 60;
-  return (StatusBar.currentHeight || 24) + 24;
-}, []);
+// Fixed Header height offset value, mirroring the logic used in TestManagement
+const FIXED_HEADER_HEIGHT_OFFSET = 105;
 
 export default function UserManagement() {
   const { width } = useWindowDimensions();
@@ -80,6 +78,15 @@ export default function UserManagement() {
   const [modifyModalVisible, setModifyModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [addOrgModalVisible, setAddOrgModalVisible] = useState(false);
+
+  // FAB States
+  const [showTabs, setShowTabs] = useState(true);
+  const [showFabLabel, setShowFabLabel] = useState(true);
+  const fabScale = useRef(new Animated.Value(1)).current;
+  // NEW: FAB Menu State
+  const [fabMenuVisible, setFabMenuVisible] = useState(false);
+
+  // REMOVED: headerPaddingTop calculation as it's handled by AppHeader + ScrollView marginTop
 
   // Country codes data
   const countryCodes = [
@@ -181,6 +188,31 @@ export default function UserManagement() {
     "Faridabad",
   ];
 
+  // --- Scroll Logic for FAB and Tabs ---
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+
+    if (offsetY > 50) {
+      setShowTabs(false);
+      if (showFabLabel) {
+        setShowFabLabel(false);
+        Animated.spring(fabScale, {
+          toValue: 0.75,
+          useNativeDriver: true,
+        }).start();
+      }
+    } else {
+      setShowTabs(true);
+      if (!showFabLabel) {
+        setShowFabLabel(true);
+        Animated.spring(fabScale, {
+          toValue: 1,
+          useNativeDriver: true,
+        }).start();
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -202,13 +234,16 @@ export default function UserManagement() {
       }
     };
     fetchOrgs();
-  }, []);
+  }, [axiosInstance, fetchOrganizations]);
 
   useEffect(() => {
     if (search.trim()) {
       setFilteredUsers(
-        users.filter((u) =>
-          u.username?.toLowerCase().includes(search.toLowerCase()),
+        users.filter(
+          (u) =>
+            u.username?.toLowerCase().includes(search.toLowerCase()) ||
+            u.email?.toLowerCase().includes(search.toLowerCase()) ||
+            u.organization?.toLowerCase().includes(search.toLowerCase()),
         ),
       );
     } else {
@@ -287,7 +322,6 @@ export default function UserManagement() {
 
     setLoadingAdd(true);
     try {
-      // Combine country code with contact
       const fullContact = countryCallingCode + contact;
       const response = await addUser({
         username,
@@ -333,20 +367,16 @@ export default function UserManagement() {
 
     setOrgLoading(true);
     try {
-      // Combine country code with contact
       const fullContact = orgCountryCallingCode + orgSpocContact;
-
-      // *** UPDATED PAYLOAD to match Organization interface ***
       const response = await addOrganization({
         organization: orgName,
         spoc: orgSpoc,
-        spoc_email: orgSpocEmail, // Changed from email
-        spoc_contact: fullContact, // Changed from contact
-        org_location: orgLocation || undefined, // Changed from location
+        spoc_email: orgSpocEmail,
+        spoc_contact: fullContact,
+        org_location: orgLocation || undefined,
         businessUnit: orgBusinessUnit || undefined,
         industry: orgIndustry || undefined,
       });
-      // *** END OF UPDATE ***
 
       if (response.success) {
         showSnack("Organization added successfully");
@@ -400,10 +430,10 @@ export default function UserManagement() {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: [
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-          "application/vnd.ms-excel", // .xls
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "application/vnd.ms-excel",
         ],
-        copyToCacheDirectory: false, // Recommended for web
+        copyToCacheDirectory: false,
       });
       if (!result.assets || result.assets.length === 0) {
         console.log("No file selected or picker was cancelled.");
@@ -414,22 +444,18 @@ export default function UserManagement() {
       const formData = new FormData();
 
       if (Platform.OS === "web") {
-        // On WEB, we need to append the 'File' object itself.
-        // DocumentPicker provides it in `file.file`.
         if (file.file) {
           formData.append("file", file.file as any);
         } else {
-          // Fallback: If `file.file` isn't there, fetch the blob from the URI
           const response = await fetch(file.uri);
           const blob = await response.blob();
           formData.append("file", blob, file.name);
         }
       } else {
-        // On NATIVE (iOS/Android), we append the special object
         formData.append("file", {
           uri: file.uri,
           name: file.name,
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // We hard-code the type
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         } as any);
       }
 
@@ -438,7 +464,6 @@ export default function UserManagement() {
 
       if (uploadResponse.success) {
         showSnack("Users added successfully");
-        // We should also refresh the user list here
         const res = await axiosInstance.get("/users");
         setUsers(res.data.reverse());
       } else {
@@ -449,6 +474,7 @@ export default function UserManagement() {
       showSnack(error.message || "Error uploading file");
     } finally {
       setBulkLoading(false);
+      setBulkModalVisible(false); // Close modal on completion/failure
     }
   };
 
@@ -457,7 +483,6 @@ export default function UserManagement() {
     setSelectedUser(user);
     setModUsername(user.username || "");
     setModEmail(user.email || "");
-    // Extract country code from contact if present
     const contactStr = String(user.contact || "");
     if (contactStr.startsWith("+")) {
       const match = contactStr.match(/^(\+\d{1,3})(.+)$/);
@@ -517,7 +542,7 @@ export default function UserManagement() {
     }
   };
 
-  // === DELETE USER ===
+  // === DELETE USER (Flag) ===
   const openDeleteModal = (user: User) => {
     setDelEmail(user.email || "");
     setDeleteModalVisible(true);
@@ -542,132 +567,136 @@ export default function UserManagement() {
     }
   };
 
-  // --- FAB SCROLL LOGIC ---
-  const [showTabs, setShowTabs] = useState(true);
-  const [showFabLabel, setShowFabLabel] = useState(true);
-  const fabScale = useRef(new Animated.Value(1)).current;
-
-  const handleScroll = (event: any) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-
-    if (offsetY > 50) {
-      setShowTabs(false);
-
-      if (showFabLabel) {
-        setShowFabLabel(false);
-        Animated.spring(fabScale, {
-          toValue: 0.75, // Scale down the FAB button
-          useNativeDriver: true,
-        }).start();
-      }
-    } else {
-      setShowTabs(true);
-
-      if (!showFabLabel) {
-        setShowFabLabel(true);
-        Animated.spring(fabScale, {
-          toValue: 1, // Scale up the FAB button
-          useNativeDriver: true,
-        }).start();
-      }
-    }
-  };
-
   // Adjust bottom position based on AdminTabs visibility
   const fabBottom = showTabs ? 100 : 30;
+  const displayUsers = search ? filteredUsers : users;
 
   return (
     <View style={styles.container}>
-      <View style={[styles.headerArc, { paddingTop: headerPaddingTop }]}>
-        <Image
-          source={require("../assets/images/title-logos/title.png")}
-          style={styles.titleLogo}
-          resizeMode="contain"
-        />
-      </View>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View
-          style={[
-            styles.inlineButtonsContainer,
-            !isMobile && styles.inlineButtonsContainerWeb,
-          ]}
+      {/* --- FIXED HEADER --- */}
+      <AppHeader
+        logoSource={require("../assets/images/title-logos/title.png")}
+      />
+      {/* REMOVED: View style={[styles.headerArc, { paddingTop: headerPaddingTop }]} */}
+
+      <SafeAreaView style={{ flex: 1, marginTop: FIXED_HEADER_HEIGHT_OFFSET }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         >
-          <TouchableOpacity
-            style={[styles.inlineButton, { backgroundColor: "#800080" }]}
-            onPress={() => setAddUserModalVisible(true)}
-          >
-            <FontAwesome5 name="user-plus" size={18} color="#fff" />
-            <Text style={styles.inlineButtonText}>Add User</Text>
-          </TouchableOpacity>
+          {/* Search Bar */}
+          <View style={[styles.searchContainer, !isMobile && styles.searchWeb]}>
+            <SearchBar
+              placeholder="Search users..."
+              value={search}
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              onChangeText={handleSearchChange}
+              round
+              platform="default"
+              containerStyle={styles.searchBarContainer}
+              inputContainerStyle={styles.searchInputContainer}
+              inputStyle={styles.searchInput}
+            />
+          </View>
 
-          <TouchableOpacity
-            style={[styles.inlineButton, { backgroundColor: "#9b59b6" }]}
-            onPress={() => setBulkModalVisible(true)}
-          >
-            <FontAwesome5 name="users" size={18} color="#fff" />
-            <Text style={styles.inlineButtonText}>Add Bulk Users</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.searchContainer, !isMobile && styles.searchWeb]}>
-          <SearchBar
-            placeholder="Search users..."
-            value={search}
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore - react-native-elements SearchBar has conflicting type definitions
-            onChangeText={handleSearchChange}
-            round
-            platform="default"
-            containerStyle={styles.searchBarContainer}
-            inputContainerStyle={styles.searchInputContainer}
-            inputStyle={styles.searchInput}
-          />
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
-        ) : (filteredUsers.length ? filteredUsers : users).length === 0 ? (
-          <Text style={styles.noUsersText}>No users found.</Text>
-        ) : (
-          (filteredUsers.length ? filteredUsers : users).map((user) => (
-            <View
-              key={user.id}
-              style={[styles.card, !isMobile && styles.cardWeb]}
-            >
-              <View style={tw`flex-row justify-between items-center mb-2`}>
-                <Text style={styles.userName}>{user.username}</Text>
-                <View style={tw`flex-row`}>
-                  <Pressable
-                    onPress={() => openModifyModal(user)}
-                    style={tw`mr-4`}
-                  >
-                    <Feather name="edit" size={20} color="#800080" />
-                  </Pressable>
-                  <Pressable onPress={() => openDeleteModal(user)}>
-                    <Feather name="trash-2" size={20} color="red" />
-                  </Pressable>
+          {/* User Cards List */}
+          {loading ? (
+            <ActivityIndicator size="large" color="#800080" style={tw`mt-10`} />
+          ) : displayUsers.length === 0 ? (
+            <Text style={styles.noUsersText}>No users found.</Text>
+          ) : (
+            displayUsers.map((user) => (
+              <View
+                key={user.id}
+                style={[styles.card, !isMobile && styles.cardWeb]}
+              >
+                <View style={tw`flex-row justify-between items-center mb-2`}>
+                  <Text style={styles.userName}>{user.username}</Text>
+                  <View style={tw`flex-row`}>
+                    <Pressable
+                      onPress={() => openModifyModal(user)}
+                      style={tw`mr-4`}
+                    >
+                      <Feather name="edit" size={20} color="#800080" />
+                    </Pressable>
+                    <Pressable onPress={() => openDeleteModal(user)}>
+                      <Feather name="trash-2" size={20} color="red" />
+                    </Pressable>
+                  </View>
+                </View>
+                <View style={styles.infoBox}>
+                  <Text style={styles.infoText}>📧 {user.email}</Text>
+                  <Text style={styles.infoText}>📞 {user.contact}</Text>
+                  <Text style={styles.infoText}>🏢 {user.organization}</Text>
+                  <Text style={styles.infoText}>💼 {user.designation}</Text>
+                  {user.role && (
+                    <Text style={styles.infoText}>👤 Role: {user.role}</Text>
+                  )}
+                  <Text style={styles.infoText}>📍 {user.location}</Text>
                 </View>
               </View>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoText}>📧 {user.email}</Text>
-                <Text style={styles.infoText}>📞 {user.contact}</Text>
-                <Text style={styles.infoText}>🏢 {user.organization}</Text>
-                <Text style={styles.infoText}>💼 {user.designation}</Text>
-                {user.role && (
-                  <Text style={styles.infoText}>👤 Role: {user.role}</Text>
-                )}
-                <Text style={styles.infoText}>📍 {user.location}</Text>
-              </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
+            ))
+          )}
+        </ScrollView>
+      </SafeAreaView>
 
-      {/* === Add User Modal === */}
+      {/* --- FLOATING ACTION BUTTON AND MENU --- */}
+      {fabMenuVisible && (
+        <View style={[styles.fabMenuOverlay, { bottom: fabBottom + 60 }]}>
+          <TouchableOpacity
+            style={styles.fabMenuItem}
+            onPress={() => {
+              setFabMenuVisible(false);
+              setBulkModalVisible(true);
+            }}
+          >
+            <Feather name="upload-cloud" size={16} color="#4b0082" />
+            <Text style={styles.fabMenuText}>Bulk Upload</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.fabMenuItem, { marginTop: 10 }]}
+            onPress={() => {
+              setFabMenuVisible(false);
+              setAddUserModalVisible(true);
+            }}
+          >
+            <Feather name="user-plus" size={16} color="#4b0082" />
+            <Text style={styles.fabMenuText}>Add Single User</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <Animated.View
+        style={[
+          styles.fabContainer,
+          { bottom: fabBottom, transform: [{ scale: fabScale }] },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.fabButton}
+          onPress={() => setFabMenuVisible((prev) => !prev)} // Toggle menu
+        >
+          <Feather
+            name={fabMenuVisible ? "x" : "plus"} // Change icon based on menu state
+            size={24}
+            color="#fff"
+            style={{ marginRight: showFabLabel ? 8 : 0 }}
+          />
+          {showFabLabel && <Text style={styles.fabLabel}>Add User</Text>}
+        </TouchableOpacity>
+      </Animated.View>
+      {/* --- END FAB --- */}
+
+      {/* === Add User Modal === (Remains the same) */}
       <Modal
         visible={addUserModalVisible}
         animationType="slide"
@@ -1006,7 +1035,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Bulk Upload Modal === */}
+      {/* === Bulk Upload Modal === (Remains the same) */}
       <Modal
         visible={bulkModalVisible}
         animationType="slide"
@@ -1087,7 +1116,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Modify User Modal === */}
+      {/* === Modify User Modal === (Remains the same) */}
       <Modal
         visible={modifyModalVisible}
         animationType="slide"
@@ -1333,7 +1362,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Delete User Modal === */}
+      {/* === Delete User Modal === (Remains the same) */}
       <Modal
         visible={deleteModalVisible}
         animationType="fade"
@@ -1367,7 +1396,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Add Organization Modal === */}
+      {/* === Add Organization Modal === (Remains the same) */}
       <Modal
         visible={addOrgModalVisible}
         animationType="slide"
@@ -1617,7 +1646,7 @@ export default function UserManagement() {
           </View>
         </View>
       </Modal>
-      <AdminTabs />
+      <AdminTabs visible={showTabs} />
       <SnackHost />
     </View>
   );
@@ -1625,55 +1654,21 @@ export default function UserManagement() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f6ff" },
-  headerArc: {
-    backgroundColor: "#800080",
-    width: "100%",
-    paddingBottom: 36,
+  // REMOVED: headerArc style
+  // REMOVED: titleLogo style
+  scrollContent: {
+    paddingBottom: 40,
+    paddingHorizontal: 10,
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    // Note: marginTop is applied to SafeAreaView wrapper to fix header
   },
-  headerText: {
-    color: "#fff",
-    fontSize: 26,
-    fontWeight: "bold",
-    letterSpacing: 1,
-    paddingTop: 15,
-  },
-  scrollContent: { paddingBottom: 40 },
-  inlineButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "90%",
-    alignSelf: "center",
-    marginBottom: 10,
-  },
-  inlineButtonsContainerWeb: { width: 700, justifyContent: "space-between" },
-  inlineButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginHorizontal: 5,
-    gap: 8,
-  },
-  scrollContent: { paddingBottom: 40, paddingHorizontal: 10 }, // Adjusted padding for main content
-  // REMOVED: inlineButtonsContainer and inlineButtonsContainerWeb styles
-  // REMOVED: inlineButton and inlineButtonText styles
-  searchContainer: { marginVertical: 10, marginHorizontal: 2 }, // Adjusted margin
-  searchWeb: { alignSelf: "center", width: 700 },
+  searchContainer: { marginVertical: 10, marginHorizontal: 2, width: "95%" },
+  searchWeb: { width: 700 },
   searchBarContainer: {
     backgroundColor: "transparent",
     borderTopWidth: 0,
     borderBottomWidth: 0,
+    padding: 0,
   },
   searchInputContainer: {
     backgroundColor: "#fff",
@@ -1696,7 +1691,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f0e6fa",
   },
-  cardWeb: { width: 700, alignSelf: "center" },
+  cardWeb: { width: 700 },
   userName: { fontSize: 18, fontWeight: "700", color: "#4b0082" },
   infoBox: { marginTop: 6 },
   infoText: { color: "#333", fontSize: 14, marginBottom: 3 },
@@ -1827,11 +1822,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginBottom: 8,
-  },
-  orgInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
   },
   orgInputWrapper: {
     flex: 1,
@@ -1965,9 +1955,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  titleLogo: {
-    width: 280,
-    height: 25,
-    marginTop: 0,
+
+  // --- FAB STYLES ---
+  fabButton: {
+    backgroundColor: "#800080",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 30,
+    elevation: 6,
+    shadowColor: "#800080",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
   },
+  fabLabel: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  fabContainer: {
+    position: "absolute",
+    right: 20,
+    zIndex: 999,
+  },
+
+  // --- FAB MENU STYLES ---
+  fabMenuOverlay: {
+    position: "absolute",
+    right: 20,
+    zIndex: 998,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  fabMenuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#f9f6ff",
+    borderRadius: 8,
+    width: 150, // Fixed width for visibility
+  },
+  fabMenuText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4b0082",
+  },
+  // END FAB STYLES
 });
