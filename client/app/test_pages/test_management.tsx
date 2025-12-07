@@ -32,12 +32,12 @@ import AppHeader from "@/components/AppHeader";
 
 // TYPES
 type Assessment = {
-  _id: string;
-  title: string;
-  roles: string[];
-  questions: { text: string; options: { text: string }[] }[];
-  createdAt: string;
-  deadline?: string;
+    _id: string;
+    title: string;
+    roles: string[];
+    questions: { _id: string; text: string; options: { text: string }[] }[];
+    createdAt: string;
+    deadline?: string;
 };
 
 const { width } = Dimensions.get("window");
@@ -226,49 +226,86 @@ export default function TestManagement() {
       if (rowsData.items && Array.isArray(rowsData.items))
         rowsData = rowsData.items;
 
-      const keys = new Set<string>();
-      rowsData.forEach((r: any) => {
-        const answers = r.answers || {};
-        Object.keys(answers).forEach((k) => keys.add(k));
-      });
-      const questionKeys = Array.from(keys);
+        const questionIdToTextMap: Record<string, string> = {};
+        const questionHeaders: string[] = [];
 
-      const rows = rowsData.map((respRow: any, idx: number) => {
-        const base: Record<string, any> = {
-          "#": idx + 1,
-          Name: respRow.user?.name || respRow.user?.username || "Anonymous",
-          Email: respRow.user?.email || "",
-          Designation: respRow.user?.designation || "",
-          SubmittedAt: respRow.submittedAt
-            ? new Date(respRow.submittedAt).toLocaleString()
-            : "",
-        };
-        questionKeys.forEach((qk) => {
-          const ans = (respRow.answers && respRow.answers[qk]) || "";
-          base[qk] =
-            ans && typeof ans === "object"
-              ? (ans.option ?? ans.text ?? "")
-              : typeof ans === "string"
-                ? ans
-                : "";
+        assessment.questions.forEach((q, index) => {
+            // Fallback: If title is too long, truncate it? for now keeping full text
+            const headerTitle = q.text || `Question ${index + 1}`;
+            questionHeaders.push(headerTitle);
+
+            // Map the ID to this title
+            if (q._id) {
+                questionIdToTextMap[q._id] = headerTitle;
+            }
         });
-        return base;
-      });
 
-      const worksheet = XLSXLib.utils.json_to_sheet(rows, {
-        header: [
-          "#",
-          "Name",
-          "Email",
-          "Designation",
-          "SubmittedAt",
-          ...questionKeys,
-        ],
-      });
-      const workbook = XLSXLib.utils.book_new();
-      XLSXLib.utils.book_append_sheet(workbook, worksheet, "Responses");
+        const rows = rowsData.map((respRow: any, idx: number) => {
+            // A. Basic User Info
+            const base: Record<string, any> = {
+                "#": idx + 1,
+                Name: respRow.user?.name || respRow.user?.username || "Anonymous",
+                Email: respRow.user?.email || "",
+                Designation: respRow.user?.designation || "",
+                Score: respRow.score !== undefined ? respRow.score : "N/A", // Added Score if available
+                SubmittedAt: respRow.submittedAt
+                    ? new Date(respRow.submittedAt).toLocaleString()
+                    : "",
+            };
 
-      const fileName = `${sanitizeFileName(assessment.title)}-responses.xlsx`;
+            assessment.questions.forEach((q) => {
+                const headerName = questionIdToTextMap[q._id] || q.text;
+
+                // Find the answer in the response object using the Question ID
+                const answerObj = respRow.answers ? respRow.answers[q._id] : null;
+
+                let readableAnswer = "-"; // Default if not attempted
+
+                if (answerObj) {
+                    if (typeof answerObj === "string") {
+                        readableAnswer = answerObj;
+                    } else if (typeof answerObj === "object") {
+                        // Priority 1: The 'option' text usually stored by backend
+                        // Priority 2: The 'text' property
+                        // Priority 3: The 'value' property
+                        readableAnswer = answerObj.option || answerObj.text || answerObj.value || "";
+
+                        // OPTIONAL: If your backend returns correct/incorrect status
+                        /* if (answerObj.isCorrect === true) readableAnswer += " (Correct)";
+                        if (answerObj.isCorrect === false) readableAnswer += " (Wrong)";
+                        */
+                    }
+                }
+
+                base[headerName] = readableAnswer;
+            });
+
+            return base;
+        });
+
+
+        const finalHeaders = [
+            "#",
+            "Name",
+            "Email",
+            "Designation",
+            "Score", // Added Score column
+            "SubmittedAt",
+            ...questionHeaders, // The readable Question Texts
+        ];
+
+        const worksheet = XLSXLib.utils.json_to_sheet(rows, {
+            header: finalHeaders,
+        });
+
+        // Auto-adjust column width (optional, basic estimate)
+        const wscols = finalHeaders.map(h => ({ wch: h.length + 5 }));
+        worksheet['!cols'] = wscols;
+
+        const workbook = XLSXLib.utils.book_new();
+        XLSXLib.utils.book_append_sheet(workbook, worksheet, "Responses");
+
+        const fileName = `${sanitizeFileName(assessment.title)}-responses.xlsx`;
 
       if (Platform.OS === "web") {
         const wbout = XLSXLib.write(workbook, {
