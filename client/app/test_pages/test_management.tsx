@@ -204,50 +204,46 @@ export default function TestManagement() {
       }
 
       let mod: any;
-      try {
-        // Dynamically import xlsx
-        mod = await import("xlsx");
-      } catch (impErr) {
-        console.error("Failed to import xlsx dynamically:", impErr);
-        Toast.show({
-          type: "error",
-          text1: "Missing dependency: xlsx",
-          text2: "Install xlsx and restart the app",
-        });
-        return;
-      }
-      const XLSXLib = mod?.default || mod;
-      if (!XLSXLib || !XLSXLib.utils) {
-        Toast.show({ type: "error", text1: "xlsx module loaded incorrectly" });
-        return;
-      }
+        try {
+            mod = await import("xlsx-js-style");
+        } catch (impErr) {
+            console.error("Failed to import xlsx-js-style:", impErr);
+            try {
+                mod = await import("xlsx");
+            } catch (e) {
+                Toast.show({
+                    type: "error",
+                    text1: "Missing dependency",
+                    text2: "Please install xlsx-js-style",
+                });
+                return;
+            }
+        }
+        const XLSXLib = mod?.default || mod;
 
-      let rowsData = data;
-      if (rowsData.items && Array.isArray(rowsData.items))
-        rowsData = rowsData.items;
+        let rowsData = data;
+        if (rowsData.items && Array.isArray(rowsData.items))
+            rowsData = rowsData.items;
 
         const questionIdToTextMap: Record<string, string> = {};
         const questionHeaders: string[] = [];
 
         assessment.questions.forEach((q, index) => {
-            // Fallback: If title is too long, truncate it? for now keeping full text
             const headerTitle = q.text || `Question ${index + 1}`;
             questionHeaders.push(headerTitle);
-
-            // Map the ID to this title
             if (q._id) {
                 questionIdToTextMap[q._id] = headerTitle;
             }
         });
 
         const rows = rowsData.map((respRow: any, idx: number) => {
-            // A. Basic User Info
             const base: Record<string, any> = {
                 "#": idx + 1,
                 Name: respRow.user?.name || respRow.user?.username || "Anonymous",
                 Email: respRow.user?.email || "",
+                Organization: respRow.user?.organization || "N/A", // Added
+                Location: respRow.user?.location || "N/A",         // Added
                 Designation: respRow.user?.designation || "",
-                Score: respRow.score !== undefined ? respRow.score : "N/A", // Added Score if available
                 SubmittedAt: respRow.submittedAt
                     ? new Date(respRow.submittedAt).toLocaleString()
                     : "",
@@ -255,77 +251,86 @@ export default function TestManagement() {
 
             assessment.questions.forEach((q) => {
                 const headerName = questionIdToTextMap[q._id] || q.text;
-
-                // Find the answer in the response object using the Question ID
                 const answerObj = respRow.answers ? respRow.answers[q._id] : null;
-
-                let readableAnswer = "-"; // Default if not attempted
+                let readableAnswer = "-";
 
                 if (answerObj) {
                     if (typeof answerObj === "string") {
                         readableAnswer = answerObj;
                     } else if (typeof answerObj === "object") {
-                        // Priority 1: The 'option' text usually stored by backend
-                        // Priority 2: The 'text' property
-                        // Priority 3: The 'value' property
-                        readableAnswer = answerObj.option || answerObj.text || answerObj.value || "";
-
-                        // OPTIONAL: If your backend returns correct/incorrect status
-                        /* if (answerObj.isCorrect === true) readableAnswer += " (Correct)";
-                        if (answerObj.isCorrect === false) readableAnswer += " (Wrong)";
-                        */
+                        readableAnswer =
+                            answerObj.option || answerObj.text || answerObj.value || "";
                     }
                 }
-
                 base[headerName] = readableAnswer;
             });
 
             return base;
         });
 
-
         const finalHeaders = [
             "#",
             "Name",
             "Email",
+            "Organization",
+            "Location",
             "Designation",
-            "Score", // Added Score column
             "SubmittedAt",
-            ...questionHeaders, // The readable Question Texts
+            ...questionHeaders,
         ];
 
         const worksheet = XLSXLib.utils.json_to_sheet(rows, {
             header: finalHeaders,
         });
 
-        // Auto-adjust column width (optional, basic estimate)
-        const wscols = finalHeaders.map(h => ({ wch: h.length + 5 }));
-        worksheet['!cols'] = wscols;
+        const range = XLSXLib.utils.decode_range(worksheet['!ref']);
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const address = XLSXLib.utils.encode_cell({ r: 0, c: C }); // Row 0
+            if (!worksheet[address]) continue;
+
+            // Apply Style Object (supported by xlsx-js-style)
+            worksheet[address].s = {
+                font: {
+                    bold: true,
+                    sz: 12,      // slightly larger font
+                    color: { rgb: "FFFFFF" } // White text
+                },
+                fill: {
+                    fgColor: { rgb: "4b0082" } // Purple background (matches your app theme)
+                },
+                alignment: { horizontal: "center" }
+            };
+        }
+
+        // Auto-width cols
+        const wscols = finalHeaders.map((h) => ({ wch: h.length + 5 }));
+        worksheet["!cols"] = wscols;
 
         const workbook = XLSXLib.utils.book_new();
         XLSXLib.utils.book_append_sheet(workbook, worksheet, "Responses");
 
         const fileName = `${sanitizeFileName(assessment.title)}-responses.xlsx`;
 
-      if (Platform.OS === "web") {
-        const wbout = XLSXLib.write(workbook, {
-          bookType: "xlsx",
-          type: "array",
-        });
-        const blob = new Blob([wbout], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        Toast.show({ type: "success", text1: "Downloaded Responses" });
-        return;
-      }
+        // 5. Download / Save (Standard Logic)
+        if (Platform.OS === "web") {
+            const wbout = XLSXLib.write(workbook, {
+                bookType: "xlsx",
+                type: "array",
+            });
+            const blob = new Blob([wbout], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            Toast.show({ type: "success", text1: "Downloaded Responses" });
+            return;
+        }
 
       const wbbase64 = XLSXLib.write(workbook, {
         bookType: "xlsx",
