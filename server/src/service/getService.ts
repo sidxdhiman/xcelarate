@@ -1,88 +1,3 @@
-// import { IntegerType } from "mongodb";
-// import { Organization, User, Assessment, Response } from "../database";
-// import mongoose from "mongoose";
-
-// export class GetService {
-//   public async getUsers() {
-//     try {
-//       const users = await User.find({});
-//       return users;
-//     } catch (error) {
-//       console.error("Error fetching users from database:", error);
-//       throw new Error('Error fetching users');
-//     }
-//   }
-// }
-// export class GetByIdService {
-//   public async getUserbyId(userId: String){
-//     try {
-//       const result = await User.findOne({userId: userId});
-//       return result;
-//     } catch (error) {
-//       console.error("Error fetching user", error);
-//       throw new Error('Error fetching users');
-//     }
-//   }
-// }
-// export class GetOrganization {
-//   public async getOrganizations() {
-//     try {
-//       const organizations = await Organization.find({});
-//       return organizations;
-//     } catch (error) {
-//       console.error("Error fetching data from database:", error);
-//       throw new Error('Error fetching data');
-//     }
-//   }
-// }
-// export class GetAssessment {
-//   public async getAssessment() {
-//     try {
-//       const assessments = await Assessment.find({});
-//       return assessments;
-//     } catch (error) {
-//       console.error("Error in fetching Assessments", error);
-//       throw new Error('Error in fetching data');
-//     }
-//   }
-// }
-
-// export class GetAssessmentById {
-//   public async getAssessmentbyId(Id: string) {
-//     try {
-//       const assessment = await Assessment.findById(Id);
-//       return assessment;
-//     } catch (error) {
-//       console.error("Error fetching the Assessment", error);
-//       throw new Error("Error fetching assessment");
-//     }
-//   }
-// }
-
-// export class GetResponseByAssessmentId {
-//   public async getResponseByAssessmentId(id: string) {
-//     try {
-//       const response = await Response.find({ assessmentId: id });
-//       return response;
-//     } catch (error) {
-//       console.log("Error fetching response:", error);
-//       throw new Error("Error fetching response by assessment ID");
-//     }
-//   }
-// }
-
-// export class GetRoles {
-//   public async getRoles() {
-//     try {
-//       const roles = await User.distinct("role");
-//       return roles;
-//     } catch (error) {
-//       console.error("Error fetching roles:", error);
-//       throw new Error("Error fetching roles");
-//     }
-//   }
-// }
-
 import { IntegerType } from "mongodb";
 import { Organization, User, Assessment, Response } from "../database";
 import mongoose from "mongoose";
@@ -149,7 +64,20 @@ export class GetAssessmentById {
 export class GetResponseByAssessmentId {
     public async getResponseByAssessmentId(id: string) {
         try {
-            const response = await Response.find({ assessmentId: id });
+            console.log(`DEBUG: Fetching responses for Assessment ID: ${id}`);
+
+            const response = await Response.find({ assessmentId: id })
+                .populate("user", "name email designation organization location")
+                .sort({ submittedAt: -1 });
+
+            // 🔥 DEBUG LOGS - Check the first response in the terminal 🔥
+            if (response.length > 0) {
+                const firstUser = response[0].user;
+                console.log("DEBUG: First Response User Data found in DB:", JSON.stringify(firstUser, null, 2));
+            } else {
+                console.log("DEBUG: No responses found in DB.");
+            }
+
             return response;
         } catch (error) {
             console.log("Error fetching response:", error);

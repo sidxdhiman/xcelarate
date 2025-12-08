@@ -27,7 +27,7 @@ import AdminTabs from "@/components/AdminTabs";
 import { Animated } from "react-native";
 import { Image } from "react-native";
 import AppHeader from "@/components/AppHeader";
-// Note: XLSX is imported dynamically in the download function
+
 // TYPES
 type Assessment = {
   _id: string;
@@ -203,6 +203,8 @@ export default function TestManagement() {
       if (rowsData.items && Array.isArray(rowsData.items))
         rowsData = rowsData.items;
 
+      console.log("DEBUG: First User Object:", rowsData[0]?.user);
+
       const questionIdToTextMap: Record<string, string> = {};
       const questionHeaders: string[] = [];
 
@@ -219,7 +221,7 @@ export default function TestManagement() {
           "#": idx + 1,
           Name: respRow.user?.name || respRow.user?.username || "Anonymous",
           Email: respRow.user?.email || "",
-          Organization: respRow.user?.organization || "N/A", // Added
+            Organization: respRow.user?.organization || "N/A",
           Location: respRow.user?.location || "N/A", // Added
           Designation: respRow.user?.designation || "",
           SubmittedAt: respRow.submittedAt

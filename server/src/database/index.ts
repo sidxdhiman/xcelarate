@@ -83,6 +83,8 @@ const userStartSchema = new mongoose.Schema({
   email: String,
   department: String,
   phone: String,
+    organization: String,
+    location: String,
 });
 
 const responseSchema = new mongoose.Schema({
@@ -104,6 +106,8 @@ const responseSchema = new mongoose.Schema({
     phone: String,
     designation: String,
     department: String,
+      organization: String,
+      location: String,
   },
   location: {
     lat: Number,

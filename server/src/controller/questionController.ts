@@ -140,13 +140,13 @@ export class questionController {
         return res.status(400).json({ message: "Invalid Assessment ID" });
 
       // Save response
-      const saved = await new PostResponse().postResponse(assessmentId, {
-        answers,
-        user,
-        startedAt,
-        submittedAt,
-        location,
-      });
+        const saved = await new PostResponse().postResponse(assessmentId, {
+            answers,
+            user: user, // <--- Saves { name, email, organization, location... }
+            startedAt,
+            submittedAt,
+            location,
+        });
 
       // Update user assessment progress
       const submittingUser = await User.findOne({ email: user.email });
