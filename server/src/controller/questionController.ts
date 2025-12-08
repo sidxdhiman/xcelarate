@@ -497,7 +497,12 @@ import mongoose from "mongoose";
 import PDFDocument from "pdfkit";
 import * as fs from "fs"; // <--- ADDED THIS IMPORT
 
-import { Assessment, Response as AssessmentResponse, User } from "../database";
+import {
+  Assessment,
+  Response as AssessmentResponse,
+  User,
+  UserAssessment,
+} from "../database";
 
 import {
     PostQuestion,
@@ -526,11 +531,11 @@ class UserService {
                 return await User.find({}).lean().exec();
             }
 
-            const assignedUsers = await User.find({
-                role: { $in: roles },
-            })
-                .lean()
-                .exec();
+      const assignedUsers = await User.find({
+        role: { $in: roles },
+      })
+        .lean()
+        .exec();
 
             return assignedUsers;
         } catch (e) {
@@ -578,12 +583,25 @@ export class questionController {
                 // Case 2: File is on disk (DiskStorage)
                 fileBuffer = fs.readFileSync(req.file.path);
 
+<<<<<<< HEAD
                 // Optional: Clean up the file after reading to save space
                 try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore error */ }
             } else {
                 throw new Error("File buffer and path are both missing.");
             }
             // -------------------------------------------------
+=======
+        // Optional: Clean up the file after reading to save space
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          /* ignore error */
+        }
+      } else {
+        throw new Error("File buffer and path are both missing.");
+      }
+      // -------------------------------------------------
+>>>>>>> 75f0db6a (progress-update)
 
             const parser = new ParseBulkQuestions();
             const result = await parser.parseExcel(fileBuffer);
@@ -642,6 +660,7 @@ export class questionController {
                 return res.status(400).json({ message: "Invalid Assessment Id" });
             }
 
+<<<<<<< HEAD
             if (
                 !answers ||
                 typeof answers !== "object" ||
@@ -668,6 +687,41 @@ export class questionController {
             console.error("[submitResponse] Error:", error);
             res.status(500).json({ message: "Internal Server Error" });
         }
+=======
+      // 1. Save the actual submitted response
+      const saved = await new PostResponse().postResponse(assessmentId, {
+        answers,
+        user,
+        startedAt,
+        submittedAt,
+        location,
+      });
+
+      // 2. Get the submitting user from DB (using email)
+      const submittingUser = await User.findOne({ email: user.email });
+
+      if (submittingUser) {
+        // 3. Mark in UserAssessment as completed
+        await UserAssessment.findOneAndUpdate(
+          {
+            assessmentId,
+            userId: submittingUser._id,
+          },
+          {
+            status: "completed",
+            completedAt: new Date(),
+          },
+        );
+      }
+
+      // 4. Respond to client
+      return res
+        .status(201)
+        .json({ message: "Response submitted successfully", saved });
+    } catch (error) {
+      console.error("[submitResponse] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+>>>>>>> 75f0db6a (progress-update)
     }
 
     // -------------------- GET RESPONSES BY ASSESSMENT ID --------------------
@@ -679,6 +733,7 @@ export class questionController {
                 return res.status(400).json({ message: "Invalid Assessment ID" });
             }
 
+<<<<<<< HEAD
             const responseData =
                 await new GetResponseByAssessmentId().getResponseByAssessmentId(id);
 
@@ -687,6 +742,16 @@ export class questionController {
                     .status(404)
                     .json({ message: "No response found for this assessment" });
             }
+=======
+      const responseData =
+        await new GetResponseByAssessmentId().getResponseByAssessmentId(id);
+
+      if (!responseData || responseData.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No response found for this assessment" });
+      }
+>>>>>>> 75f0db6a (progress-update)
 
             res.status(200).json(responseData);
         } catch (error) {
@@ -705,11 +770,19 @@ export class questionController {
                 return res.status(400).json({ message: "Invalid Assessment ID" });
             }
 
+<<<<<<< HEAD
             const updatedAssessment =
                 await new PatchAssessmentService().patchAssessmentById(
                     assessmentId,
                     updateData,
                 );
+=======
+      const updatedAssessment =
+        await new PatchAssessmentService().patchAssessmentById(
+          assessmentId,
+          updateData,
+        );
+>>>>>>> 75f0db6a (progress-update)
 
             res.status(200).json({
                 message: "Assessment updated successfully",
@@ -730,19 +803,62 @@ export class questionController {
                 return res.status(400).json({ message: "Invalid Assessment ID" });
             }
 
+<<<<<<< HEAD
             const assessment = await new GetAssessmentById().getAssessmentbyId(id);
             const responses =
                 await new GetResponseByAssessmentId().getResponseByAssessmentId(id);
+=======
+      const assessment = await new GetAssessmentById().getAssessmentbyId(id);
+      const responses =
+        await new GetResponseByAssessmentId().getResponseByAssessmentId(id);
+>>>>>>> 75f0db6a (progress-update)
 
             if (!assessment) {
                 return res.status(404).json({ message: "Assessment not found" });
             }
 
+<<<<<<< HEAD
             const doc = new PDFDocument();
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader(
                 "Content-Disposition",
                 `attachment; filename=assessment_${id}.pdf`,
+=======
+      const doc = new PDFDocument();
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=assessment_${id}.pdf`,
+      );
+
+      doc.pipe(res);
+
+      doc
+        .fontSize(20)
+        .text("Assessment Report", { align: "center" })
+        .moveDown();
+      doc.fontSize(14).text(`Assessment: ${assessment.title || "Untitled"}`);
+      doc.moveDown();
+
+      if (assessment.questions && assessment.questions.length > 0) {
+        doc.fontSize(16).text("Questions:", { underline: true }).moveDown(0.5);
+
+        assessment.questions.forEach((q: any, index: number) => {
+          doc.fontSize(12).text(`${index + 1}. ${q.text}`);
+        });
+        doc.moveDown();
+      }
+
+      if (responses && responses.length > 0) {
+        doc.fontSize(16).text("Responses:", { underline: true }).moveDown(0.5);
+
+        responses.forEach((resp: any, idx: number) => {
+          doc.fontSize(12).text(`Response ${idx + 1}:`);
+          if (resp.user?.name) doc.text(`- User: ${resp.user.name}`);
+          if (resp.submittedAt)
+            doc.text(
+              `- Submitted At: ${new Date(resp.submittedAt).toLocaleString()}`,
+>>>>>>> 75f0db6a (progress-update)
             );
 
             doc.pipe(res);
@@ -821,6 +937,7 @@ export class questionController {
         try {
             const assessmentId = req.params.id;
 
+<<<<<<< HEAD
             if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
                 return res.status(400).json({ message: "Invalid Assessment ID" });
             }
@@ -842,8 +959,46 @@ export class questionController {
             console.error("[deactivateAssessment] Error:", error);
             res.status(500).json({ message: "Internal Server Error" });
         }
+=======
+      if (!assessmentId || !filterType || !filterValue) {
+        return res.status(400).json({ message: "Missing parameters" });
+      }
+
+      // 1. Find users matching filter
+      const users = await User.find({ [filterType]: filterValue });
+
+      if (users.length === 0)
+        return res.status(400).json({ message: "No users found" });
+
+      // 2. Save pending user assignments
+      for (const user of users) {
+        await UserAssessment.findOneAndUpdate(
+          { assessmentId, userId: user._id },
+          { status: "pending", assignedAt: new Date() },
+          { upsert: true },
+        );
+      }
+
+      // 3. Continue sending emails
+      const sender = new PostSendAssessment();
+      const result = await sender.sendAssessmentEmail({
+        assessmentId,
+        filterType,
+        filterValue,
+      });
+
+      return res.status(200).json({
+        message: "Assessment sent successfully",
+        assignedCount: users.length,
+        details: result,
+      });
+    } catch (error: any) {
+      console.error("[sendAssessment] ERROR:", error);
+      return res.status(500).json({ message: error.message });
+>>>>>>> 75f0db6a (progress-update)
     }
 
+<<<<<<< HEAD
     // -------------------- GET DEACTIVATED ASSESSMENTS --------------------
     public static async getDeactivatedAssessments(req: Request, res: Response) {
         try {
@@ -861,8 +1016,36 @@ export class questionController {
             console.error("[getDeactivatedAssessments] Error:", error);
             res.status(500).json({ message: "Internal Server Error" });
         }
+=======
+  // -------------------- DEACTIVATE ASSESSMENT --------------------
+  public static async deactivateAssessment(req: Request, res: Response) {
+    try {
+      const assessmentId = req.params.id;
+
+      if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+        return res.status(400).json({ message: "Invalid Assessment ID" });
+      }
+
+      const deactivated = await Assessment.findByIdAndUpdate(
+        assessmentId,
+        { isActive: false },
+        { new: true },
+      );
+
+      if (!deactivated) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      res
+        .status(200)
+        .json({ message: "Assessment deactivated successfully", deactivated });
+    } catch (error) {
+      console.error("[deactivateAssessment] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+>>>>>>> 75f0db6a (progress-update)
     }
 
+<<<<<<< HEAD
     // -------------------- ACTIVATE ASSESSMENT --------------------
     public static async activateAssessment(req: Request, res: Response) {
         try {
@@ -889,6 +1072,24 @@ export class questionController {
             console.error("[activateAssessment] Error:", error);
             res.status(500).json({ message: "Internal Server Error" });
         }
+=======
+  // -------------------- GET DEACTIVATED ASSESSMENTS --------------------
+  public static async getDeactivatedAssessments(req: Request, res: Response) {
+    try {
+      const assessmentData = await Assessment.find({ isActive: false }).sort({
+        _id: -1,
+      });
+      if (assessmentData) {
+        res.status(200).json(assessmentData);
+      } else {
+        res
+          .status(404)
+          .json({ message: "Error in fetching deactivated assessments" });
+      }
+    } catch (error) {
+      console.error("[getDeactivatedAssessments] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+>>>>>>> 75f0db6a (progress-update)
     }
 
     // -------------------- GET ASSESSMENT PROGRESS --------------------
@@ -900,10 +1101,18 @@ export class questionController {
                 return res.status(400).json({ message: "Invalid Assessment ID" });
             }
 
+<<<<<<< HEAD
             const assessment = await Assessment.findById(assessmentId, { title: 1 });
             if (!assessment) {
                 return res.status(404).json({ message: "Assessment not found" });
             }
+=======
+      const activated = await Assessment.findByIdAndUpdate(
+        assessmentId,
+        { isActive: true },
+        { new: true },
+      );
+>>>>>>> 75f0db6a (progress-update)
 
             const completedResponses: any = await AssessmentResponse.find(
                 {
@@ -913,6 +1122,7 @@ export class questionController {
                 { user: 1, submittedAt: 1, _id: 1 },
             );
 
+<<<<<<< HEAD
             const completedUsers = completedResponses.map((r: any) => ({
                 _id: r._id.toString(),
                 name: r.user?.name || "N/A",
@@ -956,6 +1166,14 @@ export class questionController {
             console.error("[getAssessmentProgress] Error:", error);
             res.status(500).json({ message: "Internal Server Error" });
         }
+=======
+      res
+        .status(200)
+        .json({ message: "Assessment activated successfully", activated });
+    } catch (error) {
+      console.error("[activateAssessment] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+>>>>>>> 75f0db6a (progress-update)
     }
     // -------------------- SEND REMINDER --------------------
     public static async sendReminder(req: Request, res: Response) {
@@ -967,6 +1185,7 @@ export class questionController {
                 return res.status(400).json({ message: "Invalid Assessment ID" });
             }
 
+<<<<<<< HEAD
             if (!Array.isArray(userIds) || userIds.length === 0) {
                 return res
                     .status(400)
@@ -998,3 +1217,92 @@ export class questionController {
         }
     }
 }
+=======
+      const assessment = await Assessment.findById(assessmentId, { title: 1 });
+      if (!assessment)
+        return res.status(404).json({ message: "Assessment not found" });
+
+      const assignments = await UserAssessment.find({ assessmentId }).populate<{
+        userId: any;
+      }>("userId", "name email designation");
+
+      const completedUsers = [];
+      const pendingUsers = [];
+
+      for (const a of assignments) {
+        const user: any = a.userId as any;
+        if (!user || typeof user !== "object") continue;
+
+        if (a.status === "completed") {
+          completedUsers.push({
+            _id: user._id,
+            name: user.name ?? "N/A",
+            email: user.email ?? "N/A",
+            designation: user.designation ?? "N/A",
+            submittedAt: a.completedAt,
+          });
+        } else {
+          pendingUsers.push({
+            _id: user._id,
+            name: user.name ?? "N/A",
+            email: user.email ?? "N/A",
+            designation: user.designation ?? "N/A",
+          });
+        }
+      }
+
+      res.json({
+        _id: assessmentId,
+        title: assessment.title,
+        assignedCount: assignments.length,
+        completedCount: completedUsers.length,
+        completedUsers,
+        pendingUsers,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+  // -------------------- SEND REMINDER --------------------
+  public static async sendReminder(req: Request, res: Response) {
+    try {
+      const assessmentId = req.params.id;
+      const { userIds } = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+        return res.status(400).json({ message: "Invalid Assessment ID" });
+      }
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "User IDs (userIds array) required for reminder." });
+      }
+
+      const reminderService = new PostReminder();
+      const reminderResult = await reminderService.sendReminderToUsers(
+        assessmentId,
+        userIds,
+      );
+
+      if (!reminderResult || typeof reminderResult.userCount !== "number") {
+        return res
+          .status(500)
+          .json({ message: "Reminder service returned invalid data." });
+      }
+
+      res.status(200).json({
+        message: `Reminder successfully queued for ${reminderResult.userCount} users.`,
+        details: reminderResult,
+      });
+    } catch (error: any) {
+      console.error("[sendReminder] Error:", error);
+      const status = error?.status || 500;
+      res
+        .status(status)
+        .json({ message: error.message || "Failed to send reminders" });
+    }
+  }
+}
+>>>>>>> 75f0db6a (progress-update)

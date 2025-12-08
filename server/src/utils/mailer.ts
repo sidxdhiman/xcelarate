@@ -2,32 +2,29 @@ import nodemailer from "nodemailer";
 
 export async function sendMail(to: string, subject: string, html: string) {
   try {
-    console.log(`📨 Connecting to Brevo on Port 2525...`);
+    console.log(`📨 Connecting to Gmail SMTP on Port 587...`);
 
     const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 2525,             // <--- THIS IS THE FIX. Port 2525 bypasses firewalls.
-      secure: false,          // Must be false for 2525
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // Gmail requires false for 587
       auth: {
-        user: process.env.EMAIL_USER, // Your Brevo Login Email
-        pass: process.env.EMAIL_PASS, // Your Brevo Master Password or SMTP Key
+        user: process.env.EMAIL_USER, // your Gmail
+        pass: process.env.EMAIL_PASS, // your Gmail App Password
       },
-      tls: {
-        rejectUnauthorized: false // Helps with handshake issues
-      }
     });
 
     const info = await transporter.sendMail({
-      from: `"Xcelarate Assessment" <no-reply@brevo.com>`,
-      to: to,
-      subject: subject,
-      html: html,
+      from: `"Xcelarate Assessment" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
     });
 
     console.log(`✅ Email sent successfully! Message ID: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error(`❌ Failed to send email via Brevo:`, error);
+    console.error(`❌ Failed to send email via Gmail:`, error);
     return false;
   }
 }
