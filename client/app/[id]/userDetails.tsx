@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     // paddingTop: 100,
     // paddingHorizontal: 16,
     flex: 1,
-    paddingTop: 70,
+    // paddingTop: 70,
   },
 
   scrollContainer: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   //   elevation: 4,
   // },
   card: {
-    width: "100%",
+    width: "90%",
     maxWidth: 400,
     alignSelf: "center",
     backgroundColor: "white",
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#1c001c",
     marginBottom: 20,
@@ -239,14 +239,14 @@ const styles = StyleSheet.create({
 
   label: {
     color: "#800080",
-    fontSize: 14,
-    marginBottom: 6,
+    fontSize: 12,
+    marginBottom: 4,
     marginLeft: 6,
     fontWeight: "600",
   },
 
   input: {
-    height: 48,
+    height: 40,
     borderColor: "#800080",
     borderWidth: 1.5,
     borderRadius: 10,

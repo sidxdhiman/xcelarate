@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
 
   wrapper: {
     flex: 1,
-    paddingTop: 70,
+    // paddingTop: 70,
     // ❌ removed backgroundColor: 'rgba(255,255,255,0.85)'
   },
 
@@ -134,9 +134,11 @@ const styles = StyleSheet.create({
   },
 
   card: {
+    marginTop: 165,
     width: "100%",
     maxWidth: 400,
     alignSelf: "center",
+    justifyContent: "center",
     backgroundColor: "white",
     padding: 24,
     borderRadius: 16,
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#1c001c",
     marginBottom: 20,
@@ -156,13 +158,13 @@ const styles = StyleSheet.create({
   },
 
   introText: {
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 12,
     color: "#222",
   },
 
   bulletText: {
-    fontSize: 15,
+    fontSize: 12,
     color: "#333",
     marginBottom: 8,
   },
@@ -175,7 +177,7 @@ const styles = StyleSheet.create({
 
   checkboxText: {
     marginLeft: 10,
-    fontSize: 15,
+    fontSize: 12,
   },
 
   button: {

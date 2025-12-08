@@ -1654,15 +1654,14 @@ export default function UserManagement() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f6ff" },
-  // REMOVED: headerArc style
-  // REMOVED: titleLogo style
   scrollContent: {
     paddingBottom: 40,
     paddingHorizontal: 10,
     alignItems: "center",
-    // Note: marginTop is applied to SafeAreaView wrapper to fix header
+    maxWidth: 700,
+    alignSelf: "center",
   },
-  searchContainer: { marginVertical: 10, marginHorizontal: 2, width: "95%" },
+  searchContainer: { marginVertical: 10, marginHorizontal: 2, width: "140%" },
   searchWeb: { width: 700 },
   searchBarContainer: {
     backgroundColor: "transparent",
@@ -1686,10 +1685,13 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     padding: 16,
-    margin: 10,
+    margin: 5,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#f0e6fa",
+    width: "140%",
+    maxWidth: 700,
+    alignSelf: "center",
   },
   cardWeb: { width: 700 },
   userName: { fontSize: 18, fontWeight: "700", color: "#4b0082" },
@@ -1954,9 +1956,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },
+  }, // --- FAB STYLES ---
 
-  // --- FAB STYLES ---
   fabButton: {
     backgroundColor: "#800080",
     flexDirection: "row",
@@ -1978,10 +1979,10 @@ const styles = StyleSheet.create({
   fabContainer: {
     position: "absolute",
     right: 20,
+    bottom: 30,
     zIndex: 999,
-  },
+  }, // --- FAB MENU STYLES ---
 
-  // --- FAB MENU STYLES ---
   fabMenuOverlay: {
     position: "absolute",
     right: 20,
@@ -2002,13 +2003,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: "#f9f6ff",
     borderRadius: 8,
-    width: 150, // Fixed width for visibility
+    width: 150,
   },
   fabMenuText: {
     marginLeft: 8,
     fontSize: 14,
     fontWeight: "600",
     color: "#4b0082",
-  },
-  // END FAB STYLES
+  }, // END FAB STYLES
 });
