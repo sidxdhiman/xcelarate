@@ -1656,12 +1656,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f6ff" },
   scrollContent: {
     paddingBottom: 40,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    maxWidth: 700,
-    alignSelf: "center",
+    paddingHorizontal: 20, // Increased padding for better side margins
+    width: "100%", // Ensure it takes full width of the parent
+    maxWidth: 700, // Keep the max width for tablet/web
+    alignSelf: "center", // Center the content container
+    marginTop: 10, // Optional: Add a little space below the header
   },
-  searchContainer: { marginVertical: 10, marginHorizontal: 2, width: "140%" },
+  searchContainer: {
+    marginVertical: 10,
+    width: "100%", // Fit within the scrollContent padding
+  },
   searchWeb: { width: 700 },
   searchBarContainer: {
     backgroundColor: "transparent",
@@ -1685,13 +1689,16 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     padding: 16,
-    margin: 5,
+    marginVertical: 8, // Vertical spacing between cards
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#f0e6fa",
-    width: "140%",
-    maxWidth: 700,
-    alignSelf: "center",
+    width: "100%", // Fit within the scrollContent padding
+    elevation: 2, // Optional: slight shadow for depth
+    shadowColor: "#000", // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   cardWeb: { width: 700 },
   userName: { fontSize: 18, fontWeight: "700", color: "#4b0082" },

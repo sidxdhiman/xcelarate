@@ -33,9 +33,9 @@ router.get("/organizations/", orgController.getOrg);
 
 // --- BULK UPLOAD FOR ORGS ---
 router.post(
-    "/organizations/bulkUpload",
-    upload.single("file"),
-    orgController.postOrgBulk,
+  "/organizations/bulkUpload",
+  upload.single("file"),
+  orgController.postOrgBulk,
 );
 
 //question crud
@@ -43,9 +43,9 @@ router.post("/assessments", questionController.postQuestion);
 
 // 🚀 NEW: BULK UPLOAD QUESTIONS ROUTE 🚀
 router.post(
-    "/assessments/bulk-parse",
-    upload.single("file"),
-    questionController.parseBulkQuestions
+  "/assessments/bulk-parse",
+  upload.single("file"),
+  questionController.parseBulkQuestions,
 );
 
 router.get("/assessments", questionController.getAssessmentFunction);
@@ -89,5 +89,15 @@ router.patch(
   "/assessments/:id/activate",
   questionController.activateAssessment,
 ); //new route to reactivate assessment
+
+router.get(
+  "/assessments/:id/analysis",
+  questionController.getAssessmentAnalysis,
+);
+
+router.get(
+  "/assessments/:id/responses",
+  questionController.getIndividualResponses,
+);
 
 export default router;

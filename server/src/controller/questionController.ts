@@ -25,6 +25,10 @@ import {
 
 import { PatchAssessmentService } from "../service/patchService";
 
+import { GetAssessmentAnalysis } from "../service/getService";
+
+import { GetAssessmentIndividualResponses } from "../service/getService";
+
 import { DeleteService } from "../service/deleteService";
 
 // ------------------------------------------------------------
@@ -140,13 +144,13 @@ export class questionController {
         return res.status(400).json({ message: "Invalid Assessment ID" });
 
       // Save response
-        const saved = await new PostResponse().postResponse(assessmentId, {
-            answers,
-            user: user, // <--- Saves { name, email, organization, location... }
-            startedAt,
-            submittedAt,
-            location,
-        });
+      const saved = await new PostResponse().postResponse(assessmentId, {
+        answers,
+        user: user, // <--- Saves { name, email, organization, location... }
+        startedAt,
+        submittedAt,
+        location,
+      });
 
       // Update user assessment progress
       const submittingUser = await User.findOne({ email: user.email });
@@ -457,6 +461,38 @@ export class questionController {
     } catch (error: any) {
       console.error("[sendReminder] Error:", error);
       res.status(500).json({ message: error.message });
+    }
+  }
+  public static async getAssessmentAnalysis(req: Request, res: Response) {
+    try {
+      const id = req.params.id;
+      if (!mongoose.Types.ObjectId.isValid(id))
+        return res.status(400).json({ message: "Invalid Assessment ID" });
+
+      const analysis = await new GetAssessmentAnalysis().getAnalysis(id);
+
+      res.status(200).json(analysis);
+    } catch (error) {
+      console.error("[getAssessmentAnalysis] Error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  public static async getIndividualResponses(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { userId } = req.query; // Optional query param ?userId=...
+
+      const data =
+        await new GetAssessmentIndividualResponses().getIndividualResponses(
+          id,
+          typeof userId === "string" ? userId : undefined,
+        );
+
+      res.status(200).json(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server Error" });
     }
   }
 }

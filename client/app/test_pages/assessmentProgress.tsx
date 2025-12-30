@@ -141,7 +141,6 @@ export default function AssessmentProgress() {
   };
 
   // --- Render User Card ---
-  // --- Render User Card ---
   const renderUserItem = ({ item }: { item: User }) => {
     // Use safe fallbacks for potentially missing data fields from the server
     const userName = item.name || "Unknown User";
@@ -266,6 +265,26 @@ export default function AssessmentProgress() {
             <Text style={styles.progressHint}>
               Completion Rate: {progressPercent.toFixed(1)}%
             </Text>
+
+            {/* --- NEW ANALYSIS BUTTON --- */}
+            <TouchableOpacity
+              style={styles.analysisBtn}
+              onPress={() => {
+                router.push({
+                  pathname: "/test_pages/assessmentAnalysis",
+                  params: { id: assessment._id },
+                });
+              }}
+            >
+              <Icon
+                name="bar-chart"
+                size={16}
+                color="#fff"
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.analysisBtnText}>Analysis</Text>
+            </TouchableOpacity>
+            {/* --------------------------- */}
           </View>
 
           <View style={styles.hr} />
@@ -440,6 +459,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#888",
   },
+
+  // --- NEW STYLES FOR ANALYSIS BUTTON ---
+  analysisBtn: {
+    marginTop: 16,
+    backgroundColor: "#6c2eb9",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  analysisBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  // --------------------------------------
 
   hr: {
     width: "100%",

@@ -10,163 +10,252 @@ import {
   Text,
   Modal,
   Animated,
-  Dimensions,
   SafeAreaView,
-  Pressable, // Ensure Pressable is imported
+  Pressable,
+  Easing,
+  Alert,
 } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 
-// Define the width of the sliding sidebar
-const SIDEBAR_WIDTH = 280;
-const { width: screenWidth } = Dimensions.get("window");
+// --- Configuration ---
+const SIDEBAR_WIDTH = 300;
+const PRIMARY_COLOR = "#800080"; // Xebia Purple
+const ACCENT_BG_COLOR = "#f3e5f5"; // Light purple for tablet background
+const DANGER_COLOR = "#dc2626"; // Red for logout
 
+// --- Types ---
 interface AppHeaderProps {
-  // Pass the required image source dynamically
-  // Using the standard ImageSourcePropType which covers all needed source types
   logoSource: ImageSourcePropType;
-  // An optional title to display if the logo isn't enough, or a secondary element
   children?: React.ReactNode;
+  activeRouteName?: string;
+  onNavigate?: (route: string) => void;
 }
 
-// Helper Component for Sidebar Items - Defined outside AppHeader but before styles
-const SidebarItem: React.FC<{
+interface MenuItemProps {
   icon: keyof typeof Feather.glyphMap;
   label: string;
+  isActive: boolean;
   onPress: () => void;
-}> = ({ icon, label, onPress }) => (
-  <TouchableOpacity style={styles.sidebarItem} onPress={onPress}>
-    <Feather name={icon} size={18} color="#4b0082" style={styles.sidebarIcon} />
-    <Text style={styles.sidebarLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+  isDanger?: boolean;
+}
 
-const AppHeader: React.FC<AppHeaderProps> = ({ logoSource, children }) => {
+// --- Components ---
+
+// 1. Curved Tablet Menu Item
+const SidebarItem: React.FC<MenuItemProps> = ({
+  icon,
+  label,
+  isActive,
+  onPress,
+  isDanger = false,
+}) => {
+  const iconColor = isDanger ? DANGER_COLOR : isActive ? PRIMARY_COLOR : "#666";
+
+  const labelStyle = [
+    styles.sidebarLabel,
+    isDanger && { color: DANGER_COLOR },
+    isActive && { color: PRIMARY_COLOR, fontWeight: "700" as const },
+  ];
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.tabletItem,
+        isActive && styles.tabletItemActive,
+        pressed && styles.tabletItemPressed,
+      ]}
+      android_ripple={{
+        color: isDanger ? "#fee2e2" : "#e9d5ff",
+        borderless: false,
+      }}
+    >
+      <Feather
+        name={icon}
+        size={20}
+        color={iconColor}
+        style={styles.sidebarIcon}
+      />
+      <Text style={labelStyle}>{label}</Text>
+    </Pressable>
+  );
+};
+
+const AppHeader: React.FC<AppHeaderProps> = ({
+  logoSource,
+  children,
+  activeRouteName = "",
+  onNavigate,
+}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const slideAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
 
+  // Animation Values
+  const slideAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Handle Safe Area
   const headerPaddingTop = useMemo(() => {
-    if (Platform.OS === "ios") return 60;
-    // Android status bar height plus extra padding
-    return (StatusBar.currentHeight || 24) + 24;
+    if (Platform.OS === "ios") return 50;
+    return (StatusBar.currentHeight || 24) + 15;
   }, []);
 
   const openMenu = () => {
     setIsMenuOpen(true);
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.poly(4)),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   const closeMenu = () => {
-    Animated.timing(slideAnim, {
-      toValue: -SIDEBAR_WIDTH,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => setIsMenuOpen(false));
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -SIDEBAR_WIDTH,
+        duration: 250,
+        easing: Easing.in(Easing.poly(4)),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setIsMenuOpen(false));
   };
 
-  const handleNavigation = (page: string) => {
-    console.log(`Navigating to: ${page}`);
+  const handleInternalNav = (route: string) => {
     closeMenu();
-    // In a real project, you would use a navigation library here:
-    // router.push(page);
+    if (onNavigate) {
+      setTimeout(() => onNavigate(route), 50);
+    }
   };
+
+  const handleLogout = () => {
+    Alert.alert("Log Out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log Out",
+        style: "destructive",
+        onPress: () => handleInternalNav("/logout"),
+      },
+    ]);
+  };
+
+  const bottomMenuItems = [
+    { label: "Settings", icon: "settings", route: "/settings" },
+    { label: "Help & Support", icon: "help-circle", route: "/help" },
+  ] as const;
 
   return (
     <>
+      {/* --- Fixed Header --- */}
       <View style={[styles.headerContainer, { paddingTop: headerPaddingTop }]}>
-        {/* Menu Button - Top Left */}
-        <TouchableOpacity style={styles.menuButton} onPress={openMenu}>
-          <Feather name="menu" size={24} color="#fff" />
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={openMenu}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          {/* Changed name="menu" to name="chevron-right" */}
+          <Feather name="chevron-right" size={34} color="#fff" />
         </TouchableOpacity>
 
-        {/* Logo */}
+        {/* Header Image (Large) */}
         <Image
           source={logoSource}
           style={styles.titleLogo}
           resizeMode="contain"
         />
+        <View style={{ width: 28 }} />
         {children}
       </View>
 
-      {/* Sidebar Modal */}
+      {/* --- Sidebar Modal --- */}
       <Modal
         visible={isMenuOpen}
         transparent={true}
         animationType="none"
         onRequestClose={closeMenu}
       >
-        <View style={styles.modalOverlay}>
-          {/* Backdrop/Click outside to close */}
-          <Pressable style={styles.backdrop} onPress={closeMenu} />
+        <View style={styles.modalContainer}>
+          {/* Backdrop */}
+          <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
+            <Pressable style={{ flex: 1 }} onPress={closeMenu} />
+          </Animated.View>
 
-          {/* Animated Sidebar Panel */}
+          {/* Sidebar Panel */}
           <Animated.View
             style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}
           >
-            <SafeAreaView style={styles.sidebarContent}>
-              {/* Profile Section (Always on top) */}
-              <TouchableOpacity
-                style={styles.profileSection}
-                onPress={() => handleNavigation("/profile")}
-              >
-                <View style={styles.profileIcon}>
-                  <Feather name="user" size={24} color="#fff" />
-                </View>
-                <Text style={styles.profileText}>My Profile</Text>
-                <Feather name="chevron-right" size={20} color="#6c2eb9" />
-              </TouchableOpacity>
+            <SafeAreaView style={styles.sidebarSafeArea}>
+              {/* Top Profile Section */}
+              <View style={styles.sidebarHeader}>
+                <Pressable
+                  style={styles.profileCard}
+                  onPress={() => handleInternalNav("/profile")}
+                  android_ripple={{ color: ACCENT_BG_COLOR }}
+                >
+                  <View style={styles.profileAvatar}>
+                    <Feather name="user" size={20} color={PRIMARY_COLOR} />
+                  </View>
+                  <View style={styles.profileInfo}>
+                    <Text style={styles.profileName}>John Doe</Text>
+                    <Text style={styles.profileRole}>View Profile</Text>
+                  </View>
+                </Pressable>
 
-              {/* Menu Divider */}
+                <TouchableOpacity onPress={closeMenu} style={styles.closeBtn}>
+                  <Feather name="x" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
               <View style={styles.divider} />
 
-              {/* Main Navigation Items (Placeholder list) */}
-              <View style={styles.mainNav}>
+              {/* Main Menu Area (EMPTY as requested) */}
+              <View style={{ flex: 1 }}>
+                {/* This section is intentionally left blank */}
+              </View>
+
+              {/* Bottom Menu Area */}
+              <View style={styles.bottomMenuContainer}>
+                <Text style={styles.sectionTitle}>OPTIONS</Text>
+
+                {bottomMenuItems.map((item) => (
+                  <SidebarItem
+                    key={item.label}
+                    {...item}
+                    isActive={activeRouteName === item.label}
+                    onPress={() => handleInternalNav(item.route)}
+                  />
+                ))}
+
+                <View style={[styles.divider, { marginVertical: 10 }]} />
+
                 <SidebarItem
-                  icon="home"
-                  label="Dashboard"
-                  onPress={() => handleNavigation("/")}
-                />
-                <SidebarItem
-                  icon="clipboard"
-                  label="Assessments"
-                  onPress={() => handleNavigation("/test_management")}
-                />
-                <SidebarItem
-                  icon="users"
-                  label="User Management"
-                  onPress={() => handleNavigation("/user_management")}
+                  icon="log-out"
+                  label="Log Out"
+                  route="/logout"
+                  isActive={false}
+                  isDanger={true}
+                  onPress={handleLogout}
                 />
               </View>
 
-              {/* Spacer */}
-              <View style={{ flex: 1 }} />
-
-              {/* Bottom Menu Items */}
-              <View>
-                <SidebarItem
-                  icon="settings"
-                  label="Settings"
-                  onPress={() => handleNavigation("/settings")}
-                />
-                <SidebarItem
-                  icon="help-circle"
-                  label="Help & Support"
-                  onPress={() => handleNavigation("/help")}
-                />
-              </View>
-
-              {/* Xebia Logo (Bottom) */}
-              <View style={styles.xebiaLogoContainer}>
-                <Text style={styles.poweredByText}>Powered By</Text>
-                {/* Placeholder for Xebia Logo - replace with actual path if available */}
+              {/* Footer Logo */}
+              <View style={styles.footer}>
+                {/* EDIT PATH HERE FOR XEBIA LOGO */}
+                <Text>Powered By</Text>
                 <Image
-                  source={{
-                    uri: "https://placehold.co/100x30/FFFFFF/000?text=Xebia",
-                  }}
-                  style={styles.xebiaLogo}
+                  source={require("../assets/images/Xebia.png")}
+                  style={styles.footerLogo}
                   resizeMode="contain"
                 />
               </View>
@@ -179,144 +268,124 @@ const AppHeader: React.FC<AppHeaderProps> = ({ logoSource, children }) => {
 };
 
 const styles = StyleSheet.create({
+  // --- Header ---
   headerContainer: {
-    // Make the header fixed at the top
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 10, // Ensure it sits above the scrollview content
-    backgroundColor: "#800080", // Purple background from your original style
-    paddingBottom: 20, // Padding at the bottom of the content area
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 8, // Higher elevation for shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    flexDirection: "row", // Align logo and menu button horizontally
+    zIndex: 10,
+    backgroundColor: PRIMARY_COLOR,
+    paddingBottom: 15,
     paddingHorizontal: 16,
-  },
-  menuButton: {
-    position: "absolute",
-    left: 16,
-    bottom: 20,
-    padding: 8,
-    zIndex: 15,
-  },
-  titleLogo: {
-    width: 280,
-    height: 25,
-    marginTop: 0,
-  },
-
-  // Modal & Sidebar Styles
-  modalOverlay: {
-    flex: 1,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
+  menuButton: { padding: 1 },
+  titleLogo: { width: 250, height: 45 },
+
+  // --- Modal ---
+  modalContainer: { flex: 1, flexDirection: "row" },
   backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   sidebar: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
     width: SIDEBAR_WIDTH,
+    height: "100%",
     backgroundColor: "#fff",
-    zIndex: 20,
-    elevation: 15,
+    elevation: 20,
     shadowColor: "#000",
     shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowRadius: 15,
   },
-  sidebarContent: {
-    flex: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-  },
+  sidebarSafeArea: { flex: 1, backgroundColor: "#fff" },
 
-  // Profile Section Styles
-  profileSection: {
+  // --- Profile Header ---
+  sidebarHeader: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === "android" ? 40 : 20,
+    paddingBottom: 15,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginBottom: 10,
-    backgroundColor: "#f4ebff",
+  },
+  profileCard: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  profileAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: ACCENT_BG_COLOR,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
     borderWidth: 1,
     borderColor: "#e0d0ef",
   },
-  profileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#800080",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
+  profileInfo: { flex: 1, justifyContent: "center" },
+  profileName: { fontSize: 16, fontWeight: "700", color: "#333" },
+  profileRole: { fontSize: 13, color: PRIMARY_COLOR },
+  closeBtn: { padding: 6 },
+  divider: { height: 1, backgroundColor: "#eee", marginHorizontal: 16 },
+
+  // --- Bottom Section ---
+  bottomMenuContainer: {
+    paddingBottom: 10,
+    paddingHorizontal: 12, // Increased padding for tablet look
   },
-  profileText: {
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: 11,
+    color: "#aaa",
     fontWeight: "700",
-    color: "#4b0082",
-    flex: 1,
+    letterSpacing: 1,
+    marginBottom: 10,
+    marginLeft: 12,
   },
 
-  // Menu Item Styles
-  divider: {
-    height: 1,
-    backgroundColor: "#f0f0f0",
-    marginVertical: 10,
-  },
-  mainNav: {
-    marginBottom: 20,
-  },
-  sidebarItem: {
+  // --- Tablet Styles (Curved & Floating) ---
+  tabletItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    paddingHorizontal: 10,
-    marginVertical: 4,
-    borderRadius: 10,
-    // Note: React Native does not support CSS 'transition', but it remains for potential web compatibility
-    // and is harmless for native builds.
+    paddingHorizontal: 16,
+    marginBottom: 6,
+    borderRadius: 30, // High radius for pill/tablet shape
+    marginHorizontal: 4, // Floating effect away from edge
   },
-  sidebarIcon: {
-    width: 30,
-    marginRight: 10,
-    textAlign: "center",
+  tabletItemActive: {
+    backgroundColor: ACCENT_BG_COLOR,
   },
-  sidebarLabel: {
-    fontSize: 15,
-    color: "#32174d",
-    fontWeight: "600",
+  tabletItemPressed: {
+    backgroundColor: "#f5f5f5",
+    opacity: 0.8,
   },
+  sidebarIcon: { width: 24, marginRight: 12 },
+  sidebarLabel: { fontSize: 15, color: "#444", fontWeight: "500" },
 
-  // Xebia Logo Styles (Bottom)
-  xebiaLogoContainer: {
+  // --- Footer ---
+  footer: {
+    paddingVertical: 20,
     alignItems: "center",
-    marginTop: 20,
-    paddingTop: 10,
+    justifyContent: "center",
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
   },
-  poweredByText: {
-    fontSize: 12,
-    color: "#999",
-    marginBottom: 5,
-  },
-  xebiaLogo: {
-    width: 100,
-    height: 30,
-  },
+  footerLogo: { width: 120, height: 40 },
 });
 
-// Adding a dummy named export to assist module resolution in some environments
 export { AppHeader };
-
 export default AppHeader;
