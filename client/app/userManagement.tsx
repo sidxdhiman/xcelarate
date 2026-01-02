@@ -14,7 +14,7 @@ import {
   Alert,
   StatusBar,
   Animated,
-  SafeAreaView, // Added for correct mobile safe area handling
+  SafeAreaView,
 } from "react-native";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
 import { SearchBar } from "react-native-elements";
@@ -24,9 +24,9 @@ import tw from "twrnc";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import MobileDropdown from "@/app/MobileDropdown";
-import AdminTabs from "@/components/AdminTabs";
+import AdminTabs from "@/components/AdminTabs"; // Using the updated AdminTabs
 import { Image } from "react-native";
-import AppHeader from "@/components/AppHeader"; // ✅ ADDED UNIFIED HEADER IMPORT
+import AppHeader from "@/components/AppHeader";
 
 interface User {
   id?: string;
@@ -51,7 +51,6 @@ interface Organization {
   industry?: string;
 }
 
-// Fixed Header height offset value, mirroring the logic used in TestManagement
 const FIXED_HEADER_HEIGHT_OFFSET = 105;
 
 export default function UserManagement() {
@@ -83,10 +82,8 @@ export default function UserManagement() {
   const [showTabs, setShowTabs] = useState(true);
   const [showFabLabel, setShowFabLabel] = useState(true);
   const fabScale = useRef(new Animated.Value(1)).current;
-  // NEW: FAB Menu State
+  // Menu State
   const [fabMenuVisible, setFabMenuVisible] = useState(false);
-
-  // REMOVED: headerPaddingTop calculation as it's handled by AppHeader + ScrollView marginTop
 
   // Country codes data
   const countryCodes = [
@@ -188,28 +185,15 @@ export default function UserManagement() {
     "Faridabad",
   ];
 
-  // --- Scroll Logic for FAB and Tabs ---
+  // --- Scroll Logic for Tabs ---
   const handleScroll = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
 
     if (offsetY > 50) {
       setShowTabs(false);
-      if (showFabLabel) {
-        setShowFabLabel(false);
-        Animated.spring(fabScale, {
-          toValue: 0.75,
-          useNativeDriver: true,
-        }).start();
-      }
+      // Logic for shrinking/hiding labels if needed, but we removed the old FAB
     } else {
       setShowTabs(true);
-      if (!showFabLabel) {
-        setShowFabLabel(true);
-        Animated.spring(fabScale, {
-          toValue: 1,
-          useNativeDriver: true,
-        }).start();
-      }
     }
   };
 
@@ -568,7 +552,6 @@ export default function UserManagement() {
   };
 
   // Adjust bottom position based on AdminTabs visibility
-  const fabBottom = showTabs ? 100 : 30;
   const displayUsers = search ? filteredUsers : users;
 
   return (
@@ -583,7 +566,6 @@ export default function UserManagement() {
       <AppHeader
         logoSource={require("../assets/images/title-logos/title.png")}
       />
-      {/* REMOVED: View style={[styles.headerArc, { paddingTop: headerPaddingTop }]} */}
 
       <SafeAreaView style={{ flex: 1, marginTop: FIXED_HEADER_HEIGHT_OFFSET }}>
         <ScrollView
@@ -649,9 +631,12 @@ export default function UserManagement() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* --- FLOATING ACTION BUTTON AND MENU --- */}
+      {/* --- MENU OVERLAY (Updated Position) --- */}
+      {/* Moved to be centered (alignSelf: center) and bottom: 100
+          to float above the new center button in AdminTabs
+      */}
       {fabMenuVisible && (
-        <View style={[styles.fabMenuOverlay, { bottom: fabBottom + 60 }]}>
+        <View style={styles.fabMenuOverlay}>
           <TouchableOpacity
             style={styles.fabMenuItem}
             onPress={() => {
@@ -675,28 +660,16 @@ export default function UserManagement() {
         </View>
       )}
 
-      <Animated.View
-        style={[
-          styles.fabContainer,
-          { bottom: fabBottom, transform: [{ scale: fabScale }] },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.fabButton}
-          onPress={() => setFabMenuVisible((prev) => !prev)} // Toggle menu
-        >
-          <Feather
-            name={fabMenuVisible ? "x" : "plus"} // Change icon based on menu state
-            size={24}
-            color="#fff"
-            style={{ marginRight: showFabLabel ? 8 : 0 }}
-          />
-          {showFabLabel && <Text style={styles.fabLabel}>Add User</Text>}
-        </TouchableOpacity>
-      </Animated.View>
-      {/* --- END FAB --- */}
+      {/* --- REPLACED OLD FAB WITH ADMIN TABS --- */}
+      {/* Passing handleTabAddPress logic via prop to AdminTabs */}
+      <AdminTabs
+        visible={showTabs}
+        onAddPress={() => setFabMenuVisible((prev) => !prev)}
+      />
 
-      {/* === Add User Modal === (Remains the same) */}
+      <SnackHost />
+
+      {/* === Add User Modal === */}
       <Modal
         visible={addUserModalVisible}
         animationType="slide"
@@ -1035,7 +1008,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Bulk Upload Modal === (Remains the same) */}
+      {/* === Bulk Upload Modal === */}
       <Modal
         visible={bulkModalVisible}
         animationType="slide"
@@ -1116,7 +1089,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Modify User Modal === (Remains the same) */}
+      {/* === Modify User Modal === */}
       <Modal
         visible={modifyModalVisible}
         animationType="slide"
@@ -1362,7 +1335,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Delete User Modal === (Remains the same) */}
+      {/* === Delete User Modal === */}
       <Modal
         visible={deleteModalVisible}
         animationType="fade"
@@ -1396,7 +1369,7 @@ export default function UserManagement() {
         </View>
       </Modal>
 
-      {/* === Add Organization Modal === (Remains the same) */}
+      {/* === Add Organization Modal === */}
       <Modal
         visible={addOrgModalVisible}
         animationType="slide"
@@ -1646,8 +1619,6 @@ export default function UserManagement() {
           </View>
         </View>
       </Modal>
-      <AdminTabs visible={showTabs} />
-      <SnackHost />
     </View>
   );
 }
@@ -1963,36 +1934,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  }, // --- FAB STYLES ---
-
-  fabButton: {
-    backgroundColor: "#800080",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 30,
-    elevation: 6,
-    shadowColor: "#800080",
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
   },
-  fabLabel: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  fabContainer: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    zIndex: 999,
-  }, // --- FAB MENU STYLES ---
-
+  // --- UPDATED MENU STYLES ---
   fabMenuOverlay: {
     position: "absolute",
-    right: 20,
+    // Center alignment instead of right
+    alignSelf: "center",
+    bottom: 100, // Floats above the center tab button
     zIndex: 998,
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -2017,5 +1965,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#4b0082",
-  }, // END FAB STYLES
+  },
 });

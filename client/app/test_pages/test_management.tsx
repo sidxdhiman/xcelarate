@@ -221,7 +221,7 @@ export default function TestManagement() {
           "#": idx + 1,
           Name: respRow.user?.name || respRow.user?.username || "Anonymous",
           Email: respRow.user?.email || "",
-            Organization: respRow.user?.organization || "N/A",
+          Organization: respRow.user?.organization || "N/A",
           Location: respRow.user?.location || "N/A", // Added
           Designation: respRow.user?.designation || "",
           SubmittedAt: respRow.submittedAt
@@ -1002,25 +1002,6 @@ export default function TestManagement() {
       )}
       <AdminTabs visible={showTabs} />
       <Toast />
-      <Animated.View
-        style={[
-          styles.fabContainer,
-          { bottom: fabBottom, transform: [{ scale: fabScale }] },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.fabButton}
-          onPress={() => router.push("/test_pages/addTest")}
-        >
-          <Icon
-            name="pencil"
-            size={20}
-            color="#fff"
-            style={{ marginRight: showFabLabel ? 8 : 0 }}
-          />
-          {showFabLabel && <Text style={styles.fabLabel}>New Assessment</Text>}
-        </TouchableOpacity>
-      </Animated.View>
     </View>
   );
 }
